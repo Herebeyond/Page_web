@@ -1,0 +1,64 @@
+/* Style du menu principal */
+.menu {
+    list-style: none; /* Supprime les puces */
+    padding: 0;
+    margin: 0;
+    display: flex;
+}
+
+.menu-item {
+    position: relative; /* Nécessaire pour positionner le sous-menu */
+}
+
+.menu-item a {
+    text-decoration: none;
+    padding: 10px 20px;
+    display: block;
+    background-color: #007bff;
+    color: white;
+}
+
+.menu-item a:hover {
+    background-color: #0056b3; /* Changement de couleur au survol */
+}
+
+/* Style du sous-menu (caché par défaut) */
+.dropdown {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    position: absolute; /* Positionnement par rapport au parent */
+    top: 100%; /* En-dessous du menu principal */
+    left: 0;
+    display: none; /* Caché par défaut */
+    background-color: #007bff;
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+/* Style des éléments du sous-menu */
+.dropdown li a {
+    padding: 10px 20px;
+    display: block;
+    color: white;
+    text-decoration: none;
+}
+
+.dropdown li a:hover {
+    background-color: #0056b3; /* Changement de couleur au survol */
+}
+
+/* Afficher le sous-menu au survol */
+.menu-item:hover .dropdown {
+    display: block; /* Rend le sous-menu visible */
+}
+
+.dropdown {
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+.menu-item:hover .dropdown {
+    opacity: 1;
+    visibility: visible;
+}

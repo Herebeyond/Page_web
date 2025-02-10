@@ -1,0 +1,21 @@
+body {
+    padding: 0px;
+    margin: 0px;}
+
+table{
+    height: 100%;
+    width: 100%;
+    border-spacing: 0px;
+    padding: 0px;
+    border: 5px, solid;
+    border-color: black;}
+
+td {
+    height: 30px;
+    width: 30px;}
+
+.noir {
+    background-color: #000000}
+
+.blanc {
+    background-color: #FFFFFF}

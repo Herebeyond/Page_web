@@ -1,0 +1,346 @@
+@import url('https://fonts.googleapis.com/css2?family=Cinzel&display=swap');
+
+html body{
+    padding:0px;
+    margin: 0px;
+    
+}
+
+#difPages {
+    width: 50px;
+}
+
+#nav {
+    color: rgb(0, 0, 0); /* Couleur du texte */
+    padding: 10px; /* Espace autour du texte */
+    font-weight: bold; /* Texte en gras */
+}
+
+.divLi:hover {
+    background-color: #a1abff; /* Changement de couleur du menu au survol */
+    border-radius: 50px 50px 50px 50px;
+}
+
+.divLi {
+    padding-inline: 7px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: #222088; /* Couleur de fond du head du menu */
+    border-radius: 50px 50px 50px 50px;
+}
+
+.divLi > * {
+    padding-inline: 7px;
+    
+}
+
+.menu-item li:hover {
+    background-color: #a1abff; /* Changement de couleur du sous-menu au survol */
+}
+
+.menu-item {
+    position: relative; /* Nécessaire pour positionner le sous-menu */
+    padding-inline: 7px;
+    width: 100px;
+    height: fit-content + 10px;
+}
+
+.menu-item div a {
+    cursor: pointer;
+}
+
+.dropdown {
+    list-style: none; /* Supprime les puces */
+    padding: 0;
+    margin: 0;
+    position: absolute; /* Positionnement par rapport au parent */
+    top: 100%; /* En-dessous du menu principal */
+    left: 50%; /* Positionne le sous-menu au centre du parent */
+    transform: translateX(-50%); /* Décale le sous-menu de 50% de sa propre largeur vers la gauche */
+    display: none; /* Caché par défaut */
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1); /* Ombre portée */
+    width: 150px; /* Largeur du sous-menu */
+}
+
+.menu-item:hover .dropdown {
+    display: block; /* Rend le sous-menu visible lorsque le menu principal est survolé */
+}
+
+.dropdown li {
+    background-color: #222088; /* Couleur de fond de chaque élément du sous-menu */
+}
+
+.menu {
+    list-style: none; /* Supprime les puces */
+    padding: 0;
+    margin: 0;
+    display: flex;
+    height: fit-content;
+}
+
+.dropdown:after, .dropdown:before {  
+    bottom: -1px; /* Positionne le pseudo-élément en bas du parent */
+    content: ""; 
+    height: 0; 
+    left: 50%; /* Positionne le pseudo-élément au centre du parent */
+    pointer-events: none; /* Empêche le clic sur le pseudo-élément */
+    position: absolute;  /* Positionnement absolu par rapport au parent */
+    width: 0;
+    z-index: 2; /* Place le pseudo-élément au-dessus du sous-menu */
+}
+
+.small-icon {
+    width: 10px;
+    height: 10px;
+    /* je souhaite que l'icone soit en bas de sa div */
+    vertical-align: bottom;
+}
+
+#icon {
+    width: auto;
+    height: 100px;
+    margin-left: 50px;
+    margin-top: 0px;
+    border-radius: 100px 100px 100px 100px;
+}
+
+
+#enTete {
+    display: flex;
+    align-items: center; /* Centrer verticalement les enfants */
+    justify-content: space-between;
+    height: 140px;
+    background-color: black;
+    opacity: 0.92;
+    border-radius: 0 0 50px 50px;
+}
+
+#retour {
+    /* je souahite le mettre en position absolu */
+    position: absolute;
+
+}
+
+.TitrePrincipal {
+    padding: 10px;
+    font-size: 30px;
+    margin: 0px;
+    font-family: 'Cinzel', serif;
+    font-weight: bold;
+}
+
+#global { /* image de fond */
+    height:fit-content; /* règle la taille total de la page */
+    min-height: 100%;
+    width: 100%;
+    background-image: url('../images/52868b823af3ebefdfaa9ff87d9244a8.png');
+    background-size: 100vh; /* L'image couvre toute la page */
+    background-position: center; /* Centrer l'image */
+    background-size: cover; /* Ajuste l'image pour couvrir toute la surface */
+    background-attachment: fixed; /* L'image reste fixe pendant le défilement */
+    background-repeat: no-repeat; /* Empêche la répétition de l'image */
+
+}
+
+#divTitre {
+    display: grid;
+    place-items: center; 
+    width: auto;
+    color: rgb(90, 14, 189);
+
+}
+
+.Titre {
+    margin: 0px;
+    padding: 10px;
+    font-size: 40px;
+    font-family: 'Cinzel', serif;
+}
+
+#divacceuil {
+    display: flex;
+    align-items: center;
+    padding-right: 50;
+}
+
+#acceuil  {
+    cursor: pointer;
+    width: 250px;
+    height: 20px;
+    text-align: center;
+    font-weight: bold;
+    font-size: 22px;
+    border-radius: 20px 20px 20px 20px;
+    background-color: rgb(138, 67, 0);
+    color: rgb(116, 0, 0);
+    padding: 20px;
+    font-family: 'Cinzel', serif;
+}
+
+#englobe { /* texteGauche + texteDroite */
+    display: flex;
+    height: calc(100% - 280px); /*100% de la page - taille de l'entete - margin de texteGauche - padding de texteGauche */
+    width: 100%;
+}
+
+.texteGauche {
+    width: 700px;
+    margin: 30px;
+    padding: 20px;
+    padding-top: 0px;
+    background-color: black;
+    opacity: 0.9;
+    color: white;
+    display: flex;
+    text-align: center;
+    flex-direction: column;
+    border-radius: 30px 30px 30px 30px;
+    height: fit-content;
+}
+
+.texteGauche span {
+    color: rgb(159, 169, 255);
+    
+}
+
+#enTeteTexteGauche {
+    width: 100%;
+    display: flex;
+}
+
+#enteteTexteGauche div {
+    width: 50px;
+    flex-grow: 1; /* Permet aux enfants de s'étirer pour occuper toute la largeur disponible */
+    flex-shrink: 0; /* Empêche les enfants de se rétrécir */
+}
+
+#enTeteTexteGauche img {
+    width: 50px;
+    height: 50px;
+    margin: 0px;
+    padding: 0px;
+}
+
+.textePrincipal {
+    display: flex;
+    flex-direction: column;
+    width: calc(100% - 140px);
+    margin: 50px;
+    margin-inline: 2%;
+    padding: 20px;
+    background-color: black;
+    opacity: 0.9;
+    color: white;
+    border-radius: 8px 8px 8px 8px;
+    height: fit-content;
+}
+
+.infoBox {
+    display: flex;
+    align-items: stretch;
+    margin: 0px;
+    padding: 0px;
+    border-right: 3px solid grey;
+    opacity: 0.9;
+    height: fit-content;
+    width: fit-content;
+    
+}
+
+.infos {
+    display: flex;
+    flex-direction: column;
+    text-align: center;
+    flex-grow: 1;
+    width: fit-content;
+}
+
+.infos div {
+    border-bottom: grey 3px solid;
+    flex-grow: 1; 
+    margin-top: 8%;
+}
+
+.infos div:last-child { /* permet au dernier enfant de .infos de ne pas avoir de border-bottom */
+    flex-grow: 1; 
+    border: none;
+}
+
+.infosP {
+    text-decoration: underline;
+    margin-top: 5px;
+    margin: 0px;
+    padding-inline: 5px;
+    color: rgb(255, 255, 88);
+    font-weight: bold;
+}
+
+.infosT {
+    font-weight: bold;
+    margin: 0px;
+    padding-inline: 5px;
+}
+
+.infos div p {
+    white-space: nowrap; /* Empêche le retour à la ligne */
+}
+
+#retourArriere {
+    color: blue; /* Couleur du texte */
+    text-decoration: underline; /* Soulignement */
+    cursor: pointer; /* Curseur en forme de main */
+    width: fit-content;
+}
+
+/* Optionnel : changement de couleur au survol */
+#retourArriere:hover {
+    color: darkblue; /* Couleur au survol */
+}
+
+.sous_section { /* encadre et limite classimgSelection et texteSelection */
+    height: fit-content;
+    margin-top: 20px;
+}
+
+.selection { /* englobe imgSelection et texteSelection */
+    display: flex;
+    margin: 20px;
+    padding: 0px;
+    flex-grow: 1; /* Permet aux enfants de s'étirer pour occuper toute la largeur disponible */
+    flex-shrink: 0; /* Empêche les enfants de se rétrécir */
+    flex-basis: auto; /* Taille de base des enfants */
+    border: 3px solid grey;
+}
+
+.classImgSelection { 
+    display: flex;
+    flex-direction: column;
+    text-align: center;
+    padding-bottom: 10px;
+    flex-grow: 1;
+    width: fit-content;
+    border-right: 3px solid grey;
+    font-size: 20px;
+}
+
+.imgSelection {
+    width: 200px;
+    height: auto;
+    margin: 0px;
+    margin-bottom: 10px;
+    border-bottom: 3px solid grey;
+}
+
+.texteSelection {
+    padding: 15px;
+    height: fit-content;
+    width: 100%;
+    text-align: left;
+    
+}
+
+
+
+
+
