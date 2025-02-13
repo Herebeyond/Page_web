@@ -39,8 +39,22 @@
                 <div class="textePrincipal"> <!-- Div de droite -->
                     <div>
                         <?php
-                        // Création d'un tableau avec des éléments à afficher dans la liste
-                        $pages = ["Races", "Subraces"];
+
+
+                        // Lire les noms de fichiers dans le dossier pages
+                        $pages = [];
+                        $dir = "../pages";
+                        if (is_dir($dir)) { // si le dossier existe
+                            if ($dh = opendir($dir)) { // ouvre le dossier en lecture
+                                while (($file = readdir($dh)) !== false) { // lit les fichiers du dossier 
+                                    if ($file != '.' && $file != '..' && pathinfo($file, PATHINFO_EXTENSION) == 'php' && $file != "Accueil.php") { // si le fichier n'est pas un dossier et a pour extension php on l'ajoute au tableau $pages
+                                        $pages[] = pathinfo($file, PATHINFO_FILENAME);
+                                    }
+                                }
+                                closedir($dh); // ferme le dossier en lecture
+                            }
+                        }
+
 
                         sort($pages); // tri le tableau par ordre alphabétique
                         $frstLetter = mb_substr($pages[0], 0, 1); // récupère la première lettre du premier élément du tableau
@@ -51,17 +65,18 @@
 
                         // Parcours du tableau et affichage des éléments dans la liste
                         
-                        foreach ($pages as $page) {
+                        foreach ($pages as $page) { // pour chaque élément du tableau $pages on affiche un lien vers la page correspondante
                             
-
-                            if(mb_substr($page, 0, 1) != $frstLetter) {
+                            // si la première lettre de l'élément est différente de la première lettre du premier élément du tableau $pages on ferme la liste et on en ouvre une nouvelle
+                            // ça permet de regrouper les éléments par première lettre
+                            if(mb_substr($page, 0, 1) != $frstLetter) { 
                                 echo "</ul>";
                                 $frstLetter = mb_substr($page, 0, 1);
                                 echo "<span>$frstLetter</span>";
                                 echo "<ul>";
                             }
 
-                            echo "<li><a href=" . $chemin_absolu . "pages/" . $page . ".php>$page</a></li>";
+                            echo "<li><a href=" . $chemin_absolu . "pages/" . $page . ".php>$page</a></li>"; // lien vers la page correspondante aux éléments du tableau $pages
                         }
 
                         // Fin de la liste

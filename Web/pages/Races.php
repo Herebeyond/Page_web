@@ -40,10 +40,10 @@
                         <a id=retourArriere onclick='window.history.back()'> Retour </a><br>
                         <?php
                             // Informations de connexion à la base de données MySQL
-                            $host = 'localhost';
+                            $host = 'db';
                             $dbname = 'univers';
                             $username = 'root';
-                            $password = '';
+                            $password = 'root_password';
 
                             try {
                                 // Connexion à la base de données MySQL

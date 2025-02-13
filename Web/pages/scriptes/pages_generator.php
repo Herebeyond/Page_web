@@ -1,10 +1,10 @@
 <?php
 include "./scriptes/functions.php";
 // Informations de connexion à la base de données MySQL
-$host = 'localhost';
-$dbname = 'univers';
-$username = 'root';
-$password = '';
+$host = 'db'; // Le nom du service MySQL dans docker-compose.yml
+$dbname = 'univers'; // Le nom de la base de données
+$username = 'root'; // Le nom d'utilisateur
+$password = 'root_password'; // Le mot de passe
 
 try {
     // Connexion à la base de données MySQL
@@ -56,10 +56,10 @@ try {
                     <a id=retourArriere onclick='window.history.back()'> Retour </a><br>
                     <p class='Titre'> $raceName </p>
                     <?php
-                        \$host = 'localhost';
+                        \$host = 'db';
                         \$dbname = 'univers';
                         \$username = 'root';
-                        \$password = '';
+                        \$password = 'root_password';
                         try {
                             // Connexion à la base de données MySQL
                             \$pdo = new PDO(\"mysql:host=\$host;dbname=\$dbname;charset=utf8\", \$username, \$password);
