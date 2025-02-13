@@ -32,10 +32,10 @@
                     <a id=retourArriere onclick='window.history.back()'> Retour </a><br>
                     <p class='Titre'> Dwarfs </p>
                     <?php
-                        $host = 'localhost';
+                        $host = 'db';
                         $dbname = 'univers';
                         $username = 'root';
-                        $password = '';
+                        $password = 'root_password';
                         try {
                             // Connexion à la base de données MySQL
                             $pdo = new PDO("mysql:host=$host;dbname=$dbname;charset=utf8", $username, $password);
