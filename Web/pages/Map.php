@@ -1,3 +1,9 @@
+<?php
+include "./blueprints/page_init.php";
+?>
+
+
+
 <html>
     <head>
         <?php $chemin_absolu = 'http://localhost/test/Web/';?>

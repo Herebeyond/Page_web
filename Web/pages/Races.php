@@ -1,3 +1,9 @@
+<?php
+include "./blueprints/page_init.php";
+?>
+
+
+
 <html>
     <head>
         <?php $chemin_absolu = 'http://localhost/test/Web/';?>
@@ -66,7 +72,7 @@
                                         $imgPath = $chemin_absolu . 'images/icon_invalide.png'; // chemin de l'image invalide
                                     }
                             
-                                    // Création d'une div pour chaque faction
+                                    // Création d'une div pour chaque races
                                     $nomRace = $row["nom_race"];
                                     echo " 
                                         <div class='selectionAccueil'>

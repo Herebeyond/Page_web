@@ -141,10 +141,39 @@ html body{ /* Supprime les marges par défaut du navigateur */
     margin: 0px;
 }
 
-#divacceuil {
+
+#divacceuil { /* affichage en colonne */
     display: flex;
+    flex-direction: column;
     align-items: center;
-    padding-right: 50;
+    padding-right: 40;
+}
+
+#LoginCo {
+    display: flex;
+    font-size: 25px;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: rgb(81, 181, 211);
+    font-family: 'Cinzel', serif;
+    font-weight: bold;
+    margin: 10px;
+}
+
+#LoginDeco {
+    display: flex;
+    font-size: 25px;
+    align-items: center;
+    justify-content: center;
+    color: rgb(81, 181, 211);
+    font-family: 'Cinzel', serif;
+    font-weight: bold;
+    margin: 10px;
+}
+
+#LoginDeco a, #LoginCo a {
+    font-size: 13px;
 }
 
 #acceuil {
