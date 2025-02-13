@@ -7,7 +7,7 @@ include "./blueprints/page_init.php";
 <html>
     <head>
         <?php $chemin_absolu = 'http://localhost/test/Web/';?>
-        <link rel="stylesheet" href= "<?php echo $chemin_absolu . "style/PageStyleAccueil.css?ver=" . time(); ?>"> <!-- permet de créer un "nouveau" css pour que le site ne lise pas son cache et relise le css, ainsi applicant les changements écrit dedans -->
+        <link rel="stylesheet" href= "<?php echo $chemin_absolu . "style/PageStyle.css?ver=" . time(); ?>"> <!-- permet de créer un "nouveau" css pour que le site ne lise pas son cache et relise le css, ainsi applicant les changements écrit dedans -->
         <!-- <link rel="stylesheet" href="../style/styleScript.css?ver=<?php // echo time(); ?>"> le echo time() permet de générer un nombre aléatoire pour générer une version différente "unique" -->
         <?php include "./scriptes/pages_generator.php" ?>
         <?php //include "./scriptes/pages_factions_generator.php" ?>

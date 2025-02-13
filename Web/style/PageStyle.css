@@ -1,23 +1,27 @@
+/* Combined CSS from pageStyleAccueil.css and PageStyle.css */
+
+/* Import Google Fonts */
 @import url('https://fonts.googleapis.com/css2?family=Cinzel&display=swap');
 
-html body{
-    padding:0px;
+/* Reset default browser padding and margin */
+html body {
+    padding: 0px;
     margin: 0px;
-    
 }
 
+/* Navigation styles */
 #difPages {
     width: 50px;
 }
 
 #nav {
-    color: rgb(0, 0, 0); /* Couleur du texte */
-    padding: 10px; /* Espace autour du texte */
-    font-weight: bold; /* Texte en gras */
+    color: rgb(0, 0, 0); /* Text color */
+    padding: 10px; /* Padding around text */
+    font-weight: bold; /* Bold text */
 }
 
 .divLi:hover {
-    background-color: #a1abff; /* Changement de couleur du menu au survol */
+    background-color: #a1abff; /* Change color on hover */
     border-radius: 50px 50px 50px 50px;
 }
 
@@ -26,21 +30,20 @@ html body{
     display: flex;
     justify-content: center;
     align-items: center;
-    background-color: #222088; /* Couleur de fond du head du menu */
+    background-color: #222088; /* Background color */
     border-radius: 50px 50px 50px 50px;
 }
 
 .divLi > * {
     padding-inline: 7px;
-    
 }
 
 .menu-item li:hover {
-    background-color: #a1abff; /* Changement de couleur du sous-menu au survol */
+    background-color: #a1abff; /* Change color on hover */
 }
 
 .menu-item {
-    position: relative; /* Nécessaire pour positionner le sous-menu */
+    position: relative; /* Necessary for positioning dropdown */
     padding-inline: 7px;
     width: 100px;
     height: fit-content + 10px;
@@ -51,50 +54,49 @@ html body{
 }
 
 .dropdown {
-    list-style: none; /* Supprime les puces */
+    list-style: none; /* Remove bullets */
     padding: 0;
     margin: 0;
-    position: absolute; /* Positionnement par rapport au parent */
-    top: 100%; /* En-dessous du menu principal */
-    left: 50%; /* Positionne le sous-menu au centre du parent */
-    transform: translateX(-50%); /* Décale le sous-menu de 50% de sa propre largeur vers la gauche */
-    display: none; /* Caché par défaut */
-    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1); /* Ombre portée */
-    width: 150px; /* Largeur du sous-menu */
+    position: absolute; /* Position relative to parent */
+    top: 100%; /* Below main menu */
+    left: 50%; /* Centered */
+    transform: translateX(-50%); /* Centered */
+    display: none; /* Hidden by default */
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1); /* Shadow */
+    width: 150px; /* Width */
 }
 
 .menu-item:hover .dropdown {
-    display: block; /* Rend le sous-menu visible lorsque le menu principal est survolé */
+    display: block; /* Show on hover */
 }
 
 .dropdown li {
-    background-color: #222088; /* Couleur de fond de chaque élément du sous-menu */
+    background-color: #222088; /* Background color */
 }
 
 .menu {
-    list-style: none; /* Supprime les puces */
+    list-style: none; /* Remove bullets */
     padding: 0;
     margin: 0;
     display: flex;
     height: fit-content;
 }
 
-.dropdown:after, .dropdown:before {  
-    bottom: -1px; /* Positionne le pseudo-élément en bas du parent */
-    content: ""; 
-    height: 0; 
-    left: 50%; /* Positionne le pseudo-élément au centre du parent */
-    pointer-events: none; /* Empêche le clic sur le pseudo-élément */
-    position: absolute;  /* Positionnement absolu par rapport au parent */
+.dropdown:after, .dropdown:before {
+    bottom: -1px; /* Position at bottom */
+    content: "";
+    height: 0;
+    left: 50%; /* Centered */
+    pointer-events: none; /* No click */
+    position: absolute; /* Absolute positioning */
     width: 0;
-    z-index: 2; /* Place le pseudo-élément au-dessus du sous-menu */
+    z-index: 2; /* Above dropdown */
 }
 
 .small-icon {
     width: 10px;
     height: 10px;
-    /* je souhaite que l'icone soit en bas de sa div */
-    vertical-align: bottom;
+    vertical-align: bottom; /* Align at bottom */
 }
 
 #icon {
@@ -105,10 +107,9 @@ html body{
     border-radius: 100px 100px 100px 100px;
 }
 
-
 #enTete {
     display: flex;
-    align-items: center; /* Centrer verticalement les enfants */
+    align-items: center; /* Center vertically */
     justify-content: space-between;
     height: 140px;
     background-color: black;
@@ -116,55 +117,68 @@ html body{
     border-radius: 0 0 50px 50px;
 }
 
-#retour {
-    /* je souahite le mettre en position absolu */
-    position: absolute;
+#global { /* Background image */
+    height: fit-content; /* Total page height */
+    min-height: 100%;
+    width: 100%;
+    background-image: url('../images/52868b823af3ebefdfaa9ff87d9244a8.png');
+    background-size: 100vh; /* Cover entire page */
+    background-position: center; /* Center image */
+    background-size: cover; /* Cover entire surface */
+    background-attachment: fixed; /* Fixed during scroll */
+    background-repeat: no-repeat; /* No repeat */
+}
 
+#divTitre {
+    display: grid;
+    place-items: center;
+    width: auto;
+    color: rgb(90, 14, 189);
+    font-family: 'Cinzel', serif;
+    font-weight: bold;
 }
 
 .TitrePrincipal {
     padding: 10px;
     font-size: 30px;
     margin: 0px;
+}
+
+#divacceuil { /* affichage en colonne */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding-right: 40;
+}
+
+#LoginCo {
+    display: flex;
+    font-size: 25px;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: rgb(81, 181, 211);
     font-family: 'Cinzel', serif;
     font-weight: bold;
+    margin: 10px;
 }
 
-#global { /* image de fond */
-    height:fit-content; /* règle la taille total de la page */
-    min-height: 100%;
-    width: 100%;
-    background-image: url('../images/52868b823af3ebefdfaa9ff87d9244a8.png');
-    background-size: 100vh; /* L'image couvre toute la page */
-    background-position: center; /* Centrer l'image */
-    background-size: cover; /* Ajuste l'image pour couvrir toute la surface */
-    background-attachment: fixed; /* L'image reste fixe pendant le défilement */
-    background-repeat: no-repeat; /* Empêche la répétition de l'image */
-
-}
-
-#divTitre {
-    display: grid;
-    place-items: center; 
-    width: auto;
-    color: rgb(90, 14, 189);
-
-}
-
-.Titre {
-    margin: 0px;
-    padding: 10px;
-    font-size: 40px;
-    font-family: 'Cinzel', serif;
-}
-
-#divacceuil {
+#LoginDeco {
     display: flex;
+    font-size: 25px;
     align-items: center;
-    padding-right: 50;
+    justify-content: center;
+    color: rgb(81, 181, 211);
+    font-family: 'Cinzel', serif;
+    font-weight: bold;
+    margin: 10px;
 }
 
-#acceuil  {
+#LoginDeco a, #LoginCo a {
+    font-size: 13px;
+}
+
+#acceuil {
     cursor: pointer;
     width: 250px;
     height: 20px;
@@ -180,7 +194,7 @@ html body{
 
 #englobe { /* texteGauche + texteDroite */
     display: flex;
-    height: calc(100% - 280px); /*100% de la page - taille de l'entete - margin de texteGauche - padding de texteGauche */
+    height: calc(100% - 280px); /* 100% of page - header height - margin of texteGauche - padding of texteGauche */
     width: 100%;
 }
 
@@ -201,7 +215,6 @@ html body{
 
 .texteGauche span {
     color: rgb(159, 169, 255);
-    
 }
 
 #enTeteTexteGauche {
@@ -211,8 +224,8 @@ html body{
 
 #enteteTexteGauche div {
     width: 50px;
-    flex-grow: 1; /* Permet aux enfants de s'étirer pour occuper toute la largeur disponible */
-    flex-shrink: 0; /* Empêche les enfants de se rétrécir */
+    flex-grow: 1; /* Stretch to occupy full width */
+    flex-shrink: 0; /* Prevent shrinking */
 }
 
 #enTeteTexteGauche img {
@@ -222,18 +235,79 @@ html body{
     padding: 0px;
 }
 
+#divDroite {
+    display: flex;
+    align-items: center;
+    padding-left: 50;
+}
+
 .textePrincipal {
     display: flex;
-    flex-direction: column;
+    flex-wrap: wrap;
     width: calc(100% - 140px);
     margin: 50px;
-    margin-inline: 2%;
+    margin-inline: 2%; /* Margin between elements */
     padding: 20px;
     background-color: black;
-    opacity: 0.9;
+    opacity: 0.85;
     color: white;
     border-radius: 8px 8px 8px 8px;
     height: fit-content;
+}
+
+#retourArriere {
+    color: blue; /* Text color */
+    text-decoration: underline; /* Underline */
+    cursor: pointer; /* Pointer cursor */
+    width: fit-content;
+}
+
+.sous_section { /* Encapsulate and limit classimgSelection and texteSelection */
+    height: fit-content;
+    margin-top: 20px;
+}
+
+.selectionAccueil { /* Encapsulate imgSelection and texteSelection */
+    display: flex;
+    justify-content: center; /* Center horizontally */
+    margin: 20px;
+    padding: 0px;
+    flex-grow: 1; /* Stretch to occupy full width */
+    flex-shrink: 0; /* Prevent shrinking */
+    flex-basis: auto; /* Base size */
+}
+
+.classImgSelectionAccueil {
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    text-align: center;
+    height: fit-content;
+    width: fit-content;
+}
+
+.imgSelectionAccueil {
+    width: 200px;
+    height: auto;
+    margin: 0px;
+    margin-bottom: 10px;
+}
+
+.texteSelectionAccueil {
+    width: 100%;
+    text-align: center;
+    font-family: 'Cinzel', serif;
+}
+
+#retour {
+    position: absolute; /* Absolute positioning */
+}
+
+.Titre {
+    margin: 0px;
+    padding: 10px;
+    font-size: 40px;
+    font-family: 'Cinzel', serif;
 }
 
 .infoBox {
@@ -245,7 +319,6 @@ html body{
     opacity: 0.9;
     height: fit-content;
     width: fit-content;
-    
 }
 
 .infos {
@@ -258,12 +331,12 @@ html body{
 
 .infos div {
     border-bottom: grey 3px solid;
-    flex-grow: 1; 
+    flex-grow: 1;
     margin-top: 8%;
 }
 
-.infos div:last-child { /* permet au dernier enfant de .infos de ne pas avoir de border-bottom */
-    flex-grow: 1; 
+.infos div:last-child { /* No border-bottom for last child */
+    flex-grow: 1;
     border: none;
 }
 
@@ -283,37 +356,25 @@ html body{
 }
 
 .infos div p {
-    white-space: nowrap; /* Empêche le retour à la ligne */
+    white-space: nowrap; /* No line break */
 }
 
-#retourArriere {
-    color: blue; /* Couleur du texte */
-    text-decoration: underline; /* Soulignement */
-    cursor: pointer; /* Curseur en forme de main */
-    width: fit-content;
-}
-
-/* Optionnel : changement de couleur au survol */
+/* Optional: Change color on hover */
 #retourArriere:hover {
-    color: darkblue; /* Couleur au survol */
+    color: darkblue; /* Hover color */
 }
 
-.sous_section { /* encadre et limite classimgSelection et texteSelection */
-    height: fit-content;
-    margin-top: 20px;
-}
-
-.selection { /* englobe imgSelection et texteSelection */
+.selection {
     display: flex;
     margin: 20px;
     padding: 0px;
-    flex-grow: 1; /* Permet aux enfants de s'étirer pour occuper toute la largeur disponible */
-    flex-shrink: 0; /* Empêche les enfants de se rétrécir */
-    flex-basis: auto; /* Taille de base des enfants */
+    flex-grow: 1; /* Stretch to occupy full width */
+    flex-shrink: 0; /* Prevent shrinking */
+    flex-basis: auto; /* Base size */
     border: 3px solid grey;
 }
 
-.classImgSelection { 
+.classImgSelection {
     display: flex;
     flex-direction: column;
     text-align: center;
@@ -337,10 +398,4 @@ html body{
     height: fit-content;
     width: 100%;
     text-align: left;
-    
 }
-
-
-
-
-
