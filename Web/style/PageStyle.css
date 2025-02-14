@@ -18,6 +18,8 @@ html body {
     color: rgb(0, 0, 0); /* Text color */
     padding: 10px; /* Padding around text */
     font-weight: bold; /* Bold text */
+    position: relative; /* Ensure z-index works */
+    z-index: 1000; /* Ensure nav is in the foreground */
 }
 
 .divLi:hover {
@@ -47,6 +49,7 @@ html body {
     padding-inline: 7px;
     width: 100px;
     height: fit-content + 10px;
+    z-index: 1000; /* Ensure menu item is in the foreground */
 }
 
 .menu-item div a {
@@ -82,15 +85,19 @@ html body {
     height: fit-content;
 }
 
-.dropdown:after, .dropdown:before {
-    bottom: -1px; /* Position at bottom */
+/* .dropdown:after, .dropdown:before { JE SAIS PAS A QUOI CA M'A SERVI
+    bottom: -1px;  Position at bottom 
     content: "";
     height: 0;
-    left: 50%; /* Centered */
-    pointer-events: none; /* No click */
-    position: absolute; /* Absolute positioning */
+    left: 50%;  Centered 
+    pointer-events: none;  No click 
+    position: absolute;  Absolute positioning 
     width: 0;
-    z-index: 2; /* Above dropdown */
+} */
+
+#enTete { /* pour que le menu déroulant soit par dessus le reste et ne soit pas caché derrière texte principal */
+    position: relative; /* Ensure z-index works */
+    z-index: 1000; /* Ensure header is in the foreground */
 }
 
 .small-icon {
@@ -198,6 +205,9 @@ html body {
     width: 100%;
 }
 
+
+
+
 .texteGauche {
     width: 700px;
     margin: 30px;
@@ -224,7 +234,8 @@ html body {
 
 #nav {
     display: flex;
-    
+    position: relative; /* Ensure z-index works */
+    z-index: 1000; /* Ensure nav is in the foreground */
 }
 
 #enteteTexteGauche div {
@@ -258,6 +269,17 @@ html body {
     color: white;
     border-radius: 8px 8px 8px 8px;
     height: fit-content;
+    position: relative; /* Ensure z-index works */
+    z-index: 1; /* Ensure textePrincipal is below dropdown */
+}
+
+#add_race {
+    flex-wrap: unset;
+    flex-direction: column;
+}
+
+#add_race h2 { /* titre page add_race */
+    margin: 10px;
 }
 
 #retourArriere {

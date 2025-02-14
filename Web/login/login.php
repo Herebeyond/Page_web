@@ -3,7 +3,7 @@ session_start();
 require 'db.php'; // Connexion à la base
 
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST') { 
+if ($_SERVER['REQUEST_METHOD'] === 'POST') { // Vérifie si le formulaire a été soumis
     $username = trim($_POST['Identification']); // Nettoyage des entrées utilisateur
     $password = trim($_POST['psw']); 
 
@@ -44,7 +44,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <div id="global">
         <div id="englobe">
             <?php
-            if (isset($_SESSION['error'])) {
+            if (isset($_SESSION['error'])) { // affiche un message d'erreur si l'utilisateur n'a pas rempli les champs
                 echo '<p style="color:red;">' . htmlspecialchars($_SESSION['error']) . '</p>';
                 unset($_SESSION['error']);
             }
