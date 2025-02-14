@@ -10,7 +10,7 @@
             <li class=menu-item>
                 <div id=liRaces class=divLi onclick=window.location.href='./Races.php'>
                     <a> Races </a>
-                    <img class=small-icon src= <?php echo $chemin_absolu . "/images/petite_img/fleche-deroulante.png" ?>>
+                    <img class=small-icon src= <?php echo $chemin_absolu . "images/petite_img/fleche-deroulante.png" ?>>
                 </div>
                 <ul class="dropdown">
                     <?php // affichage de toutes les races
@@ -30,13 +30,13 @@
                                 
                                 // Création d'un li pour chaque races
                                 $nomRace = $row["nom_race"];
-                                echo " 
+                                echo ' 
                                     <li>
-                                        <div class=liIntro onclick=\"window.location.href='$chemin_absolu/pages/Races/" . $nomRace . ".php?race=" . urlencode($nomRace) . "'\">
-                                            <a> $nomRace </a>
+                                        <div class=liIntro>
+                                            <a onclick=window.location.href="' . $chemin_absolu . 'pages/Races/' . $nomRace . '.php?race=' . urlencode($nomRace) . '"> ' . $nomRace . '</a>
                                         </div>
                                     </li>
-                                ";
+                                '; // le onclick=window.location. me permet d'enlever le style de police bleu souligné des liens
                             }
                         } catch (Exception $e) {
                             echo "". $e->getMessage() ."";
@@ -45,11 +45,71 @@
                 </ul>
             </li>
         </ul>
+
+        <?php
+
+        // Lire les noms de fichiers dans le dossier pages
+        $pages = [];
+        $dir = "../pages";
+        if (is_dir($dir)) { // si le dossier existe
+            if ($dh = opendir($dir)) { // ouvre le dossier en lecture
+                while (($file = readdir($dh)) !== false) { // lit les fichiers du dossier
+                    if ($file != '.' && $file != '..' && pathinfo($file, PATHINFO_EXTENSION) == 'php' && $file != "Accueil.php") { // si le fichier n'est pas un dossier et a pour extension php on l'ajoute au tableau $pages
+                        $pages[] = pathinfo($file, PATHINFO_FILENAME);
+                    }
+                }
+                closedir($dh); // ferme le dossier en lecture
+            }
+        }
+
+
+        /// VERIFICATION ADMIN
+        if (isset($_SESSION['user'])) {
+            // Récupérer le nom d'utilisateur depuis la base de données
+            $stmt = $pdo->prepare("SELECT admin FROM users WHERE id = ?");
+            $stmt->execute([$_SESSION['user']]);
+            $user = $stmt->fetch();
+            
+            // vérifie si l'utilisateur est admin ou non
+            if (($user['admin']) == 1 ) { 
+                echo '
+                    <ul class=menu>
+                        <li class=menu-item>
+                            <div id=liAdmin class=divLi>
+                                <a> Admin </a>
+                                <img class=small-icon src="' . $chemin_absolu . 'images/petite_img/fleche-deroulante.png">
+                            </div>
+                ';
+
+                echo '<ul class="dropdown">';
+                // Parcours du tableau et affichage des éléments dans la liste
+                foreach ($pages as $page) { // pour chaque élément du tableau $pages on affiche un lien vers la page correspondante
+                    if ($autorisation[$page] == 'admin') {
+                        echo '
+                            <li>
+                                <div class=liIntro>
+                                    <a onclick=window.location.href="' . $chemin_absolu . 'pages/' . $page . '.php">' . $page . '</a>
+                                </div>
+                            </li>'; // lien vers la page correspondante aux éléments du tableau $pages
+                            // le onclick=window.location. me permet d'enlever le style de police bleu souligné des liens
+                    }
+                }
+                echo '</ul></li></ul>';
+
+            } elseif (($user["admin"]) == null) {
+            } else {
+                echo "erreur dans la colonne admin<br>";
+            }
+        }
+            
+        ?>
     </nav>
 
     <div id=divacceuil>
         
                 <?php
+                include '../pages/scriptes/autorisation.php'; // inclut le fichier autorisation.php
+
                 if (isset($_SESSION['user'])) { // si l'utilisateur est connecté on affiche son nom
                     echo '<div id="LoginCo">'; // div pour le nom de l'utilisateur et le lien de déconnexion
                     // Récupérer le nom d'utilisateur depuis la base de données
