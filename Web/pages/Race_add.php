@@ -1,31 +1,31 @@
 <?php
-include "./blueprints/page_init.php";
+include "./blueprints/page_init.php"; // inclut le fichier d'initialisation de la page
+require '../login/db.php'; // Connexion à la base
 include './scriptes/autorisation.php'; // inclut le fichier autorisation.php
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $username = trim($_POST['Identification']); // Nettoyage des entrées utilisateur
-    $password = trim($_POST['psw']); 
-
-    // Vérification que les champs ne sont pas vides
-    if (empty($username) || empty($password)) {
-        $_SESSION['error'] = "please fill in all fields";
-        header('Location: login.php');
-        exit;
-    }
+if ($_SERVER['REQUEST_METHOD'] === 'POST') { // Vérifie si le formulaire a été soumis
+    $Race_name = isset($_POST['Nom']) ? trim($_POST['Nom']) : ''; // Nettoyage des entrées utilisateur
+    $Race_Icon = isset($_POST['icon_race']) ? trim($_POST['icon_race']) : '';
+    $Race_content = isset($_POST['Race_text']) ? trim($_POST['Race_text']) : '';
 
 
-    // Récupérer le nom de la racce depuis la base de données
+    // Récupérer le nom de la race depuis la base de données
     $stmt = $pdo->prepare("SELECT * FROM races WHERE nom_race = ?"); 
-    $stmt->execute([$username]);
-    $user = $stmt->fetch();
+    $stmt->execute([$Race_name]);
+    $race = $stmt->fetch();
 
-    // Vérifier si le mot de passe correspond au mot de passe haché dans la base
-    if ($user && password_verify($password, $user['password'])) {
-        $_SESSION['user'] = $user['id']; // Connecte l'utilisateur
-        header('Location: page.php');
+    // Vérifier si la race existe déjà dans la base, si non alors intégrer la race à la base de données
+    if ($race) {
+        $_SESSION['error'] = "Race already exists";
+        header('Location: race_add.php');
         exit;
     } else {
-        $_SESSION['error'] = "username or password incorrect";
+        // Insérer la nouvelle race dans la base de données
+        $stmt = $pdo->prepare("INSERT INTO races (nom_race, icon_race, content_race) VALUES (?, ?, ?)");
+        $stmt->execute([$Race_name, $Race_Icon, $Race_content]);
+        $_SESSION['success'] = "Race added successfully";
+        header('Location: race_add.php');
+        exit;
     }
 }
 ?>
@@ -69,37 +69,32 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 
 
-                <div class="textePrincipal"> <!-- Div de droite -->
+                <div id='add_race' class="textePrincipal"> <!-- Div de droite -->
                     <a id=retourArriere onclick='window.history.back()'> Retour </a><br>
                     <?php
-                        // Informations de connexion à la base de données MySQL
-                        $host = 'db';
-                        $dbname = 'univers';
-                        $username = 'root';
-                        $password = 'root_password';
-
-                        try {
-                            // Connexion à la base de données MySQL
-                            $pdo = new PDO("mysql:host=$host;dbname=$dbname;charset=utf8", $username, $password);
-                            $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-
-                            // Récupération des données du tableau Races
-                            $query = $pdo->query("SELECT * FROM Races ORDER BY id_race;");
-
-                            
-                            
-                            
-                            
-
-                        } catch (PDOException $e) {
-                            // Gestion des erreurs
-                            echo "Erreur d'insertion : " . $e->getMessage();
+                        if (isset($_SESSION['error'])) {
+                            echo '<p style="color:red;">' . htmlspecialchars($_SESSION['error']) . '</p>';
+                            unset($_SESSION['error']);
                         }
-                    
-                    
-                        
-                        
+                        if (isset($_SESSION['success'])) {
+                            echo '<p style="color:green;">' . htmlspecialchars($_SESSION['success']) . '</p>';
+                            unset($_SESSION['success']);
+                        }
                     ?>
+
+                    <h2> Ajouter une Race </h2><br>
+                    <form method="POST" action="Race_add.php">
+                        <label for="Race_name">Race Name</label>
+                        <input type="text" name="Nom" required><br>
+                        <label for="Race_icon">Race Icon</label>
+                        <input type="text" name="icon_race"><br>
+                        <label for="Race_text">Race content</label>
+                        <input type="text" name="Race_text"><br>
+                        <button type="submit">Submit</button>
+                    </form><br>
+
+
+
                 </div>
 
             </div>

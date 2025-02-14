@@ -3,30 +3,20 @@ include "./blueprints/page_init.php"; // inclut le fichier d'initialisation de l
 include './scriptes/autorisation.php'; // inclut le fichier autorisation.php
 ?>
 
-
-
 <html>
     <head>
         <?php $chemin_absolu = 'http://localhost/test/Web/';?>
         <link rel="stylesheet" href= "<?php echo $chemin_absolu . "style/PageStyle.css?ver=" . time(); ?>"> <!-- permet de créer un "nouveau" css pour que le site ne lise pas son cache et relise le css, ainsi applicant les changements écrit dedans -->
         <!-- <link rel="stylesheet" href="../style/styleScript.css?ver=<?php // echo time(); ?>"> le echo time() permet de générer un nombre aléatoire pour générer une version différente "unique" -->
         <?php include "./scriptes/pages_generator.php" ?>
-        <?php //include "./scriptes/pages_factions_generator.php" ?>
         <title>
             Page d'Accueil
         </title>
-        
     </head>
-
-
-        
     <body>
         <div id=global>
-
             <?php include "./blueprints/header.php" ?>
-            
             <div id=englobe>
-            
                 <div class=texteGauche> <!-- Div de gauche -->
                     <div id=enTeteTexteGauche>
                         <?php
@@ -38,16 +28,9 @@ include './scriptes/autorisation.php'; // inclut le fichier autorisation.php
                         echo '<span>' . nl2br(htmlspecialchars(file_get_contents("../texte/mondes_oubliés.txt"))) . '</span>';
                     ?>
                 </div>
-                
-
-
-
-                
                 <div class="textePrincipal"> <!-- Div de droite -->
                     <div>
                         <?php
-
-
                         // Lire les noms de fichiers dans le dossier pages
                         $pages = [];
                         $dir = "../pages";
@@ -108,11 +91,7 @@ include './scriptes/autorisation.php'; // inclut le fichier autorisation.php
                         ?>
                     </div>
                 </div>
-                
-
             </div>
-
         </div>
-
     </body>
 </html>
