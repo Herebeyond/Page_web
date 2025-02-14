@@ -3,10 +3,10 @@
 $autorisation = array(
     'Accueil' => 'all',
     'Map' => 'all',
-    'Race_add' => 'admin',
-    'Race_edit' => 'admin',
-    'Races' => 'all',
-    'Subraces' => 'all'
+    'Specie_add' => 'admin',
+    'Specie_edit' => 'admin',
+    'Species' => 'all',
+    'Races' => 'all'
 );
 
 ?>

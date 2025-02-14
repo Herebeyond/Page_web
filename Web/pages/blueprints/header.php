@@ -8,6 +8,45 @@
     <nav id=nav>
         <ul class=menu>
             <li class=menu-item>
+                <div id=liSpecies class=divLi onclick=window.location.href='./Species.php'>
+                    <a> Species </a>
+                    <img class=small-icon src= <?php echo $chemin_absolu . "images/petite_img/fleche-deroulante.png" ?>>
+                </div>
+                <ul class="dropdown">
+                    <?php // affichage de toutes les species
+                        try {
+                            // Connexion à la base de données MySQL
+                            $host = 'db';
+                            $dbname = 'univers';
+                            $username = 'root';
+                            $password = 'root_password';
+                            $pdo = new PDO("mysql:host=$host;dbname=$dbname;charset=utf8", $username, $password);
+                            $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+
+                            // Récupération des données du tableau Species
+                            $query = $pdo->query("SELECT * FROM Species ORDER BY id_specie;");
+
+                            while ($row = $query->fetch(PDO::FETCH_ASSOC)) {
+                                
+                                // Création d'un li pour chaque species
+                                $nomSpecie = $row["nom_specie"];
+                                echo ' 
+                                    <li>
+                                        <div class=liIntro>
+                                            <a onclick=window.location.href="' . $chemin_absolu . 'pages/Species/' . $nomSpecie . '.php?specie=' . urlencode($nomSpecie) . '"> ' . $nomSpecie . '</a>
+                                        </div>
+                                    </li>
+                                '; // le onclick=window.location. me permet d'enlever le style de police bleu souligné des liens
+                            }
+                        } catch (Exception $e) {
+                            echo "". $e->getMessage() ."";
+                        }
+                    ?>
+                </ul>
+            </li>
+        </ul> 
+        <ul class=menu>
+            <li class=menu-item>
                 <div id=liRaces class=divLi onclick=window.location.href='./Races.php'>
                     <a> Races </a>
                     <img class=small-icon src= <?php echo $chemin_absolu . "images/petite_img/fleche-deroulante.png" ?>>
