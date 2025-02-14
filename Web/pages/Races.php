@@ -55,48 +55,39 @@ include "./blueprints/page_init.php";
                             $pdo = new PDO("mysql:host=$host;dbname=$dbname;charset=utf8", $username, $password);
                             $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
-                            // Récupération des données du tableau Races
-                            $query = $pdo->query("SELECT * FROM Races ORDER BY id_race;");
+                            // Récupération des données du tableau races
+                            $query = $pdo->query("SELECT * FROM races ORDER BY id_race;");
 
                             while ($row = $query->fetch(PDO::FETCH_ASSOC)) {
                                 $imgPath = isset($row['icon_race']) ? $row['icon_race'] : null; // vérifie si l'image existe
                                 if ($imgPath == null || $imgPath == '') { // si l'image n'existe pas ou est vide, on met une image par défaut
                                     $imgPath = $chemin_absolu . 'images/icon_default.png'; // chemin de l'image par défaut
-                                } else { // si l'image existe et est valide
+                                } else { // si l'image existe
                                     $imgPath = str_replace(" ", "_", "$imgPath"); // remplace les espaces par des _ pour les noms de fichiers
-                                    $imgPath = $chemin_absolu . "images/" . htmlspecialchars($imgPath, ENT_QUOTES, 'UTF-8'); // chemin de l'image, le htmlspecialchars permet d'échapper les caractères spéciaux dans la chaîne de caractères (tel que les ' et ") et ainsi les empêche de fermer des chaines de caractères
+                                    $imgPath = $chemin_absolu . "images/" . htmlspecialchars($imgPath, ENT_QUOTES, 'UTF-8') . "." . $row["icon_type_race"]; // chemin de l'image, le htmlspecialchars permet d'échapper les caractères spéciaux dans la chaîne de caractères (tel que les ' et ") et ainsi les empêche de fermer des chaines de caractères
                                 } 
                                 
                                 if (!isImageLinkValid($imgPath)) { // si l'image n'est pas valide
                                     $imgPath = $chemin_absolu . 'images/icon_invalide.png'; // chemin de l'image invalide
                                 }
-                        
-                                // Création d'une div pour chaque races
-                                $nomRace = $row["nom_race"];
+
+                                // Création d'une div pour chaque race
+                                $nomSpecie = $row["nom_race"];
+                                $idrace = "race-" . $row["id_race"];
                                 echo " 
                                     <div class='selectionAccueil'>
-                                        <div class='classImgSelectionAccueil'>
-                                            <img class='imgSelectionAccueil' src='" . $imgPath . "' onclick=\"window.location.href='Races/" . $nomRace . ".php?race=" . urlencode($nomRace) . "'\">
-                                            " . $nomRace . "
+                                        <div id='$idrace' class='classImgSelectionAccueil' onclick=\"window.location.href='species/" . $row["correspondance"] . ".php?race=" . urlencode($idrace) . "'\">
+                                            <img class='imgSelectionAccueil' src='" . $imgPath . "'>
+                                            <span>" . $nomSpecie . "</span>
+                                            <span> [" . $row["correspondance"] . "] </span>
                                         </div>
                                     </div>
                                 ";
                             }
-
-                            // Enregistrer les données dans la session pour les utiliser après la redirection
-                            // $_SESSION['sous_race'] = $_POST['sous_race'];
-                            
-                            
-                            
-
                         } catch (PDOException $e) {
                             // Gestion des erreurs
                             echo "Erreur d'insertion : " . $e->getMessage();
                         }
-                    
-                    
-                        
-                        
                     ?>
                 </div>
 

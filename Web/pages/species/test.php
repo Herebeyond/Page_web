@@ -1,3 +1,8 @@
+<?php
+session_start();
+require '../../login/db.php'; // Connexion à la base
+include '../scriptes/autorisation.php'; // inclut le fichier autorisation.php
+?>
 
 <html>
     <head>
@@ -5,7 +10,7 @@
         <link rel='stylesheet' href='<?php echo $chemin_absolu . '/style/PageStyle.css?ver=' . time()?>' > <!-- le ?ver=' . time() permet de générer une version différente à chaque fois et ainsi recharger le css à chaque fois que la page est rechargée car il ignore le cache -->
         <!-- <link rel='stylesheet' href='../style/styleScript.css?ver=<?php // echo time(); ?>'> -->
         <title>
-            testingit
+            test
         </title>
     </head>
     
@@ -30,7 +35,7 @@
 
                 <div class='textePrincipal'> <!-- Div de droite -->
                     <a id=retourArriere onclick='window.history.back()'> Retour </a><br>
-                    <p class='Titre'> testingit </p>
+                    <p class='Titre'> test </p>
                     <?php
                         $host = 'db';
                         $dbname = 'univers';
@@ -42,10 +47,10 @@
                             $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
 
-                            // Récupération des données du tableau subraces
-                            $nom_race = 'testingit';
-                            $queryF = $pdo->query("SELECT * FROM subraces as f LEFT JOIN Races as r ON f.correspondance = r.nom_race WHERE nom_race = '$nom_race' ORDER BY f.id_subrace;");
-                            $queryR = $pdo->query("SELECT * FROM Races WHERE nom_race = '$nom_race';");
+                            // Récupération des données du tableau races
+                            $nom_specie = 'test';
+                            $queryF = $pdo->query("SELECT * FROM races as r LEFT JOIN Species as s ON r.correspondance = s.nom_specie WHERE nom_specie = '$nom_specie' ORDER BY r.id_race;");
+                            $queryR = $pdo->query("SELECT * FROM Species WHERE nom_specie = '$nom_specie';");
                             
 
                             
@@ -54,24 +59,23 @@
                             // génère le texte principal de la page
                             $rowR = $queryR->fetch(PDO::FETCH_ASSOC); 
                             if ($rowR) { // le if au lieu de while permet de récupérer une seule ligne
-                                echo "<span>" . $rowR['content_race'] . "</span>"; // reconverti le la variable en UTF-8 pour l'afficher correctement en html
+                                echo "<span>" . $rowR['content_specie'] . "</span>"; // reconverti le la variable en UTF-8 pour l'afficher correctement en html
                             } else {
-                                echo "Aucune donnée trouvée pour la race '$race'.";
+                                echo "Aucune donnée trouvée pour la Specie '$Specie'.";
                             }
 
                             echo '<br><br>';
                            
 
-                            // génère les divs éventuelles pour chaque subraces
+                            // génère les divs éventuelles pour chaque races
                             $divsSelec = '';
                             while ($rowF = $queryF->fetch(PDO::FETCH_ASSOC)) {
-                                $imgPath = isset($rowF['icon_subrace']) ? $rowF['icon_subrace'] : null; // vérifie si l'image existe
+                                $imgPath = isset($rowF['icon_race']) ? $rowF['icon_race'] : null; // vérifie si l'image existe
                                 if ($imgPath == null || $imgPath == '') { // si l'image n'existe pas ou est vide, on met une image par défaut
                                     $imgPath = $chemin_absolu . 'images/icon_default.png'; // chemin de l'image par défaut
                                 } else { // si l'image existe, on la met
-                                    $imgPath = $imgPath; // converti le nom de la subrace en UTF-8 pour l'afficher correctement en html
                                     $imgPath = str_replace(" ", "_", "$imgPath"); // remplace les espaces par des _ pour les noms de fichiers
-                                    $imgPath = $chemin_absolu . "images/" . htmlspecialchars($imgPath, ENT_QUOTES, 'UTF-8') . "." . $rowF['icon_type_subrace']; // chemin de l'image, le htmlspecialchars permet d'échapper les caractères spéciaux dans la chaîne de caractères (tel que les ' et ") et ainsi les empêche de fermer des chaines de caractères
+                                    $imgPath = $chemin_absolu . "images/" . htmlspecialchars($imgPath, ENT_QUOTES, 'UTF-8') . "." . $rowF['icon_type_race']; // chemin de l'image, le htmlspecialchars permet d'échapper les caractères spéciaux dans la chaîne de caractères (tel que les ' et ") et ainsi les empêche de fermer des chaines de caractères
                                 }
 
 
@@ -106,13 +110,13 @@
 
 
 
-                                // Création d'une div pour chaque subrace
+                                // Création d'une div pour chaque race
                                 $divsSelec .= " 
                                         <div class='selection'>
                                             <div class=infobox>
                                                 <div class='classImgSelection'>
                                                     <img class='imgSelection' src='" . $imgPath . "'>
-                                                    " . $rowF['nom_subrace'] . "
+                                                    " . $rowF['nom_race'] . "
                                                 </div>
                                                 <div class=infos>
                                                     <div>
@@ -134,12 +138,12 @@
                                                 </div>
                                             </div>
                                             <div class='texteSelection'>
-                                                <span>" . $rowF['content_subrace'] . "</span>
+                                                <span>" . $rowF['content_race'] . "</span>
                                             </div>
                                         </div>
                                 ";
                                 
-                                $rowF['nom_subrace'];
+                                $rowF['nom_race'];
                             }
                             
                         } catch (PDOException $e) {

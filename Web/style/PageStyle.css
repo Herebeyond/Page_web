@@ -273,7 +273,7 @@ html body {
     z-index: 1; /* Ensure textePrincipal is below dropdown */
 }
 
-#add_race {
+#add_specie {
     flex-wrap: unset;
     flex-direction: column;
 }

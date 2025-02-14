@@ -1,30 +1,29 @@
 <?php
 include "./blueprints/page_init.php"; // inclut le fichier d'initialisation de la page
 require '../login/db.php'; // Connexion à la base
-include './scriptes/autorisation.php'; // inclut le fichier autorisation.php
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') { // Vérifie si le formulaire a été soumis
-    $Race_name = isset($_POST['Nom']) ? trim($_POST['Nom']) : ''; // Nettoyage des entrées utilisateur
-    $Race_Icon = isset($_POST['icon_race']) ? trim($_POST['icon_race']) : '';
-    $Race_content = isset($_POST['Race_text']) ? trim($_POST['Race_text']) : '';
+    $Specie_name = isset($_POST['Specie_name']) ? trim($_POST['Specie_name']) : ''; // Nettoyage des entrées utilisateur
+    $Specie_Icon = isset($_POST['icon_Specie']) ? trim($_POST['icon_Specie']) : '';
+    $Specie_content = isset($_POST['Specie_text']) ? trim($_POST['Specie_text']) : '';
 
 
-    // Récupérer le nom de la race depuis la base de données
-    $stmt = $pdo->prepare("SELECT * FROM races WHERE nom_race = ?"); 
-    $stmt->execute([$Race_name]);
-    $race = $stmt->fetch();
+    // Récupérer le nom de la Specie depuis la base de données
+    $stmt = $pdo->prepare("SELECT * FROM species WHERE nom_Specie = ?"); 
+    $stmt->execute([$Specie_name]);
+    $Specie = $stmt->fetch();
 
-    // Vérifier si la race existe déjà dans la base, si non alors intégrer la race à la base de données
-    if ($race) {
-        $_SESSION['error'] = "Race already exists";
-        header('Location: race_add.php');
+    // Vérifier si la Specie existe déjà dans la base, si non alors intégrer la Specie à la base de données
+    if ($Specie) {
+        $_SESSION['error'] = "Specie already exists";
+        header('Location: Specie_add.php');
         exit;
     } else {
-        // Insérer la nouvelle race dans la base de données
-        $stmt = $pdo->prepare("INSERT INTO races (nom_race, icon_race, content_race) VALUES (?, ?, ?)");
-        $stmt->execute([$Race_name, $Race_Icon, $Race_content]);
-        $_SESSION['success'] = "Race added successfully";
-        header('Location: race_add.php');
+        // Insérer la nouvelle Specie dans la base de données
+        $stmt = $pdo->prepare("INSERT INTO species (nom_Specie, icon_Specie, content_Specie) VALUES (?, ?, ?)");
+        $stmt->execute([$Specie_name, $Specie_Icon, $Specie_content]);
+        $_SESSION['success'] = "Specie added successfully";
+        header('Location: Specie_add.php');
         exit;
     }
 }
@@ -69,7 +68,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') { // Vérifie si le formulaire a ét�
 
 
 
-                <div id='add_race' class="textePrincipal"> <!-- Div de droite -->
+                <div id='add_specie' class="textePrincipal"> <!-- Div de droite -->
                     <a id=retourArriere onclick='window.history.back()'> Retour </a><br>
                     <?php
                         if (isset($_SESSION['error'])) {
@@ -82,14 +81,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') { // Vérifie si le formulaire a ét�
                         }
                     ?>
 
-                    <h2> Ajouter une Race </h2><br>
-                    <form method="POST" action="Race_add.php">
-                        <label for="Race_name">Race Name</label>
-                        <input type="text" name="Nom" required><br>
-                        <label for="Race_icon">Race Icon</label>
-                        <input type="text" name="icon_race"><br>
-                        <label for="Race_text">Race content</label>
-                        <input type="text" name="Race_text"><br>
+                    <h2> Add a Specie </h2><br>
+                    <form method="POST" action="Specie_add.php">
+                        <label for="Specie_name">Specie Name</label>
+                        <input type="text" name="Specie_name" required><br>
+                        <label for="Specie_icon">Specie Icon</label>
+                        <input type="text" name="icon_Specie"><br>
+                        <label for="Specie_text">Specie content</label>
+                        <input type="text" name="Specie_text"><br>
                         <button type="submit">Submit</button>
                     </form><br>
 
