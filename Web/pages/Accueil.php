@@ -1,6 +1,5 @@
 <?php
 include "./blueprints/page_init.php"; // inclut le fichier d'initialisation de la page
-include './scriptes/autorisation.php'; // inclut le fichier autorisation.php
 ?>
 
 <html>
