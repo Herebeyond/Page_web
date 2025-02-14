@@ -3,7 +3,7 @@ session_start();
 require 'db.php'; // Connexion à la base
 
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+if ($_SERVER['REQUEST_METHOD'] === 'POST') { 
     $username = trim($_POST['Identification']); // Nettoyage des entrées utilisateur
     $password = trim($_POST['psw']); 
 
