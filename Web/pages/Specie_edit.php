@@ -86,7 +86,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') { // Vérifie si le formulaire a ét�
                         .then(response => response.json())
                         .then(data => {
                             if (data.success) {
-                                let iconHtml = data.icon ? `<p>Icon link: ${data.icon}</p><p>Icon: <img src="../images/${data.icon}" alt="Specie Icon"></p>` : '<p>Icon does not exist</p>';
+                                let iconHtml = data.icon ? `<p>Icon link: ${data.icon}</p><p>Icon: <img id="imgEdit" src="../images/${data.icon}" alt="Specie Icon"></p>` : '<p>Icon does not exist</p>';
                                 let contentHtml = data.content ? `<p>Content: ${data.content}</p>` : '<p>Content does not exist</p>';
                                 document.getElementById('specieInfo').innerHTML = iconHtml + contentHtml;
                             } else {
