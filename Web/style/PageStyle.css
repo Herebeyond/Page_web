@@ -14,6 +14,11 @@ html body {
     width: 50px;
 }
 
+#specieInfo * {
+    margin: 5px;
+    padding: 0px;
+}
+
 #nav {
     color: rgb(0, 0, 0); /* Text color */
     padding: 10px; /* Padding around text */
