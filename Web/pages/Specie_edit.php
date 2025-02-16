@@ -62,8 +62,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') { // Vérifie si le formulaire a ét�
                             <?php // Récupérer les noms des Specie depuis la base de données et les afficher dans une liste déroulante
                                 $stmt = $pdo->query("SELECT * FROM species ORDER BY nom_Specie;");
                                 while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
-                                    $selected = ($row['nom_specie'] == $Specie_name) ? 'selected' : '';
-                                    echo '<option value="' . $row['nom_specie'] . '" ' . $selected . '>' . $row['nom_specie'] . '</option>';
+                                    //$selected = ($row['nom_specie'] == $Specie_name) ? 'selected' : ''; // servait lorsque j'essaiyais de récupérer les données de la Specie sélectionnée automatiquement je crois
+                                    echo '<option value="' . $row['nom_specie'] . '">' . $row['nom_specie'] . '</option>';
                                 }
                             ?>
                         </select><br>
