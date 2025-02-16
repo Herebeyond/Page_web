@@ -162,7 +162,7 @@ include '../scriptes/autorisation.php'; // inclut le fichier autorisation.php
                                                 </div>
                                             </div>
                                             <div class='texteSelection'>
-                                                <span>\" . \$rowF['content_race'] . \"</span>
+                                                <p>\" . \$rowF['content_race'] . \"</p>
                                             </div>
                                         </div>
                                 \";

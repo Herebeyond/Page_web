@@ -56,7 +56,7 @@ include "./blueprints/page_init.php";
                             $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
                             // Récupération des données du tableau races
-                            $query = $pdo->query("SELECT * FROM races ORDER BY id_race;");
+                            $query = $pdo->query("SELECT * FROM races ORDER BY correspondance;");
 
                             while ($row = $query->fetch(PDO::FETCH_ASSOC)) {
                                 $imgPath = isset($row['icon_race']) ? $row['icon_race'] : null; // vérifie si l'image existe

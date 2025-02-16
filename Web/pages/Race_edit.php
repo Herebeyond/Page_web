@@ -12,12 +12,55 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') { // Vérifie si le formulaire a ét�
     $Country = isset($_POST['Country']) ? trim($_POST['Country']) : '';
     $Habitat = isset($_POST['Habitat']) ? trim($_POST['Habitat']) : '';
 
-    // Modifie la Race dans la base de données
-    $stmt = $pdo->prepare("UPDATE races SET correspondance = ?, icon_Race = ?, icon_Type_Race = ?, content_Race = ?, lifespan = ?, homeworld = ?, country = ?, habitat = ? WHERE nom_Race = ?");
-    $stmt->execute([$Correspondance, $Race_Icon, $Icon_Type_Race, $Race_content, $Lifespan, $Homeworld, $Country, $Habitat, $Race_name]);
+    // Préparer la requête SQL dynamique
+    $fields = [];
+    $params = [];
 
-    // Set success message
-    $_SESSION['success'] = "Race updated successfully";
+    if ($Correspondance !== '') {
+        $fields[] = 'correspondance = ?';
+        $params[] = $Correspondance;
+    }
+    if ($Race_Icon !== '') {
+        $fields[] = 'icon_Race = ?';
+        $params[] = $Race_Icon;
+    }
+    if ($Icon_Type_Race !== '') {
+        $fields[] = 'icon_Type_Race = ?';
+        $params[] = $Icon_Type_Race;
+    }
+    if ($Race_content !== '') {
+        $fields[] = 'content_Race = ?';
+        $params[] = $Race_content;
+    }
+    if ($Lifespan !== '') {
+        $fields[] = 'lifespan = ?';
+        $params[] = $Lifespan;
+    }
+    if ($Homeworld !== '') {
+        $fields[] = 'homeworld = ?';
+        $params[] = $Homeworld;
+    }
+    if ($Country !== '') {
+        $fields[] = 'country = ?';
+        $params[] = $Country;
+    }
+    if ($Habitat !== '') {
+        $fields[] = 'habitat = ?';
+        $params[] = $Habitat;
+    }
+    $params[] = $Race_name;
+
+    if (!empty($fields)) {
+        $sql = "UPDATE races SET " . implode(', ', $fields) . " WHERE nom_Race = ?";
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute($params);
+
+        // Set success message
+        $_SESSION['success'] = "Race updated successfully";
+    } else {
+        $_SESSION['error'] = "No fields to update";
+    }
+
     header('Location: Race_edit.php');
     exit;
 }
@@ -84,8 +127,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') { // Vérifie si le formulaire a ét�
                         <input type="text" name="icon_Race" value="<?php echo htmlspecialchars($selectedRace['icon_race'] ?? ''); ?>"><br>
                         <label for="Icon_Type_Race">Race Icon Type</label>
                         <input type="text" name="icon_Type_Race" value="<?php echo htmlspecialchars($selectedRace['icon_type_race'] ?? ''); ?>"><br>
-                        <label for="Race_text">Race content</label>
-                        <input type="text" name="Race_text" value="<?php echo htmlspecialchars($selectedRace['content_race'] ?? ''); ?>"><br>
                         <label for="Lifespan">Lifespan</label>
                         <input type="text" name="Lifespan" value="<?php echo htmlspecialchars($selectedRace['lifespan'] ?? ''); ?>"><br>
                         <label for="Homeworld">Homeworld</label>
@@ -93,7 +134,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') { // Vérifie si le formulaire a ét�
                         <label for="Country">Country</label>
                         <input type="text" name="Country" value="<?php echo htmlspecialchars($selectedRace['country'] ?? ''); ?>"><br>
                         <label for="Habitat">Habitat</label>
-                        <input type="text" name="Habitat" value="<?php echo htmlspecialchars($selectedRace['habitat'] ?? ''); ?>"><br><br>
+                        <input type="text" name="Habitat" value="<?php echo htmlspecialchars($selectedRace['habitat'] ?? ''); ?>"><br>
+                        <label for="Race_text">Race content :</label><br>
+                        <textarea type="text" name="Race_text" id="content_input"><?php echo htmlspecialchars($selectedRace['content_race'] ?? ''); ?></textarea><br><br>
                         <button type="submit">Submit</button> <button type="button" onclick="fetchRaceInfo()">Fetch Info</button><br>
                     </form><br>
                     <!-- Afficher le text et l'icon de la Race sélectionnée -->
@@ -122,7 +165,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') { // Vérifie si le formulaire a ét�
                         let homeworldHtml = data.homeworld ? `<p>Homeworld: ${data.homeworld}</p>` : '<p>Homeworld does not exist</p>';
                         let countryHtml = data.country ? `<p>Country: ${data.country}</p>` : '<p>Country does not exist</p>';
                         let habitatHtml = data.habitat ? `<p>Habitat: ${data.habitat}</p>` : '<p>Habitat does not exist</p>';
-                        document.getElementById('raceInfo').innerHTML = correspondanceHtml + iconHtml + contentHtml + lifespanHtml + homeworldHtml + countryHtml + habitatHtml; // permet l'affichage des infos
+                        document.getElementById('raceInfo').innerHTML = correspondanceHtml + iconHtml + lifespanHtml + homeworldHtml + countryHtml + habitatHtml + contentHtml; // permet l'affichage des infos
                     } else {
                         document.getElementById('raceInfo').innerHTML = '<p style="color:red;">' + data.message + '</p>';
                     }

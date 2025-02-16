@@ -6,12 +6,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') { // Vérifie si le formulaire a ét�
     $Specie_Icon = isset($_POST['icon_Specie']) ? trim($_POST['icon_Specie']) : '';
     $Specie_content = isset($_POST['Specie_text']) ? trim($_POST['Specie_text']) : '';
 
-    // Modifie la Specie dans la base de données
-    $stmt = $pdo->prepare("UPDATE species SET icon_Specie = ?, content_Specie = ? WHERE nom_Specie = ?");
-    $stmt->execute([$Specie_Icon, $Specie_content, $Specie_name]);
+    // Préparer la requête SQL dynamique
+    $fields = [];
+    $params = [];
 
-    // Set success message
-    $_SESSION['success'] = "Specie updated successfully";
+    if ($Specie_Icon !== '') {
+        $fields[] = 'icon_Specie = ?';
+        $params[] = $Specie_Icon;
+    }
+    if ($Specie_content !== '') {
+        $fields[] = 'content_Specie = ?';
+        $params[] = $Specie_content;
+    }
+    $params[] = $Specie_name;
+
+    if (!empty($fields)) {
+        $sql = "UPDATE species SET " . implode(', ', $fields) . " WHERE nom_Specie = ?";
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute($params);
+
+        // Set success message
+        $_SESSION['success'] = "Specie updated successfully";
+    } else {
+        $_SESSION['error'] = "No fields to update";
+    }
+
     header('Location: Specie_edit.php');
     exit;
 }
@@ -69,8 +88,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') { // Vérifie si le formulaire a ét�
                         </select><br>
                         <label for="Specie_icon">Specie Icon</label>
                         <input type="text" name="icon_Specie" value="<?php echo htmlspecialchars($selectedSpecie['icon_specie'] ?? ''); ?>"><br>
-                        <label for="Specie_text">Specie content</label>
-                        <input type="text" name="Specie_text" value="<?php echo htmlspecialchars($selectedSpecie['content_specie'] ?? ''); ?>"><br><br>
+                        <label for="Specie_text">Specie content :</label><br>
+                        <input type="text" name="Specie_text" id="content_input" value="<?php echo htmlspecialchars($selectedSpecie['content_specie'] ?? ''); ?>"><br><br>
                         <button type="submit">Submit</button> <button type="button" onclick="fetchSpecieInfo()">Fetch Info</button><br>
                     </form><br>
                     <!-- Afficher le text et l'icon de la Specie sélectionnée -->

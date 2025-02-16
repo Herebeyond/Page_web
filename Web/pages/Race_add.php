@@ -102,8 +102,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') { // Vérifie si le formulaire a ét�
                         <input type="text" name="icon_Race"><br>
                         <label for="Icon_Type_Race">Icon Type Race</label>
                         <input type="text" name="icon_Type_Race"><br>
-                        <label for="Race_text">Race content</label>
-                        <input type="text" name="Race_text"><br>
                         <label for="Lifespan">Lifespan</label>
                         <input type="text" name="Lifespan"><br>
                         <label for="Homeworld">Homeworld</label>
@@ -111,7 +109,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') { // Vérifie si le formulaire a ét�
                         <label for="Country">Country</label>
                         <input type="text" name="Country"><br>
                         <label for="Habitat">Habitat</label>
-                        <input type="text" name="Habitat"><br><br>
+                        <input type="text" name="Habitat"><br>
+                        <label for="Race_text">Race content :</label><br>
+                        <textarea type="text" name="Race_text" id="content_input"></textarea><br><br>
                         <button type="submit">Submit</button>
                     </form><br>
 

@@ -87,8 +87,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') { // Vérifie si le formulaire a ét�
                         <input type="text" name="Specie_name" required><br>
                         <label for="Specie_icon">Specie Icon</label>
                         <input type="text" name="icon_Specie"><br>
-                        <label for="Specie_text">Specie content</label>
-                        <input type="text" name="Specie_text"><br>
+                        <label for="Specie_text">Specie content :</label><br>
+                        <input type="text" name="Specie_text" id="content_input"><br><br>
                         <button type="submit">Submit</button>
                     </form><br>
 

@@ -293,6 +293,11 @@ html body {
     margin: 10px;
 }
 
+#content_input {
+    width: 70%;
+    height: 90px;
+}
+
 #retourArriere {
     color: blue; /* Text color */
     text-decoration: underline; /* Underline */
