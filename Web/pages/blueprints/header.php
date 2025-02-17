@@ -1,11 +1,53 @@
 <div id=enTete>
     <img id=icon src= <?php echo $chemin_absolu . 'images/Eye.jpg' ?>>
     <div id=divTitre>
-        <p class=TitrePrincipal> Les Chroniques de la Faille </p>
-        <p class=TitrePrincipal> Les mondes oubliés </p>
+        <span class=TitrePrincipal> Les Chroniques de la Faille </span>
+        <span class=TitrePrincipal> Les mondes oubliés </span>
     </div>
 
     <nav id=nav>
+        <ul class="menu">
+            <li class="menu-item">
+                <div id="liNavigation" class="divLi" onclick="window.location.href='./Accueil.php'">
+                    <a> Navigation </a>
+                    <img class="small-icon" src= <?php echo $chemin_absolu . "images/petite_img/fleche-deroulante.png" ?>>
+                </div>
+                <ul class="dropdown">
+                    <?php // affichage de toutes les pages
+                        try {
+                            // Lire les noms de fichiers dans le dossier pages
+                            $pages = [];
+                            $dir = "../pages";
+                            if (is_dir($dir)) { // si le dossier existe
+                                if ($dh = opendir($dir)) { // ouvre le dossier en lecture
+                                    while (($file = readdir($dh)) !== false) { // lit les fichiers du dossier
+                                        if ($file != '.' && $file != '..' && pathinfo($file, PATHINFO_EXTENSION) == 'php' && $file != "Accueil.php") { // si le fichier n'est pas un dossier et a pour extension php on l'ajoute au tableau $pages
+                                            $pages[] = pathinfo($file, PATHINFO_FILENAME);
+                                        }
+                                    }
+                                    closedir($dh); // ferme le dossier en lecture
+                                }
+                            }
+
+                            // Parcours du tableau et affichage des éléments dans la liste
+                            foreach ($pages as $page) { // pour chaque élément du tableau $pages on affiche un lien vers la page correspondante
+                                if ($autorisation[$page] == 'all') { // si la page est public
+                                    echo '
+                                        <li>
+                                            <div class=liIntro>
+                                                <a onclick=window.location.href="' . $chemin_absolu . 'pages/' . $page . '.php"> ' . $page . '</a>
+                                            </div>
+                                        </li>'; // lien vers la page correspondante aux éléments du tableau $pages
+                                        // le onclick=window.location. me permet d'enlever le style de police bleu souligné des liens
+                                }
+                            }
+                        } catch (Exception $e) {
+                            echo "". $e->getMessage() ."";
+                        }
+                    ?>
+                </ul>
+            </li>
+        </ul>
         <ul class=menu>
             <li class=menu-item>
                 <div id=liSpecies class=divLi onclick=window.location.href='./Species.php'>

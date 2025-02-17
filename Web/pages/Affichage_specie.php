@@ -54,7 +54,7 @@ if (isset($_GET['specie'])) {
     <body>
         <div id='global'>
 
-            <?php include "./blueprints/header.php" ?>
+            <?php include "./blueprints/header.php"; ?>
             <?php include "./scriptes/functions.php"; ?>
 
             <div id='englobe'>
@@ -72,7 +72,7 @@ if (isset($_GET['specie'])) {
 
                 <div id='affichage_specie'> <!-- Div de droite -->
                     <a id=retourArriere onclick='window.history.back()'> Retour </a><br>
-                    <p class='Titre'> <?php echo $specie ?> </p>
+                    <span class='Titre'> <?php echo $specie ?> </span> <!-- affiche le nom de la specie en entête -->
                     <?php
                         $host = 'db';
                         $dbname = 'univers';
@@ -126,8 +126,8 @@ if (isset($_GET['specie'])) {
                                 $lifespan = $rowF['lifespan'];
                                 if ($lifespan == null || $lifespan == '') {
                                     $lifespan = 'Not specified';
-                                } elseif ($lifespan == 'Immortel' || $lifespan == 'immortel') {
-                                    $lifespan = 'Immortel'; // si la durée de vie est 'Immortel', on la laisse telle quelle
+                                } elseif ($lifespan == 'Immortal' || $lifespan == 'immortal') {
+                                    $lifespan = 'Immortal'; // si la durée de vie est 'Immortel', on la laisse telle quelle
                                 } else {
                                     $lifespan = $lifespan . ' years'; // ajoute 'years' à la fin de la durée de vie
                                 }

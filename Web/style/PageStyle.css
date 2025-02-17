@@ -58,8 +58,7 @@ html body {
 .menu-item {
     position: relative; /* Necessary for positioning dropdown */
     padding-inline: 7px;
-    width: 100px;
-    height: fit-content + 10px;
+    width: auto;
     z-index: 1000; /* Ensure menu item is in the foreground */
 }
 

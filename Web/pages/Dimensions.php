@@ -1,5 +1,5 @@
 <?php
-include "./blueprints/page_init.php"; // inclut le fichier d'initialisation de la page
+include "./blueprints/page_init.php";
 ?>
 
 
@@ -11,11 +11,18 @@ include "./blueprints/page_init.php"; // inclut le fichier d'initialisation de l
         <title>
             Page d'Accueil
         </title>
+        
     </head>
+
+
+        
     <body>
         <div id=global>
+
             <?php include "./blueprints/header.php" ?>
+            
             <div id=englobe>
+            
                 <div class=texteGauche> <!-- Div de gauche -->
                     <div id=enTeteTexteGauche>
                         <?php
@@ -27,8 +34,14 @@ include "./blueprints/page_init.php"; // inclut le fichier d'initialisation de l
                         echo '<span>' . nl2br(htmlspecialchars(file_get_contents("../texte/mondes_oubliés.txt"))) . '</span>';
                     ?>
                 </div>
-                <div class="textePrincipal"> <!-- Div de droite -->
+                
+
+
+
+                
+                <div class="textePrincipal" style="opacity: 100%;"> <!-- Div de droite -->
                     <div>
+                        <a id=retourArriere onclick='window.history.back()'> Retour </a><br>
                         <?php
                         // Lire les noms de fichiers dans le dossier pages
                         $pages = [];
@@ -69,7 +82,7 @@ include "./blueprints/page_init.php"; // inclut le fichier d'initialisation de l
                         // Parcours du tableau et affichage des éléments dans la liste
                         foreach ($pages as $page) { // pour chaque élément du tableau $pages on affiche un lien vers la page correspondante
                             
-                            if (isset($_SESSION['user']) && ($autorisation[$page] == 'admin' && ($user['admin']) == 1) || $autorisation[$page] == 'all') { // si l'utilisateur est connecté et qu'il est admin ou que la page est public
+                            if ((isset($_SESSION['user']) && ($autorisation[$page] == 'admin' && ($user['admin']) == 1) || $autorisation[$page] == 'all') && $type[$page] == 'dimension') { // si l'utilisateur est connecté et qu'il est admin ou que la page est public
                                 // si la première lettre de l'élément est différente de la première lettre du premier élément du tableau $pages on ferme la liste et on en ouvre une nouvelle
                                 // ça permet de regrouper les éléments par première lettre
                                 if(mb_substr($page, 0, 1) != $frstLetter) { 
@@ -90,7 +103,11 @@ include "./blueprints/page_init.php"; // inclut le fichier d'initialisation de l
                         ?>
                     </div>
                 </div>
+                
+
             </div>
+
         </div>
+
     </body>
 </html>

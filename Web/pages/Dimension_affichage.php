@@ -75,7 +75,7 @@ include "./blueprints/page_init.php";
                         } */ /// NE FONCTIONNE PAS
                         ?>
                         <a id=retourArriere onclick='window.history.back()'> Retour </a><br>
-                        <img src="<?php echo $chemin_absolu . "images/map/map_monde.png" ?>" alt="Carte des Mondes Oubliés" style="width: 100%; height: auto;">
+                        <img src="<?php echo $chemin_absolu . "images/map/dimensions.png" ?>" alt="Dimensions de l'univers" style="width: 100%; height: auto;">
 
                     </div>
                 </div>
