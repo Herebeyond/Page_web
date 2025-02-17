@@ -33,7 +33,7 @@
                                 echo ' 
                                     <li>
                                         <div class=liIntro>
-                                            <a onclick=window.location.href="' . $chemin_absolu . 'pages/Species/' . $nomSpecie . '.php?specie=' . urlencode($nomSpecie) . '"> ' . $nomSpecie . '</a>
+                                            <a onclick=window.location.href="' . $chemin_absolu . 'pages/Affichage_specie.php?specie=' . urlencode($nomSpecie) . '"> ' . $nomSpecie . '</a>
                                         </div>
                                     </li>
                                 '; // le onclick=window.location. me permet d'enlever le style de police bleu souligné des liens
@@ -69,10 +69,11 @@
                                 
                                 // Création d'un li pour chaque races
                                 $nomRace = $row["nom_race"];
+                                $Correspondance = $row["correspondance"];
                                 echo ' 
                                     <li>
                                         <div class=liIntro>
-                                            <a onclick=window.location.href="' . $chemin_absolu . 'pages/Races/' . $nomRace . '.php?race=' . urlencode($nomRace) . '"> ' . $nomRace . '</a>
+                                            <a onclick=window.location.href="' . $chemin_absolu . 'pages/Affichage_specie.php?specie=' . urlencode(str_replace(" ", "_", $Correspondance)) . '&race=' . urlencode(str_replace(" ", "_", $nomRace)) . '"> ' . $nomRace . '</a>
                                         </div>
                                     </li>
                                 '; // le onclick=window.location. me permet d'enlever le style de police bleu souligné des liens

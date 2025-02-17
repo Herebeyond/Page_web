@@ -9,6 +9,7 @@ $autorisation = array(
     'Races' => 'all',
     'Race_add' => 'admin',
     'Race_edit' => 'admin',
+    'Affichage_specie' => 'all',
 
 );
 

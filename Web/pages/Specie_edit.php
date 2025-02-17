@@ -98,7 +98,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') { // Vérifie si le formulaire a ét�
             </div>
         </div>
         <script>
-            function fetchSpecieInfo() { // Fonction pour récupérer et afficher les informations de la Specie sélectionnée dans l'option du select dans la form
+            function fetchSpecieInfo() { // Fonction pour récupérer et afficher les informations de la Specie sélectionnée dans l'option du select dans la form grace au bouton Fetch Info
                 var specieName = document.querySelector('select[name="Specie_name"]').value;
                 if (specieName) {
                     fetch('scriptes/fetch_specie_info.php?specie=' + encodeURIComponent(specieName))

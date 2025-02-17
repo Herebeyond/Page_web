@@ -72,13 +72,14 @@ include "./blueprints/page_init.php";
                                 }
 
                                 // Création d'une div pour chaque race
-                                $nomSpecie = $row["nom_race"];
-                                $idrace = "race-" . $row["id_race"];
+                                $nomRace = $row["nom_race"];
+                                $nomSpecie = $row["correspondance"];
+                                $idrace = $row["id_race"];
                                 echo " 
                                     <div class='selectionAccueil'>
-                                        <div id='$idrace' class='classImgSelectionAccueil' onclick=\"window.location.href='species/" . $row["correspondance"] . ".php?race=" . urlencode($idrace) . "'\">
+                                        <div id='$idrace' class='classImgSelectionAccueil' onclick=\"window.location.href='./Affichage_specie.php?race=" . urlencode(str_replace(" ", "_", $nomRace)) . "&specie=" . urlencode(str_replace(" ", "_", $nomSpecie)) . "'\">
                                             <img class='imgSelectionAccueil' src='" . $imgPath . "'>
-                                            <span>" . $nomSpecie . "</span>
+                                            <span>" . $nomRace . "</span>
                                             <span> [" . $row["correspondance"] . "] </span>
                                         </div>
                                     </div>

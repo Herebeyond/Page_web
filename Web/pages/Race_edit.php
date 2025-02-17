@@ -145,7 +145,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') { // Vérifie si le formulaire a ét�
             </div>
         </div>
 <script>
-    function fetchRaceInfo() { // Fonction pour récupérer et afficher les informations de la Race sélectionnée dans l'option du select dans la form
+    function fetchRaceInfo() { // Fonction pour récupérer et afficher les informations de la Race sélectionnée dans l'option du select dans la form grace au bouton Fetch Info
         var raceName = document.querySelector('select[name="Race_name"]').value;
         if (raceName) {
             fetch('scriptes/fetch_race_info.php?race=' + encodeURIComponent(raceName))

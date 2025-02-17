@@ -75,7 +75,7 @@ include "./blueprints/page_init.php";
                                 echo " 
                                     <div class='selectionAccueil'>
                                         <div class='classImgSelectionAccueil'>
-                                            <img class='imgSelectionAccueil' src='" . $imgPath . "' onclick=\"window.location.href='Species/" . $nomSpecie . ".php?specie=" . urlencode($nomSpecie) . "'\">
+                                            <img class='imgSelectionAccueil' src='" . $imgPath . "' onclick=\"window.location.href='./Affichage_specie.php?specie=" . urlencode(str_replace(" ", "_", $nomSpecie)) . "'\">
                                             " . $nomSpecie . "
                                         </div>
                                     </div>
