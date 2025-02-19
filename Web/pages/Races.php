@@ -42,17 +42,7 @@ include "./blueprints/page_init.php";
                 <div class="textePrincipal"> <!-- Div de droite -->
                     <a id=retourArriere onclick='window.history.back()'> Retour </a><br>
                     <?php
-                        // Informations de connexion à la base de données MySQL
-                        $host = 'db';
-                        $dbname = 'univers';
-                        $username = 'root';
-                        $password = 'root_password';
-
                         try {
-                            // Connexion à la base de données MySQL
-                            $pdo = new PDO("mysql:host=$host;dbname=$dbname;charset=utf8", $username, $password);
-                            $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-
                             // Récupération des données du tableau races
                             $query = $pdo->query("SELECT * FROM races ORDER BY correspondance;");
 

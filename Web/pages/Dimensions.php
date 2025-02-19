@@ -66,7 +66,7 @@ include "./blueprints/page_init.php";
                             
                             // vérifie si l'utilisateur est admin ou non
                             if (($user['admin']) == 1 ) { 
-                            } elseif (($user["admin"]) == null) {
+                            } elseif (($user["admin"]) == null || ($user["admin"]) == '') {
                             } else {
                                 echo "erreur dans la colonne admin<br>";
                             }
@@ -82,7 +82,7 @@ include "./blueprints/page_init.php";
                         // Parcours du tableau et affichage des éléments dans la liste
                         foreach ($pages as $page) { // pour chaque élément du tableau $pages on affiche un lien vers la page correspondante
                             
-                            if ((isset($_SESSION['user']) && ($autorisation[$page] == 'admin' && ($user['admin']) == 1) || $autorisation[$page] == 'all') && $type[$page] == 'dimension') { // si l'utilisateur est connecté et qu'il est admin ou que la page est public
+                            if (((isset($_SESSION['user']) && ($autorisation[$page] == 'admin' && ($user['admin']) == 1)) || $autorisation[$page] == 'all') && $type[$page] == 'Dimensions') { // si l'utilisateur est connecté et qu'il est admin ou que la page est public
                                 // si la première lettre de l'élément est différente de la première lettre du premier élément du tableau $pages on ferme la liste et on en ouvre une nouvelle
                                 // ça permet de regrouper les éléments par première lettre
                                 if(mb_substr($page, 0, 1) != $frstLetter) { 

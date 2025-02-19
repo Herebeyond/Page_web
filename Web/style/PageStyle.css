@@ -25,6 +25,11 @@ html body {
     height: auto;
 }
 
+.nomDimension {
+    font-size: 35px;
+    font-weight: bold;
+}
+
 #nav {
     color: rgb(0, 0, 0); /* Text color */
     padding: 10px; /* Padding around text */
@@ -39,6 +44,7 @@ html body {
 }
 
 .divLi {
+    cursor: pointer;
     padding-inline: 7px;
     display: flex;
     justify-content: center;
@@ -71,19 +77,47 @@ html body {
     padding: 0;
     margin: 0;
     position: absolute; /* Position relative to parent */
-    top: 100%; /* Below main menu */
     left: 50%; /* Centered */
     transform: translateX(-50%); /* Centered */
     display: none; /* Hidden by default */
     box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1); /* Shadow */
-    width: 150px; /* Width */
+    width: auto; /* Width */
+}
+
+.dropdown2 {
+    list-style: none; /* Remove bullets */
+    padding: 0;
+    margin: 0;
+    position: absolute; /* Position relative to parent */
+    transform: 0; /* Centered */
+    display: none; /* Hidden by default */
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1); /* Shadow */
+    width: auto; /* Width */
+}
+
+.liIntro {
+    cursor: pointer;
+    white-space: nowrap; /* No line break */
+    padding: 5px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 50px 50px 50px 50px;
+}
+
+.liIntro > * {
+    padding-inline: 7px;
 }
 
 .menu-item:hover .dropdown {
     display: block; /* Show on hover */
 }
 
-.dropdown li {
+.liIntern:hover .dropdown2 {
+    display: block; /* Show on hover */
+}
+
+.dropdown li, .dropdown {
     background-color: #222088; /* Background color */
 }
 
@@ -457,4 +491,20 @@ html body {
     height: fit-content;
     width: 100%;
     text-align: left;
+}
+
+.dropdown li ul {
+    list-style: none; /* Remove bullets */
+    padding: 0;
+    margin: 0;
+    position: absolute; /* Position relative to parent */
+    top: 0; /* Align with parent */
+    left: 100%; /* To the right of parent */
+    display: none; /* Hidden by default */
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1); /* Shadow */
+    width: auto; /* Width */
+}
+
+.dropdown li:hover ul {
+    display: block; /* Show on hover */
 }

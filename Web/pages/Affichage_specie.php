@@ -11,9 +11,6 @@ if (isset($_GET['specie'])) {
     // Vous pouvez maintenant utiliser les variables $race et $specie pour effectuer des opérations, comme des requêtes à la base de données
     // Exemple de requête à la base de données pour récupérer les informations de la race et de la specie
     try {
-        // Connexion à la base de données MySQL
-        $pdo = new PDO("mysql:host=db;dbname=univers;charset=utf8", 'root', 'root_password');
-        $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
         if(isset($_GET['race'])) {
             $race = htmlspecialchars(trim($_GET['race']), ENT_QUOTES, 'UTF-8');
@@ -151,7 +148,7 @@ if (isset($_GET['specie'])) {
 
                                 // Création d'une div pour chaque race
                                 $divsSelec .= " 
-                                        <div class='selection'>
+                                        <div class='selection' id=" . str_replace(" ", "_",$rowF['nom_race']) . ">
                                             <div class=infobox>
                                                 <div class='classImgSelection'>
                                                     <img class='imgSelection' src='" . $imgPath . "'>
@@ -196,7 +193,18 @@ if (isset($_GET['specie'])) {
                 </div>
             </div>
         </div>
+        <script>
+            document.addEventListener("DOMContentLoaded", function() { // attend que le document soit chargé pour exécuter le script
+                const urlParams = new URLSearchParams(window.location.search);
+                const race = urlParams.get('race'); 
+                if (race) { // si la variable race se trouve dans l'url
+                    const raceElement = document.getElementById(race);
+                    if (raceElement) { // cherche la div qui possède l'id
+                        raceElement.scrollIntoView({ behavior: 'smooth' }); // scroll vers la div qui possède l'id de la race
+                    }
+                }
+            });
+        </script>
     </body>
 </html>
-            
-            
+

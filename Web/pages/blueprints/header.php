@@ -31,14 +31,37 @@
 
                             // Parcours du tableau et affichage des éléments dans la liste
                             foreach ($pages as $page) { // pour chaque élément du tableau $pages on affiche un lien vers la page correspondante
-                                if ($autorisation[$page] == 'all') { // si la page est public
+                                if ($autorisation[$page] == 'all' && $type[$page] == 'common' ) { // si la page est public et fait partie du groupe principal
                                     echo '
                                         <li>
-                                            <div class=liIntro>
-                                                <a onclick=window.location.href="' . $chemin_absolu . 'pages/' . $page . '.php"> ' . $page . '</a>
-                                            </div>
+                                            <div class=liIntro onclick=window.location.href="' . $chemin_absolu . 'pages/' . $page . '.php">
+                                                <span> ' . $page . '</span>';
+                                                foreach ($pages as $page2) {
+                                                    if ($type[$page2] == $page) {
+                                                        echo '
+                                                <img class="small-icon" src=' . $chemin_absolu . 'images/petite_img/fleche-deroulante.png>
+                                                            ';
+                                                        break;
+                                                    }
+                                                }
+                                    echo    '</div>
+                                            <ul class="dropdown2">';
+                                    foreach ($pages as $page3) {
+                                        if ($type[$page3] == 'Dimensions' && $page == 'Dimensions') {
+                                        echo '
+                                            
+                                                <li>
+                                                    <div class=liIntro onclick=window.location.href="' . $chemin_absolu . 'pages/' . $page2 . '.php">
+                                                        <span>' . $page3 . '</span>
+                                                    </div>
+                                                </li>
+                                            ';
+                                        }
+                                    }
+                                    echo '
+                                            </ul>
                                         </li>'; // lien vers la page correspondante aux éléments du tableau $pages
-                                        // le onclick=window.location. me permet d'enlever le style de police bleu souligné des liens
+                                    // le onclick=window.location. me permet d'enlever le style de police bleu souligné des liens
                                 }
                             }
                         } catch (Exception $e) {
@@ -51,20 +74,12 @@
         <ul class=menu>
             <li class=menu-item>
                 <div id=liSpecies class=divLi onclick=window.location.href='./Species.php'>
-                    <a> Species </a>
+                    <span> Species </span>
                     <img class=small-icon src= <?php echo $chemin_absolu . "images/petite_img/fleche-deroulante.png" ?>>
                 </div>
                 <ul class="dropdown">
                     <?php // affichage de toutes les species
                         try {
-                            // Connexion à la base de données MySQL
-                            $host = 'db';
-                            $dbname = 'univers';
-                            $username = 'root';
-                            $password = 'root_password';
-                            $pdo = new PDO("mysql:host=$host;dbname=$dbname;charset=utf8", $username, $password);
-                            $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-
                             // Récupération des données du tableau Species
                             $query = $pdo->query("SELECT * FROM Species ORDER BY id_specie;");
 
@@ -74,8 +89,8 @@
                                 $nomSpecie = $row["nom_specie"];
                                 echo ' 
                                     <li>
-                                        <div class=liIntro>
-                                            <a onclick=window.location.href="' . $chemin_absolu . 'pages/Affichage_specie.php?specie=' . urlencode($nomSpecie) . '"> ' . $nomSpecie . '</a>
+                                        <div class=liIntro onclick=window.location.href="' . $chemin_absolu . 'pages/Affichage_specie.php?specie=' . urlencode($nomSpecie) . '">
+                                            <span> ' . $nomSpecie . '</span>
                                         </div>
                                     </li>
                                 '; // le onclick=window.location. me permet d'enlever le style de police bleu souligné des liens
@@ -90,20 +105,12 @@
         <ul class=menu>
             <li class=menu-item>
                 <div id=liRaces class=divLi onclick=window.location.href='./Races.php'>
-                    <a> Races </a>
+                    <span> Races </span>
                     <img class=small-icon src= <?php echo $chemin_absolu . "images/petite_img/fleche-deroulante.png" ?>>
                 </div>
                 <ul class="dropdown">
                     <?php // affichage de toutes les races
                         try {
-                            // Connexion à la base de données MySQL
-                            $host = 'db';
-                            $dbname = 'univers';
-                            $username = 'root';
-                            $password = 'root_password';
-                            $pdo = new PDO("mysql:host=$host;dbname=$dbname;charset=utf8", $username, $password);
-                            $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-
                             // Récupération des données du tableau Races
                             $query = $pdo->query("SELECT * FROM Races ORDER BY id_race;");
 
@@ -114,8 +121,8 @@
                                 $Correspondance = $row["correspondance"];
                                 echo ' 
                                     <li>
-                                        <div class=liIntro>
-                                            <a onclick=window.location.href="' . $chemin_absolu . 'pages/Affichage_specie.php?specie=' . urlencode(str_replace(" ", "_", $Correspondance)) . '&race=' . urlencode(str_replace(" ", "_", $nomRace)) . '"> ' . $nomRace . '</a>
+                                        <div class=liIntro onclick=window.location.href="' . $chemin_absolu . 'pages/Affichage_specie.php?specie=' . urlencode(str_replace(" ", "_", $Correspondance)) . '&race=' . urlencode(str_replace(" ", "_", $nomRace)) . '">
+                                            <span> ' . $nomRace . '</span>
                                         </div>
                                     </li>
                                 '; // le onclick=window.location. me permet d'enlever le style de police bleu souligné des liens
@@ -158,7 +165,7 @@
                     <ul class=menu>
                         <li class=menu-item>
                             <div id=liAdmin class=divLi>
-                                <a> Admin </a>
+                                <span> Admin </span>
                                 <img class=small-icon src="' . $chemin_absolu . 'images/petite_img/fleche-deroulante.png">
                             </div>
                 ';
@@ -169,8 +176,8 @@
                     if ($autorisation[$page] == 'admin') {
                         echo '
                             <li>
-                                <div class=liIntro>
-                                    <a onclick=window.location.href="' . $chemin_absolu . 'pages/' . $page . '.php">' . $page . '</a>
+                                <div class=liIntro onclick=window.location.href="' . $chemin_absolu . 'pages/' . $page . '.php">
+                                    <span>' . $page . '</span>
                                 </div>
                             </li>'; // lien vers la page correspondante aux éléments du tableau $pages
                             // le onclick=window.location. me permet d'enlever le style de police bleu souligné des liens
