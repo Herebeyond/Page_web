@@ -1,1 +1,0 @@
-ma base de donnée est sur la wifi de l'école, elle ne marchera pas si la wifi n'est pas connecté ou si elle est en 4G
