@@ -1,30 +1,126 @@
 <?php
 
-    function isImageLinkValid($url) { // vérifie si l'image existe PS: je ne comprends pas comment cette fonction fonctionne, fait par chatGPT
-        // Encoder l'URL pour gérer les caractères spéciaux
-        $encodedUrl = urlencode($url);
-        
-        // Décoder les caractères spécifiques qui ne doivent pas être encodés dans une URL
-        $encodedUrl = str_replace('%2F', '/', $encodedUrl);
-        $encodedUrl = str_replace('%3A', ':', $encodedUrl);
-        $encodedUrl = str_replace('%27', "'", $encodedUrl); // Décoder l'apostrophe
-    
-        $ch = curl_init($url);
-        curl_setopt($ch, CURLOPT_NOBODY, true);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_HEADER, true);
-        curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
-        curl_setopt($ch, CURLOPT_MAXREDIRS, 5); // Limite les redirections
-        curl_exec($ch);
-        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        $contentType = curl_getinfo($ch, CURLINFO_CONTENT_TYPE);
-        curl_close($ch);
+function isImageLinkValid($url) {
+    // Convert relative URL to absolute path
+    $absolutePath = realpath(__DIR__ . '/../' . $url);
 
-        // Vérifie le code HTTP et si le contenu est une image
-        return $httpCode === 200 && strpos($contentType, 'image/') !== false;
+    // Check if the file exists and is an image
+    if ($absolutePath && file_exists($absolutePath)) {
+        $fileInfo = getimagesize($absolutePath);
+        return $fileInfo !== false;
     }
-
+    return false;
+}
 
 
 
 ?>
+<script>
+    function fetchSpecieInfo() { // Fonction pour récupérer et afficher les informations de la Specie sélectionnée dans l'option du select dans la form grace au bouton Fetch Info
+        var specieName = document.querySelector('select[name="Specie_name"]').value;
+        if (specieName) {
+            fetch('scriptes/fetch_specie_info.php?specie=' + encodeURIComponent(specieName))
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        let iconHtml = data.icon ? `<p>Icon link: ${data.icon}</p><p>Icon: <img id="imgEdit" src="../images/${data.icon}" alt="Specie Icon"></p>` : '<p>Icon does not exist</p>';
+                        let contentHtml = data.content ? `<p>Content: ${data.content}</p>` : '<p>Content does not exist</p>';
+                        document.getElementById('specieInfo').innerHTML = iconHtml + contentHtml;
+                    } else {
+                        document.getElementById('specieInfo').innerHTML = '<p style="color:red;">' + data.message + '</p>';
+                    }
+                })
+                .catch(error => {
+                    document.getElementById('specieInfo').innerHTML = '<p style="color:red;">Error fetching specie info</p>';
+                });
+        } else {
+            document.getElementById('specieInfo').innerHTML = '<p style="color:red;">Please select a specie</p>';
+        }
+    }
+
+    function fetchRaceInfo() { // Fonction pour récupérer et afficher les informations de la Race sélectionnée dans l'option du select dans la form grace au bouton Fetch Info
+        var raceName = document.querySelector('select[name="Race_name"]').value;
+        if (raceName) {
+            fetch('scriptes/fetch_race_info.php?race=' + encodeURIComponent(raceName))
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.success) {
+                        let correspondanceHtml = data.correspondance ? `<p>Correspondance: ${data.correspondance}</p>` : '<p>Correspondance does not exist</p>';
+                        let icon = data.icon ? data.icon.replace(/ /g, '_') : '';
+                        let iconHtml = icon ? `<p>Icon link: ${icon}.${data.icon_type}</p><p>Icon: <img id="imgEdit" src="../images/${icon}.${data.icon_type}" alt="Race Icon"></p>` : '<p>Icon does not exist</p>';
+                        let contentHtml = data.content ? `<p>Content: ${data.content}</p>` : '<p>Content does not exist</p>';
+                        let lifespanHtml = data.lifespan ? `<p>Lifespan: ${data.lifespan}</p>` : '<p>Lifespan does not exist</p>';
+                        let homeworldHtml = data.homeworld ? `<p>Homeworld: ${data.homeworld}</p>` : '<p>Homeworld does not exist</p>';
+                        let countryHtml = data.country ? `<p>Country: ${data.country}</p>` : '<p>Country does not exist</p>';
+                        let habitatHtml = data.habitat ? `<p>Habitat: ${data.habitat}</p>` : '<p>Habitat does not exist</p>';
+                        document.getElementById('raceInfo').innerHTML = correspondanceHtml + iconHtml + lifespanHtml + homeworldHtml + countryHtml + habitatHtml + contentHtml; // permet l'affichage des infos
+                    } else {
+                        document.getElementById('raceInfo').innerHTML = '<p style="color:red;">' + data.message + '</p>';
+                    }
+                })
+                .catch(error => {
+                    console.error('There was a problem with the fetch operation:', error);
+                    document.getElementById('raceInfo').innerHTML = '<p style="color:red;">Error fetching race info</p>';
+                });
+        } else {
+            document.getElementById('raceInfo').innerHTML = '<p style="color:red;">Please select a race</p>';
+        }
+    }
+
+    function confirmSubmit() { // Fonction pour confirmer ou annuler la soumission du formulaire
+        return confirm("Are you sure you want to update it?");
+    }
+
+    function confirmSpecieDelete() { // Fonction pour confirmer ou annuler la suppression de la Specie
+        if (confirm("Are you sure you want to delete the specie?")) {
+            var specieName = document.querySelector('select[name="Specie_name"]').value;
+            if (specieName) {
+                fetch('scriptes/delete_specie.php?specie=' + encodeURIComponent(specieName))
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            alert("Specie deleted successfully");
+                            window.location.reload();
+                        } else {
+                            alert("Error deleting specie: " + data.message);
+                        }
+                    })
+                    .catch(error => {
+                        alert("Error deleting specie");
+                    });
+            } else {
+                alert("Please select a specie");
+            }
+        }
+    }
+
+    function confirmRaceDelete() { // Fonction pour confirmer ou annuler la suppression de la Specie
+        if (confirm("Are you sure you want to delete the race?")) {
+            var raceName = document.querySelector('select[name="Race_name"]').value;
+            if (raceName) {
+                fetch('scriptes/delete_race.php?race=' + encodeURIComponent(raceName))
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            alert("race deleted successfully");
+                            window.location.reload();
+                        } else {
+                            alert("Error deleting race: " + data.message);
+                        }
+                    })
+                    .catch(error => {
+                        alert("Error deleting race");
+                    });
+            } else {
+                alert("Please select a race");
+            }
+        }
+    }
+
+    
+</script>

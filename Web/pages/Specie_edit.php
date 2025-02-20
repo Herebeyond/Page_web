@@ -1,6 +1,7 @@
 <?php
 require 'blueprints/page_init.php'; // inclut le fichier page_init.php
 
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') { // Vérifie si le formulaire a été soumis
     $Specie_name = isset($_POST['Specie_name']) ? trim($_POST['Specie_name']) : ''; // Nettoyage des entrées utilisateur
     $Specie_Icon = isset($_POST['icon_Specie']) ? trim($_POST['icon_Specie']) : '';
@@ -10,11 +11,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') { // Vérifie si le formulaire a ét�
     $fields = [];
     $params = [];
 
-    if ($Specie_Icon !== '') {
+    if ($Specie_Icon !== '' && $Specie_Icon != null) {
         $fields[] = 'icon_Specie = ?';
         $params[] = $Specie_Icon;
     }
-    if ($Specie_content !== '') {
+    if ($Specie_content !== '' && $Specie_content != null) {
         $fields[] = 'content_Specie = ?';
         $params[] = $Specie_content;
     }
@@ -38,9 +39,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') { // Vérifie si le formulaire a ét�
 
 <html>
     <head>
-        <?php $chemin_absolu = 'http://localhost/test/Web/';?>
-        <link rel="stylesheet" href= "<?php echo $chemin_absolu . "style/PageStyle.css?ver=" . time(); ?>"> <!-- permet de créer un "nouveau" css pour que le site ne lise pas son cache et relise le css, ainsi applicant les changements écrit dedans -->
-        <!-- <link rel="stylesheet" href="../style/styleScript.css?ver=<?php // echo time(); ?>"> le echo time() permet de générer un nombre aléatoire pour générer une version différente "unique" -->
+        <link rel="stylesheet" href="../style/PageStyle.css?ver=<?php echo time(); ?>"> <!-- permet de créer un "nouveau" css pour que le site ne lise pas son cache et relise le css, ainsi applicant les changements écrit dedans -->
+        <!-- le echo time() permet de générer un nombre aléatoire pour générer une version différente "unique" -->
         <title>
             Page d'Accueil
         </title>
@@ -53,7 +53,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') { // Vérifie si le formulaire a ét�
                     <div id=enTeteTexteGauche>
                         <?php
                             for($i=0; $i<4; $i++) {
-                                echo "<div><img src=" . $chemin_absolu . "images/Icon.png></div>";
+                                echo "<div><img src='../images/Icon.png'></div>";
                             }?> <!-- permet de créer 3 images identiques -->
                     </div> <br>
                     <?php // créé un span et écrit dedans le contenu du fichier mondes_oubliés.txt
@@ -61,6 +61,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') { // Vérifie si le formulaire a ét�
                     ?>
                 </div>
                 <div id='add_specie' class="textePrincipal"> <!-- Div de droite -->
+                    <?php require 'scriptes/functions.php'; // inclut le fichier functions.php ?>
                     <a id=retourArriere onclick='window.history.back()'> Retour </a><br>
                     <?php // Afficher les messages d'erreur ou de succès après la soumission du formulaire
                         if (isset($_SESSION['error'])) {
@@ -88,40 +89,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') { // Vérifie si le formulaire a ét�
                         <label for="Specie_icon">Specie Icon</label>
                         <input type="text" name="icon_Specie" value="<?php echo htmlspecialchars($selectedSpecie['icon_specie'] ?? ''); ?>"><br>
                         <label for="Specie_text">Specie content :</label><br>
-                        <input type="text" name="Specie_text" id="content_input" value="<?php echo htmlspecialchars($selectedSpecie['content_specie'] ?? ''); ?>"><br><br>
-                        <button type="submit">Submit</button> <button type="button" onclick="fetchSpecieInfo()">Fetch Info</button><br>
+                        <textarea type="text" name="Specie_text" id="content_input" value="<?php echo htmlspecialchars($selectedSpecie['content_specie'] ?? ''); ?>"></textarea><br><br>
+                        <button type="submit">Submit</button> 
+                        <button type="button" onclick="fetchSpecieInfo()">Fetch Info</button><br><br>
+                        <button type="button" onclick="confirmSpecieDelete()">Delete Specie</button>
                     </form><br>
                     <!-- Afficher le text et l'icon de la Specie sélectionnée -->
                     <div id="specieInfo"></div>
                 </div>
             </div>
         </div>
-        <script>
-            function fetchSpecieInfo() { // Fonction pour récupérer et afficher les informations de la Specie sélectionnée dans l'option du select dans la form grace au bouton Fetch Info
-                var specieName = document.querySelector('select[name="Specie_name"]').value;
-                if (specieName) {
-                    fetch('scriptes/fetch_specie_info.php?specie=' + encodeURIComponent(specieName))
-                        .then(response => response.json())
-                        .then(data => {
-                            if (data.success) {
-                                let iconHtml = data.icon ? `<p>Icon link: ${data.icon}</p><p>Icon: <img id="imgEdit" src="../images/${data.icon}" alt="Specie Icon"></p>` : '<p>Icon does not exist</p>';
-                                let contentHtml = data.content ? `<p>Content: ${data.content}</p>` : '<p>Content does not exist</p>';
-                                document.getElementById('specieInfo').innerHTML = iconHtml + contentHtml;
-                            } else {
-                                document.getElementById('specieInfo').innerHTML = '<p style="color:red;">' + data.message + '</p>';
-                            }
-                        })
-                        .catch(error => {
-                            document.getElementById('specieInfo').innerHTML = '<p style="color:red;">Error fetching specie info</p>';
-                        });
-                } else {
-                    document.getElementById('specieInfo').innerHTML = '<p style="color:red;">Please select a specie</p>';
-                }
-            }
-
-            function confirmSubmit() { // Fonction pour confirmer ou annuler la soumission du formulaire
-                return confirm("Are you sure you want to update the specie?");
-            }
-        </script>
     </body>
 </html>

@@ -1,8 +1,8 @@
 <div id=enTete>
-    <img id=icon src= <?php echo $chemin_absolu . 'images/Eye.jpg' ?>>
+    <img id=icon src='../images/Eye.jpg'> <!-- Display the header icon -->
     <div id=divTitre>
-        <span class=TitrePrincipal> Les Chroniques de la Faille </span>
-        <span class=TitrePrincipal> Les mondes oubliés </span>
+        <span class=TitrePrincipal> Les Chroniques de la Faille </span> <!-- Main title -->
+        <span class=TitrePrincipal> Les mondes oubliés </span> <!-- Subtitle -->
     </div>
 
     <nav id=nav>
@@ -10,36 +10,36 @@
             <li class="menu-item">
                 <div id="liNavigation" class="divLi" onclick="window.location.href='./Accueil.php'">
                     <a> Navigation </a>
-                    <img class="small-icon" src= <?php echo $chemin_absolu . "images/petite_img/fleche-deroulante.png" ?>>
+                    <img class="small-icon" src="../images/petite_img/fleche-deroulante.png" > <!-- Dropdown arrow icon -->
                 </div>
                 <ul class="dropdown">
-                    <?php // affichage de toutes les pages
+                    <?php // Display all pages
                         try {
-                            // Lire les noms de fichiers dans le dossier pages
+                            // Read file names in the pages directory
                             $pages = [];
                             $dir = "../pages";
-                            if (is_dir($dir)) { // si le dossier existe
-                                if ($dh = opendir($dir)) { // ouvre le dossier en lecture
-                                    while (($file = readdir($dh)) !== false) { // lit les fichiers du dossier
-                                        if ($file != '.' && $file != '..' && pathinfo($file, PATHINFO_EXTENSION) == 'php' && $file != "Accueil.php") { // si le fichier n'est pas un dossier et a pour extension php on l'ajoute au tableau $pages
+                            if (is_dir($dir)) { // Check if the directory exists
+                                if ($dh = opendir($dir)) { // Open the directory for reading
+                                    while (($file = readdir($dh)) !== false) { // Read files in the directory
+                                        if ($file != '.' && $file != '..' && pathinfo($file, PATHINFO_EXTENSION) == 'php' && $file != "Accueil.php") { // If the file is not a directory and has a .php extension, add it to the $pages array
                                             $pages[] = pathinfo($file, PATHINFO_FILENAME);
                                         }
                                     }
-                                    closedir($dh); // ferme le dossier en lecture
+                                    closedir($dh); // Close the directory
                                 }
                             }
 
-                            // Parcours du tableau et affichage des éléments dans la liste
-                            foreach ($pages as $page) { // pour chaque élément du tableau $pages on affiche un lien vers la page correspondante
-                                if ($autorisation[$page] == 'all' && $type[$page] == 'common' ) { // si la page est public et fait partie du groupe principal
+                            // Loop through the array and display the elements in the list
+                            foreach ($pages as $page) { // For each element in the $pages array, display a link to the corresponding page
+                                if ($autorisation[$page] == 'all' && $type[$page] == 'common' ) { // If the page is public and part of the main group
                                     echo '
                                         <li>
-                                            <div class=liIntro onclick=window.location.href="' . $chemin_absolu . 'pages/' . $page . '.php">
+                                            <div class=liIntro onclick=window.location.href="./' . $page . '.php">
                                                 <span> ' . $page . '</span>';
                                                 foreach ($pages as $page2) {
                                                     if ($type[$page2] == $page) {
                                                         echo '
-                                                <img class="small-icon" src=' . $chemin_absolu . 'images/petite_img/fleche-deroulante.png>
+                                                <img class="small-icon" src=../images/petite_img/fleche-deroulante.png>
                                                             ';
                                                         break;
                                                     }
@@ -51,7 +51,7 @@
                                         echo '
                                             
                                                 <li>
-                                                    <div class=liIntro onclick=window.location.href="' . $chemin_absolu . 'pages/' . $page2 . '.php">
+                                                    <div class=liIntro onclick=window.location.href="./' . $page2 . '.php">
                                                         <span>' . $page3 . '</span>
                                                     </div>
                                                 </li>
@@ -60,8 +60,8 @@
                                     }
                                     echo '
                                             </ul>
-                                        </li>'; // lien vers la page correspondante aux éléments du tableau $pages
-                                    // le onclick=window.location. me permet d'enlever le style de police bleu souligné des liens
+                                        </li>'; // Link to the corresponding page in the $pages array
+                                    // The onclick=window.location. allows me to remove the blue underlined link style
                                 }
                             }
                         } catch (Exception $e) {
@@ -75,25 +75,25 @@
             <li class=menu-item>
                 <div id=liSpecies class=divLi onclick=window.location.href='./Species.php'>
                     <span> Species </span>
-                    <img class=small-icon src= <?php echo $chemin_absolu . "images/petite_img/fleche-deroulante.png" ?>>
+                    <img class=small-icon src="../images/petite_img/fleche-deroulante.png" > <!-- Dropdown arrow icon -->
                 </div>
                 <ul class="dropdown">
-                    <?php // affichage de toutes les species
+                    <?php // Display all species
                         try {
-                            // Récupération des données du tableau Species
+                            // Retrieve data from the Species table
                             $query = $pdo->query("SELECT * FROM Species ORDER BY id_specie;");
 
                             while ($row = $query->fetch(PDO::FETCH_ASSOC)) {
                                 
-                                // Création d'un li pour chaque species
+                                // Create a list item for each species
                                 $nomSpecie = $row["nom_specie"];
                                 echo ' 
                                     <li>
-                                        <div class=liIntro onclick=window.location.href="' . $chemin_absolu . 'pages/Affichage_specie.php?specie=' . urlencode($nomSpecie) . '">
+                                        <div class=liIntro onclick=window.location.href="./Affichage_specie.php?specie=' . urlencode($nomSpecie) . '">
                                             <span> ' . $nomSpecie . '</span>
                                         </div>
                                     </li>
-                                '; // le onclick=window.location. me permet d'enlever le style de police bleu souligné des liens
+                                '; // The onclick=window.location. allows me to remove the blue underlined link style
                             }
                         } catch (Exception $e) {
                             echo "". $e->getMessage() ."";
@@ -106,26 +106,26 @@
             <li class=menu-item>
                 <div id=liRaces class=divLi onclick=window.location.href='./Races.php'>
                     <span> Races </span>
-                    <img class=small-icon src= <?php echo $chemin_absolu . "images/petite_img/fleche-deroulante.png" ?>>
+                    <img class=small-icon src="../images/petite_img/fleche-deroulante.png" > <!-- Dropdown arrow icon -->
                 </div>
                 <ul class="dropdown">
-                    <?php // affichage de toutes les races
+                    <?php // Display all races
                         try {
-                            // Récupération des données du tableau Races
+                            // Retrieve data from the Races table
                             $query = $pdo->query("SELECT * FROM Races ORDER BY id_race;");
 
                             while ($row = $query->fetch(PDO::FETCH_ASSOC)) {
                                 
-                                // Création d'un li pour chaque races
+                                // Create a list item for each race
                                 $nomRace = $row["nom_race"];
                                 $Correspondance = $row["correspondance"];
                                 echo ' 
                                     <li>
-                                        <div class=liIntro onclick=window.location.href="' . $chemin_absolu . 'pages/Affichage_specie.php?specie=' . urlencode(str_replace(" ", "_", $Correspondance)) . '&race=' . urlencode(str_replace(" ", "_", $nomRace)) . '">
+                                        <div class=liIntro onclick=window.location.href="./Affichage_specie.php?specie=' . urlencode(str_replace(" ", "_", $Correspondance)) . '&race=' . urlencode(str_replace(" ", "_", $nomRace)) . '">
                                             <span> ' . $nomRace . '</span>
                                         </div>
                                     </li>
-                                '; // le onclick=window.location. me permet d'enlever le style de police bleu souligné des liens
+                                ';
                             }
                         } catch (Exception $e) {
                             echo "". $e->getMessage() ."";
@@ -137,50 +137,49 @@
 
         <?php
 
-        // Lire les noms de fichiers dans le dossier pages
+        // Read file names in the pages directory
         $pages = [];
         $dir = "../pages";
-        if (is_dir($dir)) { // si le dossier existe
-            if ($dh = opendir($dir)) { // ouvre le dossier en lecture
-                while (($file = readdir($dh)) !== false) { // lit les fichiers du dossier
-                    if ($file != '.' && $file != '..' && pathinfo($file, PATHINFO_EXTENSION) == 'php' && $file != "Accueil.php") { // si le fichier n'est pas un dossier et a pour extension php on l'ajoute au tableau $pages
+        if (is_dir($dir)) { // Check if the directory exists
+            if ($dh = opendir($dir)) { // Open the directory for reading
+                while (($file = readdir($dh)) !== false) { // Read files in the directory
+                    if ($file != '.' && $file != '..' && pathinfo($file, PATHINFO_EXTENSION) == 'php' && $file != "Accueil.php") { // If the file is not a directory and has a .php extension, add it to the $pages array
                         $pages[] = pathinfo($file, PATHINFO_FILENAME);
                     }
                 }
-                closedir($dh); // ferme le dossier en lecture
+                closedir($dh); // Close the directory
             }
         }
 
-
-        /// VERIFICATION ADMIN
+        // ADMIN VERIFICATION
         if (isset($_SESSION['user'])) {
-            // Récupérer le nom d'utilisateur depuis la base de données
+            // Retrieve the username from the database
             $stmt = $pdo->prepare("SELECT admin FROM users WHERE id = ?");
             $stmt->execute([$_SESSION['user']]);
             $user = $stmt->fetch();
             
-            // vérifie si l'utilisateur est admin ou non
+            // Check if the user is an admin
             if (($user['admin']) == 1 ) { 
                 echo '
                     <ul class=menu>
                         <li class=menu-item>
                             <div id=liAdmin class=divLi>
                                 <span> Admin </span>
-                                <img class=small-icon src="' . $chemin_absolu . 'images/petite_img/fleche-deroulante.png">
+                                <img class=small-icon src="../images/petite_img/fleche-deroulante.png">
                             </div>
                 ';
 
                 echo '<ul class="dropdown">';
-                // Parcours du tableau et affichage des éléments dans la liste
-                foreach ($pages as $page) { // pour chaque élément du tableau $pages on affiche un lien vers la page correspondante
+                // Loop through the array and display the elements in the list
+                foreach ($pages as $page) { // For each element in the $pages array, display a link to the corresponding page
                     if ($autorisation[$page] == 'admin') {
                         echo '
                             <li>
-                                <div class=liIntro onclick=window.location.href="' . $chemin_absolu . 'pages/' . $page . '.php">
+                                <div class=liIntro onclick=window.location.href="./' . $page . '.php">
                                     <span>' . $page . '</span>
                                 </div>
-                            </li>'; // lien vers la page correspondante aux éléments du tableau $pages
-                            // le onclick=window.location. me permet d'enlever le style de police bleu souligné des liens
+                            </li>'; // Link to the corresponding page in the $pages array
+                            // The onclick=window.location. allows me to remove the blue underlined link style
                     }
                 }
                 echo '</ul></li></ul>';
@@ -197,24 +196,24 @@
     <div id=divacceuil>
         
                 <?php
-                include '../pages/scriptes/autorisation.php'; // inclut le fichier autorisation.php
+                include './scriptes/autorisation.php'; // Include the autorisation.php file
 
-                if (isset($_SESSION['user'])) { // si l'utilisateur est connecté on affiche son nom
-                    echo '<div id="LoginCo">'; // div pour le nom de l'utilisateur et le lien de déconnexion
-                    // Récupérer le nom d'utilisateur depuis la base de données
+                if (isset($_SESSION['user'])) { // If the user is logged in, display their name
+                    echo '<div id="LoginCo">'; // Div for the username and logout link
+                    // Retrieve the username from the database
                     $stmt = $pdo->prepare("SELECT username FROM users WHERE id = ?");
                     $stmt->execute([$_SESSION['user']]);
                     $user = $stmt->fetch(); 
-                    echo "<span>Welcome, " . htmlspecialchars($user['username']) . "!</span>"; // affiche le nom de l'utilisateur
-                    echo '<a href="' . $chemin_absolu . 'login/logout.php">Disconnect</a>'; // lien de déconnexion
+                    echo "<span>Welcome, " . htmlspecialchars($user['username']) . "!</span>"; // Display the username
+                    echo '<a href="../login/logout.php">Disconnect</a>'; // Logout link
                 } else {
-                    echo '<div id="LoginDeco">'; // div pour les liens de connexion et d'inscription
-                    echo '<a href="' . $chemin_absolu . 'login/login.php">Sign In</a> <span> &nbsp | &nbsp </span> <a href="' . $chemin_absolu . 'login/register.php">Register</a>'; // liens de connexion et d'inscription
+                    echo '<div id="LoginDeco">'; // Div for the login and register links
+                    echo '<a href="../login/login.php">Sign In</a> <span> &nbsp | &nbsp </span> <a href="../login/register.php">Register</a>'; // Login and register links
                 }
                 ?>
         </div>
-        <div id=acceuil onclick=window.location.href='<?php echo $chemin_absolu . "pages/Accueil.php" ?>'>
-            <a> La Grande Librairie </a>
+        <div id=acceuil onclick=window.location.href="./Accueil.php">
+            <a> La Grande Librairie </a> <!-- Link to the home page -->
         </div>
     </div>
 </div>

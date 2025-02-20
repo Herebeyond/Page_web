@@ -16,35 +16,35 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') { // Vérifie si le formulaire a ét�
     $fields = [];
     $params = [];
 
-    if ($Correspondance !== '') {
+    if ($Correspondance !== '' && $Race_Icon != null) {
         $fields[] = 'correspondance = ?';
         $params[] = $Correspondance;
     }
-    if ($Race_Icon !== '') {
+    if ($Race_Icon !== '' && $Race_Icon != null) {
         $fields[] = 'icon_Race = ?';
         $params[] = $Race_Icon;
     }
-    if ($Icon_Type_Race !== '') {
+    if ($Icon_Type_Race !== '' && $Icon_Type_Race != null) {
         $fields[] = 'icon_Type_Race = ?';
         $params[] = $Icon_Type_Race;
     }
-    if ($Race_content !== '') {
+    if ($Race_content !== '' && $Race_content != null) {
         $fields[] = 'content_Race = ?';
         $params[] = $Race_content;
     }
-    if ($Lifespan !== '') {
+    if ($Lifespan !== '' && $Lifespan != null) {
         $fields[] = 'lifespan = ?';
         $params[] = $Lifespan;
     }
-    if ($Homeworld !== '') {
+    if ($Homeworld !== '' && $Homeworld != null) {
         $fields[] = 'homeworld = ?';
         $params[] = $Homeworld;
     }
-    if ($Country !== '') {
+    if ($Country !== '' && $Country != null) {
         $fields[] = 'country = ?';
         $params[] = $Country;
     }
-    if ($Habitat !== '') {
+    if ($Habitat !== '' && $Habitat != null) {
         $fields[] = 'habitat = ?';
         $params[] = $Habitat;
     }
@@ -68,8 +68,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') { // Vérifie si le formulaire a ét�
 
 <html>
     <head>
-        <?php $chemin_absolu = 'http://localhost/test/Web/';?>
-        <link rel="stylesheet" href= "<?php echo $chemin_absolu . "style/PageStyle.css?ver=" . time(); ?>"> <!-- permet de créer un "nouveau" css pour que le site ne lise pas son cache et relise le css, ainsi applicant les changements écrit dedans -->
+        <link rel="stylesheet" href="../style/PageStyle.css?ver=<?php echo time(); ?>"> <!-- permet de créer un "nouveau" css pour que le site ne lise pas son cache et relise le css, ainsi applicant les changements écrit dedans -->
         <title>
             Page d'Accueil
         </title>
@@ -82,7 +81,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') { // Vérifie si le formulaire a ét�
                     <div id=enTeteTexteGauche>
                         <?php
                             for($i=0; $i<4; $i++) {
-                                echo "<div><img src=" . $chemin_absolu . "images/Icon.png></div>";
+                                echo "<div><img src='../images/Icon.png'></div>";
                             }?> <!-- permet de créer 3 images identiques -->
                     </div> <br>
                     <?php // créé un span et écrit dedans le contenu du fichier mondes_oubliés.txt
@@ -90,6 +89,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') { // Vérifie si le formulaire a ét�
                     ?>
                 </div>
                 <div id='add_race' class="textePrincipal"> <!-- Div de droite -->
+                    <?php include "scriptes/functions.php"?>
                     <a id=retourArriere onclick='window.history.back()'> Retour </a><br>
                     <?php // Afficher les messages d'erreur ou de succès après la soumission du formulaire
                         if (isset($_SESSION['error'])) {
@@ -137,51 +137,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') { // Vérifie si le formulaire a ét�
                         <input type="text" name="Habitat" value="<?php echo htmlspecialchars($selectedRace['habitat'] ?? ''); ?>"><br>
                         <label for="Race_text">Race content :</label><br>
                         <textarea type="text" name="Race_text" id="content_input"><?php echo htmlspecialchars($selectedRace['content_race'] ?? ''); ?></textarea><br><br>
-                        <button type="submit">Submit</button> <button type="button" onclick="fetchRaceInfo()">Fetch Info</button><br>
+                        <button type="submit">Submit</button> 
+                        <button type="button" onclick="fetchRaceInfo()">Fetch Info</button><br><br>
+                        <button type="button" onclick="confirmRaceDelete()">Delete Specie</button>
                     </form><br>
                     <!-- Afficher le text et l'icon de la Race sélectionnée -->
                     <div id="raceInfo"></div>
                 </div>
             </div>
         </div>
-<script>
-    function fetchRaceInfo() { // Fonction pour récupérer et afficher les informations de la Race sélectionnée dans l'option du select dans la form grace au bouton Fetch Info
-        var raceName = document.querySelector('select[name="Race_name"]').value;
-        if (raceName) {
-            fetch('scriptes/fetch_race_info.php?race=' + encodeURIComponent(raceName))
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error('Network response was not ok');
-                    }
-                    return response.json();
-                })
-                .then(data => {
-                    if (data.success) {
-                        let correspondanceHtml = data.correspondance ? `<p>Correspondance: ${data.correspondance}</p>` : '<p>Correspondance does not exist</p>';
-                        let icon = data.icon ? data.icon.replace(/ /g, '_') : '';
-                        let iconHtml = icon ? `<p>Icon link: ${icon}.${data.icon_type}</p><p>Icon: <img id="imgEdit" src="../images/${icon}.${data.icon_type}" alt="Race Icon"></p>` : '<p>Icon does not exist</p>';
-                        let contentHtml = data.content ? `<p>Content: ${data.content}</p>` : '<p>Content does not exist</p>';
-                        let lifespanHtml = data.lifespan ? `<p>Lifespan: ${data.lifespan}</p>` : '<p>Lifespan does not exist</p>';
-                        let homeworldHtml = data.homeworld ? `<p>Homeworld: ${data.homeworld}</p>` : '<p>Homeworld does not exist</p>';
-                        let countryHtml = data.country ? `<p>Country: ${data.country}</p>` : '<p>Country does not exist</p>';
-                        let habitatHtml = data.habitat ? `<p>Habitat: ${data.habitat}</p>` : '<p>Habitat does not exist</p>';
-                        document.getElementById('raceInfo').innerHTML = correspondanceHtml + iconHtml + lifespanHtml + homeworldHtml + countryHtml + habitatHtml + contentHtml; // permet l'affichage des infos
-                    } else {
-                        document.getElementById('raceInfo').innerHTML = '<p style="color:red;">' + data.message + '</p>';
-                    }
-                })
-                .catch(error => {
-                    console.error('There was a problem with the fetch operation:', error);
-                    document.getElementById('raceInfo').innerHTML = '<p style="color:red;">Error fetching race info</p>';
-                });
-        } else {
-            document.getElementById('raceInfo').innerHTML = '<p style="color:red;">Please select a race</p>';
-        }
-    }
-
-    function confirmSubmit() { // Fonction pour confirmer ou annuler la soumission du formulaire
-        return confirm("Are you sure you want to update the race?");
-    }
-</script>
     </body>
 </html>

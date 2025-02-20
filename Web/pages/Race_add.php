@@ -36,9 +36,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') { // Vérifie si le formulaire a ét�
 
 <html>
     <head>
-        <?php $chemin_absolu = 'http://localhost/test/Web/';?>
-        <link rel="stylesheet" href= "<?php echo $chemin_absolu . "style/PageStyle.css?ver=" . time(); ?>"> <!-- permet de créer un "nouveau" css pour que le site ne lise pas son cache et relise le css, ainsi applicant les changements écrit dedans -->
-        <!-- <link rel="stylesheet" href="../style/styleScript.css?ver=<?php // echo time(); ?>"> le echo time() permet de générer un nombre aléatoire pour générer une version différente "unique" -->
+        <link rel="stylesheet" href="../style/PageStyle.css?ver=<?php echo time(); ?>"> <!-- permet de créer un "nouveau" css pour que le site ne lise pas son cache et relise le css, ainsi applicant les changements écrit dedans -->
+        <!-- le echo time() permet de générer un nombre aléatoire pour générer une version différente "unique" -->
         <title>
             Page d'Accueil
         </title>
@@ -58,7 +57,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') { // Vérifie si le formulaire a ét�
                     <div id=enTeteTexteGauche>
                         <?php
                             for($i=0; $i<4; $i++) {
-                                echo "<div><img src=" . $chemin_absolu . "images/Icon.png></div>";
+                                echo "<div><img src='../images/Icon.png'></div>";
                             }?> <!-- permet de créer 3 images identiques -->
                     </div> <br>
                     <?php // créé un span et écrit dedans le contenu du fichier mondes_oubliés.txt

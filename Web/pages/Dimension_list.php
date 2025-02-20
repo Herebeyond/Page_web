@@ -1,15 +1,13 @@
 <?php
-session_start();
-require '../login/db.php'; // Connexion à la base
-include './scriptes/autorisation.php'; // inclut le fichier autorisation.php
+include "./blueprints/page_init.php";
 ?>
 
 <html>
     <head>
-        <?php $chemin_absolu = 'http://localhost/test/Web/';?> <!-- défini le chemin absolu commun à tous les chemins, le reste du chemin sera écrit pour chaque cas -->
-        <link rel='stylesheet' href='<?php echo $chemin_absolu . '/style/PageStyle.css?ver=' . time()?>' > <!-- le ?ver=' . time() permet de générer une version différente à chaque fois et ainsi recharger le css à chaque fois que la page est rechargée car il ignore le cache -->
+        <link rel="stylesheet" href="../style/PageStyle.css?ver=<?php echo time(); ?>"> <!-- permet de créer un "nouveau" css pour que le site ne lise pas son cache et relise le css, ainsi applicant les changements écrit dedans -->
+        <!-- le echo time() permet de générer un nombre aléatoire pour générer une version différente "unique" -->
         <title>
-            Angels
+            Dimension List
         </title>
     </head>
     
@@ -24,11 +22,11 @@ include './scriptes/autorisation.php'; // inclut le fichier autorisation.php
                     <div id=enTeteTexteGauche>
                         <?php
                             for($i=0; $i<4; $i++) {
-                                echo '<div><img src=' . $chemin_absolu . 'images/Icon.png></div>';
+                                echo "<div><img src='../images/Icon.png'></div>";
                             }?> <!-- permet de créer 4 images identiques et espacées correctement -->
                     </div> <br>
                     <?php // créé un span et écrit dedans le contenu du fichier mondes_oubliés.txt
-                        echo '<span>' . nl2br(htmlspecialchars(file_get_contents("" . $chemin_absolu . "texte/mondes_oubliés.txt"))) . '</span>';
+                        echo '<span>' . nl2br(htmlspecialchars(file_get_contents("../texte/mondes_oubliés.txt"))) . '</span>';
                     ?>
                 </div>
 
@@ -38,7 +36,7 @@ include './scriptes/autorisation.php'; // inclut le fichier autorisation.php
                     <?php
                     try {
                         // génère le texte principal de la page
-                        echo '<span>' . nl2br(htmlspecialchars(file_get_contents("" . $chemin_absolu . "texte/dimensions.txt"))) . '</span>';
+                        echo '<span>' . nl2br(htmlspecialchars(file_get_contents("../texte/dimensions.txt"))) . '</span>';
                         echo '<br><br>';
 
                         $dimensionsInfos = $pdo->query("SELECT * FROM dimensions");
@@ -111,5 +109,4 @@ include './scriptes/autorisation.php'; // inclut le fichier autorisation.php
         </div>
     </body>
 </html>
-            
-            
+
