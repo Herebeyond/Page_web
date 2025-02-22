@@ -16,21 +16,43 @@ function isImageLinkValid($url) {
 
 ?>
 <script>
+
+    function escapeHtml(text) { // Fonction pour échapper les caractères spéciaux en HTML dans fetchSpecieInfo et fetchRaceInfo
+        var map = {
+            '&': '&amp;',
+            '<': '&lt;',
+            '>': '&gt;',
+            '"': '&quot;',
+            "'": '&#039;'
+        };
+        return text.replace(/[&<>"']/g, function(m) { return map[m]; });
+    }
+
+    function nl2br(str) { // Fonction pour remplacer les sauts de ligne par des balises <br> dans fetchSpecieInfo et fetchRaceInfo
+        return str.replace(/\n/g, '<br>');
+    }
+
     function fetchSpecieInfo() { // Fonction pour récupérer et afficher les informations de la Specie sélectionnée dans l'option du select dans la form grace au bouton Fetch Info
         var specieName = document.querySelector('select[name="Specie_name"]').value;
         if (specieName) {
             fetch('scriptes/fetch_specie_info.php?specie=' + encodeURIComponent(specieName))
-                .then(response => response.json())
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
                 .then(data => {
                     if (data.success) {
-                        let iconHtml = data.icon ? `<p>Icon link: ${data.icon}</p><p>Icon: <img id="imgEdit" src="../images/${data.icon}" alt="Specie Icon"></p>` : '<p>Icon does not exist</p>';
-                        let contentHtml = data.content ? `<p>Content: ${data.content}</p>` : '<p>Content does not exist</p>';
+                        let iconHtml = data.icon ? `<p>Icon link: ${escapeHtml(data.icon)}</p><p>Icon: <img id="imgEdit" src="../images/${escapeHtml(data.icon)}" alt="Specie Icon"></p>` : '<p>Icon does not exist</p>';
+                        let contentHtml = data.content ? `<p>Content: <br>${nl2br(escapeHtml(data.content))}</p>` : '<p>Content does not exist</p>';
                         document.getElementById('specieInfo').innerHTML = iconHtml + contentHtml;
                     } else {
-                        document.getElementById('specieInfo').innerHTML = '<p style="color:red;">' + data.message + '</p>';
+                        document.getElementById('specieInfo').innerHTML = '<p style="color:red;">' + escapeHtml(data.message) + '</p>';
                     }
                 })
                 .catch(error => {
+                    console.error('There was a problem with the fetch operation:', error);
                     document.getElementById('specieInfo').innerHTML = '<p style="color:red;">Error fetching specie info</p>';
                 });
         } else {
@@ -50,17 +72,17 @@ function isImageLinkValid($url) {
                 })
                 .then(data => {
                     if (data.success) {
-                        let correspondanceHtml = data.correspondance ? `<p>Correspondance: ${data.correspondance}</p>` : '<p>Correspondance does not exist</p>';
+                        let correspondanceHtml = data.correspondance ? `<p>Correspondance: ${escapeHtml(data.correspondance)}</p>` : '<p>Correspondance does not exist</p>';
                         let icon = data.icon ? data.icon.replace(/ /g, '_') : '';
-                        let iconHtml = icon ? `<p>Icon link: ${icon}.${data.icon_type}</p><p>Icon: <img id="imgEdit" src="../images/${icon}.${data.icon_type}" alt="Race Icon"></p>` : '<p>Icon does not exist</p>';
-                        let contentHtml = data.content ? `<p>Content: ${data.content}</p>` : '<p>Content does not exist</p>';
-                        let lifespanHtml = data.lifespan ? `<p>Lifespan: ${data.lifespan}</p>` : '<p>Lifespan does not exist</p>';
-                        let homeworldHtml = data.homeworld ? `<p>Homeworld: ${data.homeworld}</p>` : '<p>Homeworld does not exist</p>';
-                        let countryHtml = data.country ? `<p>Country: ${data.country}</p>` : '<p>Country does not exist</p>';
-                        let habitatHtml = data.habitat ? `<p>Habitat: ${data.habitat}</p>` : '<p>Habitat does not exist</p>';
+                        let iconHtml = icon ? `<p>Icon link: ${escapeHtml(icon)}.${escapeHtml(data.icon_type)}</p><p>Icon: <img id="imgEdit" src="../images/${escapeHtml(icon)}.${escapeHtml(data.icon_type)}" alt="Race Icon"></p>` : '<p>Icon does not exist</p>';
+                        let contentHtml = data.content ? `<p>Content: <br>${nl2br(escapeHtml(data.content))}</p>` : '<p>Content does not exist</p>';
+                        let lifespanHtml = data.lifespan ? `<p>Lifespan: ${escapeHtml(data.lifespan)}</p>` : '<p>Lifespan does not exist</p>';
+                        let homeworldHtml = data.homeworld ? `<p>Homeworld: ${escapeHtml(data.homeworld)}</p>` : '<p>Homeworld does not exist</p>';
+                        let countryHtml = data.country ? `<p>Country: ${escapeHtml(data.country)}</p>` : '<p>Country does not exist</p>';
+                        let habitatHtml = data.habitat ? `<p>Habitat: ${escapeHtml(data.habitat)}</p>` : '<p>Habitat does not exist</p>';
                         document.getElementById('raceInfo').innerHTML = correspondanceHtml + iconHtml + lifespanHtml + homeworldHtml + countryHtml + habitatHtml + contentHtml; // permet l'affichage des infos
                     } else {
-                        document.getElementById('raceInfo').innerHTML = '<p style="color:red;">' + data.message + '</p>';
+                        document.getElementById('raceInfo').innerHTML = '<p style="color:red;">' + escapeHtml(data.message) + '</p>';
                     }
                 })
                 .catch(error => {

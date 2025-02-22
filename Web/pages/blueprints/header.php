@@ -51,7 +51,7 @@
                                         echo '
                                             
                                                 <li>
-                                                    <div class=liIntro onclick=window.location.href="./' . $page2 . '.php">
+                                                    <div class=liIntro onclick=window.location.href="./' . $page3 . '.php">
                                                         <span>' . $page3 . '</span>
                                                     </div>
                                                 </li>

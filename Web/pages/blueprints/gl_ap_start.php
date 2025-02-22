@@ -1,5 +1,5 @@
 <?php
-include "./blueprints/page_init.php"; // inclut le fichier d'initialisation de la page
+require "./scriptes/functions.php"; // inclut le fichier de fonctions
 ?>
 
 

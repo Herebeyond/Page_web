@@ -299,23 +299,7 @@ html body {
     padding-left: 50;
 }
 
-.textePrincipal {
-    display: flex;
-    flex-wrap: wrap;
-    width: calc(100% - 140px);
-    margin: 50px;
-    margin-inline: 2%; /* Margin between elements */
-    padding: 20px;
-    background-color: black;
-    opacity: 0.85;
-    color: white;
-    border-radius: 8px 8px 8px 8px;
-    height: fit-content;
-    position: relative; /* Ensure z-index works */
-    z-index: 1; /* Ensure textePrincipal is below dropdown */
-}
-
-#affichage_specie {
+#textePrincipal, #textePrincipalList {
     display: flex;
     flex-wrap: wrap;
     flex-direction: column;
@@ -324,12 +308,16 @@ html body {
     margin-inline: 2%; /* Margin between elements */
     padding: 20px;
     background-color: black;
-    opacity: 0.85;
+    opacity: 0.93;
     color: white;
     border-radius: 8px 8px 8px 8px;
     height: fit-content;
     position: relative; /* Ensure z-index works */
-    z-index: 1; /* Ensure textePrincipal is below dropdown */
+    z-index: 1; /* Ensure them to be below dropdown */
+}
+
+#textePrincipalList {
+    flex-direction: row;
 }
 
 #add_specie, #add_race {

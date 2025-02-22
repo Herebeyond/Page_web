@@ -1,7 +1,7 @@
 <?php
-session_start();
-require '../login/db.php'; // Connexion à la base
-include './scriptes/autorisation.php'; // inclut le fichier autorisation.php
+require "./blueprints/page_init.php"; // inclut le fichier d'initialisation de la page
+require "./blueprints/gl_ap_start.php"; // inclut le fichier d'initialisation de la page
+
 
 if (isset($_GET['specie'])) {
     // Récupère les valeurs des paramètres 'race' et 'specie' et les nettoie
@@ -28,34 +28,8 @@ if (isset($_GET['specie'])) {
 }
 ?>
 
-<html>
-    <head>
-        <link rel='stylesheet' href='<?php echo '../style/PageStyle.css?ver=' . time()?>' > <!-- le ?ver=' . time() permet de générer une version différente à chaque fois et ainsi recharger le css à chaque fois que la page est rechargée car il ignore le cache -->
-        <title>
-            Angels
-        </title>
-    </head>
-    
-    <body>
-        <div id='global'>
 
-            <?php include "./blueprints/header.php"; ?>
-            <?php include "./scriptes/functions.php"; ?>
-
-            <div id='englobe'>
-                <div class=texteGauche> <!-- Div de gauche -->
-                    <div id=enTeteTexteGauche>
-                        <?php
-                            for($i=0; $i<4; $i++) {
-                                echo '<div><img src=../images/Icon.png></div>';
-                            }?> <!-- permet de créer 4 images identiques et espacées correctement -->
-                    </div> <br>
-                    <?php // créé un span et écrit dedans le contenu du fichier mondes_oubliés.txt
-                        echo '<span>' . nl2br(htmlspecialchars(file_get_contents("../texte/mondes_oubliés.txt"))) . '</span>';
-                    ?>
-                </div>
-
-                <div id='affichage_specie'> <!-- Div de droite -->
+                <div id='textePrincipal'> <!-- Div de droite -->
                     <a id=retourArriere onclick='window.history.back()'> Retour </a><br>
                     <span class='Titre'> <?php echo htmlspecialchars($specie, ENT_QUOTES, 'UTF-8'); ?> </span> <!-- affiche le nom de la specie en entête -->
                     <?php
