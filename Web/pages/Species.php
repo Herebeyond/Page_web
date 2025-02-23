@@ -6,7 +6,8 @@ require "./blueprints/gl_ap_start.php";
 $perPage = 8;
 
 // Calculate the total number of pages
-$totalSpeciesQuery = $pdo->query("SELECT COUNT(*) FROM species");
+$totalSpeciesQuery = $pdo->prepare("SELECT COUNT(*) FROM species");
+$totalSpeciesQuery->execute();
 $totalSpecies = $totalSpeciesQuery->fetchColumn();
 $totalPages = ceil($totalSpecies / $perPage);
 
@@ -26,17 +27,8 @@ $offset = ($page - 1) * $perPage;
     <a id=retourArriere onclick='window.history.back()'> Retour </a><br>
     <div id="textePrincipalList">
         <?php
-            // Informations de connexion à la base de données MySQL
-            $host = 'db';
-            $dbname = 'univers';
-            $username = 'root';
-            $password = 'root_password';
 
             try {
-                // Connexion à la base de données MySQL
-                $pdo = new PDO("mysql:host=$host;dbname=$dbname;charset=utf8", $username, $password);
-                $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-
                 // Retrieval of data from table species with pagination
                 $query = $pdo->prepare("SELECT * FROM species ORDER BY id_specie LIMIT :limit OFFSET :offset");
                 $query->bindValue(':limit', $perPage, PDO::PARAM_INT);

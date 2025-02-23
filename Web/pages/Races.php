@@ -6,7 +6,8 @@ require "./blueprints/gl_ap_start.php";
 $perPage = 8;
 
 // Calculer le nombre total de pages
-$totalRacesQuery = $pdo->query("SELECT COUNT(*) FROM races");
+$totalRacesQuery = $pdo->prepare("SELECT COUNT(*) FROM races");
+$totalRacesQuery->execute();
 $totalRaces = $totalRacesQuery->fetchColumn();
 $totalPages = ceil($totalRaces / $perPage);
 

@@ -81,7 +81,8 @@
                     <?php // Display all species
                         try {
                             // Retrieve data from the Species table
-                            $query = $pdo->query("SELECT * FROM Species ORDER BY id_specie;");
+                            $query = $pdo->prepare("SELECT * FROM Species ORDER BY id_specie;");
+                            $query->execute();
 
                             while ($row = $query->fetch(PDO::FETCH_ASSOC)) {
                                 
@@ -112,7 +113,8 @@
                     <?php // Display all races
                         try {
                             // Retrieve data from the Races table
-                            $query = $pdo->query("SELECT * FROM Races ORDER BY id_race;");
+                            $query = $pdo->prepare("SELECT * FROM Races ORDER BY id_race;");
+                            $query->execute();
 
                             while ($row = $query->fetch(PDO::FETCH_ASSOC)) {
                                 

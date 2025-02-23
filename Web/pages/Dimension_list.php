@@ -12,7 +12,8 @@ include "./blueprints/gl_ap_start.php";
         echo '<span>' . nl2br(sanitize_output(file_get_contents("../texte/dimensions.txt"))) . '</span>';
         echo '<br><br>';
 
-        $dimensionsInfos = $pdo->query("SELECT * FROM dimensions");
+        $dimensionsInfos = $pdo->prepare("SELECT * FROM dimensions");
+        $dimensionsInfos->execute();
         while ($row = $dimensionsInfos->fetch(PDO::FETCH_ASSOC)) {
             // génère les divs éventuelles pour chaque races
             $divsSelec = '';

@@ -57,9 +57,9 @@ require 'blueprints/gl_ap_start.php'; // inclut le fichier gl_ap_start.php
         <select name="Specie_name" required>
             <option value="">Select a specie</option>
             <?php // Récupérer les noms des Specie depuis la base de données et les afficher dans une liste déroulante
-                $stmt = $pdo->query("SELECT * FROM species ORDER BY nom_Specie;");
+                $stmt = $pdo->prepare("SELECT * FROM species ORDER BY nom_Specie;");
+                $stmt->execute();
                 while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
-                    //$selected = ($row['nom_specie'] == $Specie_name) ? 'selected' : ''; // servait lorsque j'essaiyais de récupérer les données de la Specie sélectionnée automatiquement je crois
                     echo '<option value="' . sanitize_output($row['nom_specie']) . '">' . sanitize_output($row['nom_specie']) . '</option>';
                 }
             ?>

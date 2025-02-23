@@ -49,7 +49,8 @@ require "./blueprints/gl_ap_start.php";
         <select name="Correspondance" required> <!-- Liste déroulante pour sélectionner la correspondance de la race avec quel specie -->
             <option value="">Select a specie</option>
             <?php // Récupérer les noms des Specie depuis la base de données et les afficher dans une liste déroulante
-                $stmt = $pdo->query("SELECT * FROM species ORDER BY nom_specie;");
+                $stmt = $pdo->prepare("SELECT * FROM species ORDER BY nom_specie;");
+                $stmt->execute();
                 while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
                     echo '<option value="' . sanitize_output($row['nom_specie']) . '">' . sanitize_output($row['nom_specie']) . '</option>';
                 }

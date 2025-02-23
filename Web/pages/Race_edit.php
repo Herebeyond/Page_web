@@ -86,7 +86,8 @@ require "./blueprints/gl_ap_start.php";
         <select name="Race_name" required>
             <option value="">Select a race</option>
             <?php // Récupérer les noms des Race depuis la base de données et les afficher dans une liste déroulante
-                $stmt = $pdo->query("SELECT * FROM races ORDER BY nom_Race;");
+                $stmt = $pdo->prepare("SELECT * FROM races ORDER BY nom_Race;");
+                $stmt->execute();
                 while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
                     echo '<option value="' . sanitize_output($row['nom_race']) . '">' . sanitize_output($row['nom_race']) . '</option>';
                 }
@@ -96,7 +97,8 @@ require "./blueprints/gl_ap_start.php";
         <select name="Correspondance" required>
             <option value="">Select a specie</option>
             <?php // Récupérer les noms des Specie depuis la base de données et les afficher dans une liste déroulante
-                $stmt = $pdo->query("SELECT * FROM species ORDER BY nom_specie;");
+                $stmt = $pdo->prepare("SELECT * FROM species ORDER BY nom_specie;");
+                $stmt->execute();
                 while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
                     echo '<option value="' . sanitize_output($row['nom_specie']) . '">' . sanitize_output($row['nom_specie']) . '</option>';
                 }
