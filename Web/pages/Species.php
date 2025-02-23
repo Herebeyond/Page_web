@@ -28,7 +28,7 @@ require "./blueprints/gl_ap_start.php";
                     $imgPath = '../images/icon_default.png'; // chemin de l'image par défaut
                 } else { // si l'image existe et est valide
                     $imgPath = str_replace(" ", "_", "$imgPath"); // remplace les espaces par des _ pour les noms de fichiers
-                    $imgPath = "../images/" . htmlspecialchars($imgPath, ENT_QUOTES, 'UTF-8'); // chemin de l'image, le htmlspecialchars permet d'échapper les caractères spéciaux dans la chaîne de caractères (tel que les ' et ") et ainsi les empêche de fermer des chaines de caractères
+                    $imgPath = "../images/" . sanitize_output($imgPath); // chemin de l'image, le sanitize_output permet d'échapper les caractères spéciaux dans la chaîne de caractères (tel que les ' et ") et ainsi les empêche de fermer des chaines de caractères
                 } 
                 
                 if (!isImageLinkValid($imgPath)) { // si l'image n'est pas valide
@@ -36,7 +36,7 @@ require "./blueprints/gl_ap_start.php";
                 }
         
                 // Création d'une div pour chaque species
-                $nomSpecie = $row["nom_specie"];
+                $nomSpecie = sanitize_output($row["nom_specie"]);
                 echo " 
                     <div class='selectionAccueil'>
                         <div class='classImgSelectionAccueil'>
@@ -49,7 +49,7 @@ require "./blueprints/gl_ap_start.php";
 
         } catch (PDOException $e) {
             // Gestion des erreurs
-            echo "Erreur d'insertion : " . $e->getMessage();
+            echo "Erreur d'insertion : " . sanitize_output($e->getMessage());
         }
     ?>
 </div>

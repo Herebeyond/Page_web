@@ -43,11 +43,11 @@ require 'blueprints/gl_ap_start.php'; // inclut le fichier gl_ap_start.php
     <a id=retourArriere onclick='window.history.back()'> Retour </a><br>
     <?php // Afficher les messages d'erreur ou de succès après la soumission du formulaire
         if (isset($_SESSION['error'])) {
-            echo '<p style="color:red;">' . htmlspecialchars($_SESSION['error']) . '</p>';
+            echo '<p style="color:red;">' . sanitize_output($_SESSION['error']) . '</p>';
             unset($_SESSION['error']);
         }
         if (isset($_SESSION['success'])) {
-            echo '<p style="color:green;">' . htmlspecialchars($_SESSION['success']) . '</p>';
+            echo '<p style="color:green;">' . sanitize_output($_SESSION['success']) . '</p>';
             unset($_SESSION['success']);
         }
     ?>
@@ -60,7 +60,7 @@ require 'blueprints/gl_ap_start.php'; // inclut le fichier gl_ap_start.php
                 $stmt = $pdo->query("SELECT * FROM species ORDER BY nom_Specie;");
                 while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
                     //$selected = ($row['nom_specie'] == $Specie_name) ? 'selected' : ''; // servait lorsque j'essaiyais de récupérer les données de la Specie sélectionnée automatiquement je crois
-                    echo '<option value="' . $row['nom_specie'] . '">' . $row['nom_specie'] . '</option>';
+                    echo '<option value="' . sanitize_output($row['nom_specie']) . '">' . sanitize_output($row['nom_specie']) . '</option>';
                 }
             ?>
         </select><br>

@@ -72,11 +72,11 @@ require "./blueprints/gl_ap_start.php";
     <a id=retourArriere onclick='window.history.back()'> Retour </a><br>
     <?php // Afficher les messages d'erreur ou de succès après la soumission du formulaire
         if (isset($_SESSION['error'])) {
-            echo '<p style="color:red;">' . htmlspecialchars($_SESSION['error']) . '</p>';
+            echo '<p style="color:red;">' . sanitize_output($_SESSION['error']) . '</p>';
             unset($_SESSION['error']);
         }
         if (isset($_SESSION['success'])) {
-            echo '<p style="color:green;">' . htmlspecialchars($_SESSION['success']) . '</p>';
+            echo '<p style="color:green;">' . sanitize_output($_SESSION['success']) . '</p>';
             unset($_SESSION['success']);
         }
     ?>
@@ -88,7 +88,7 @@ require "./blueprints/gl_ap_start.php";
             <?php // Récupérer les noms des Race depuis la base de données et les afficher dans une liste déroulante
                 $stmt = $pdo->query("SELECT * FROM races ORDER BY nom_Race;");
                 while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
-                    echo '<option value="' . $row['nom_race'] . '">' . $row['nom_race'] . '</option>';
+                    echo '<option value="' . sanitize_output($row['nom_race']) . '">' . sanitize_output($row['nom_race']) . '</option>';
                 }
             ?>
         </select><br>
@@ -98,7 +98,7 @@ require "./blueprints/gl_ap_start.php";
             <?php // Récupérer les noms des Specie depuis la base de données et les afficher dans une liste déroulante
                 $stmt = $pdo->query("SELECT * FROM species ORDER BY nom_specie;");
                 while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
-                    echo '<option value="' . $row['nom_specie'] . '">' . $row['nom_specie'] . '</option>';
+                    echo '<option value="' . sanitize_output($row['nom_specie']) . '">' . sanitize_output($row['nom_specie']) . '</option>';
                 }
             ?>
         </select><br>

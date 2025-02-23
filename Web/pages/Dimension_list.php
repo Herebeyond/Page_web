@@ -3,46 +3,43 @@ require "./blueprints/page_init.php"; // inclut le fichier d'initialisation de l
 include "./blueprints/gl_ap_start.php";
 ?>
 
-
 <div id='textePrincipal'> <!-- Div de droite -->
     <a id=retourArriere onclick='window.history.back()'> Retour </a><br>
     <span class='Titre'> Dimensions </span> <!-- affiche le nom de la specie en entête -->
     <?php
     try {
         // génère le texte principal de la page
-        echo '<span>' . nl2br(htmlspecialchars(file_get_contents("../texte/dimensions.txt"))) . '</span>';
+        echo '<span>' . nl2br(sanitize_output(file_get_contents("../texte/dimensions.txt"))) . '</span>';
         echo '<br><br>';
 
         $dimensionsInfos = $pdo->query("SELECT * FROM dimensions");
         while ($row = $dimensionsInfos->fetch(PDO::FETCH_ASSOC)) {
             // génère les divs éventuelles pour chaque races
             $divsSelec = '';
-                $DimensionName = $row['nom_dimension'];
-                $DimensionType = $row['type'];
+                $DimensionName = sanitize_output($row['nom_dimension']);
+                $DimensionType = sanitize_output($row['type']);
                 if ($DimensionType == null || $DimensionType == '') {
                     $DimensionType = 'Not specified';
                 }
 
-                $Reality = $row['reality'];
+                $Reality = sanitize_output($row['reality']);
                 if ($Reality == null || $Reality == '') {
                     $Reality = 'Not specified';
                 }
 
-                $GodHome = $row['god_home'];
+                $GodHome = sanitize_output($row['god_home']);
                 if ($GodHome == null || $GodHome == '') {
                     $GodHome = 'Not specified';
                 }
 
-                $Content = $row['content'];
+                $Content = sanitize_output($row['content']);
                 if ($Content == null || $Content == '') {
                     $Content = 'Not specified';
                 }
 
-
-
                 // Création d'une div pour chaque race
                 $divsSelec .= '
-                        <span class=nomDimension> ' . $row["nom_dimension"] . '</span>
+                        <span class=nomDimension> ' . $DimensionName . '</span>
                         <div class="selection">
                             <div class=infobox>
                                 <div class=infos>
@@ -75,7 +72,7 @@ include "./blueprints/gl_ap_start.php";
         }
     } catch (PDOException $e) {
         // Gestion des erreurs
-        echo "Erreur de connexion : " . $e->getMessage();
+        echo "Erreur de connexion : " . sanitize_output($e->getMessage());
     }
     ?>
 </div>

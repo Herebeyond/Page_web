@@ -36,11 +36,11 @@ require "./blueprints/gl_ap_start.php"; // inclut le fichier d'en-tête de la pa
     <a id=retourArriere onclick='window.history.back()'> Retour </a><br>
     <?php
         if (isset($_SESSION['error'])) {
-            echo '<p style="color:red;">' . htmlspecialchars($_SESSION['error']) . '</p>';
+            echo '<p style="color:red;">' . sanitize_output($_SESSION['error']) . '</p>';
             unset($_SESSION['error']);
         }
         if (isset($_SESSION['success'])) {
-            echo '<p style="color:green;">' . htmlspecialchars($_SESSION['success']) . '</p>';
+            echo '<p style="color:green;">' . sanitize_output($_SESSION['success']) . '</p>';
             unset($_SESSION['success']);
         }
     ?>

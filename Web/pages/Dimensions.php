@@ -59,7 +59,7 @@ require "./blueprints/gl_ap_start.php";
                     echo "<span>$frstLetter</span>";
                     echo "<ul>";
                 }
-                echo "<li><a href='./" . $page . ".php'>$page</a></li>"; // lien vers la page correspondante aux éléments du tableau $pages
+                echo "<li><a href='./" . sanitize_output($page) . ".php'>$page</a></li>"; // lien vers la page correspondante aux éléments du tableau $pages
             
             }
             

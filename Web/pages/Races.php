@@ -3,7 +3,6 @@ require "./blueprints/page_init.php";
 require "./blueprints/gl_ap_start.php";
 ?>
 
-
 <div id="textePrincipalList"> <!-- Div de droite -->
     <a id=retourArriere onclick='window.history.back()'> Retour </a><br>
     <?php
@@ -17,7 +16,7 @@ require "./blueprints/gl_ap_start.php";
                     $imgPath = '../images/icon_default.png'; // chemin de l'image par défaut
                 } else { // si l'image existe
                     $imgPath = str_replace(" ", "_", "$imgPath"); // remplace les espaces par des _ pour les noms de fichiers
-                    $imgPath = "../images/" . htmlspecialchars($imgPath, ENT_QUOTES, 'UTF-8') . "." . $row["icon_type_race"]; // chemin de l'image, le htmlspecialchars permet d'échapper les caractères spéciaux dans la chaîne de caractères (tel que les ' et ") et ainsi les empêche de fermer des chaines de caractères
+                    $imgPath = "../images/" . sanitize_output($imgPath) . "." . sanitize_output($row["icon_type_race"]); // chemin de l'image, le sanitize_output permet d'échapper les caractères spéciaux dans la chaîne de caractères (tel que les ' et ") et ainsi les empêche de fermer des chaines de caractères
                 } 
                 
                 if (!isImageLinkValid($imgPath)) { // si l'image n'est pas valide
@@ -25,22 +24,22 @@ require "./blueprints/gl_ap_start.php";
                 }
 
                 // Création d'une div pour chaque race
-                $nomRace = $row["nom_race"];
-                $nomSpecie = $row["correspondance"];
-                $idrace = $row["id_race"];
+                $nomRace = sanitize_output($row["nom_race"]);
+                $nomSpecie = sanitize_output($row["correspondance"]);
+                $idrace = sanitize_output($row["id_race"]);
                 echo " 
                     <div class='selectionAccueil'>
                         <div id='$idrace' class='classImgSelectionAccueil' onclick=\"window.location.href='./Affichage_specie.php?race=" . urlencode(str_replace(" ", "_", $nomRace)) . "&specie=" . urlencode(str_replace(" ", "_", $nomSpecie)) . "'\">
                             <img class='imgSelectionAccueil' src='" . $imgPath . "'>
                             <span>" . $nomRace . "</span>
-                            <span> [" . $row["correspondance"] . "] </span>
+                            <span> [" . $nomSpecie . "] </span>
                         </div>
                     </div>
                 ";
             }
         } catch (PDOException $e) {
             // Gestion des erreurs
-            echo "Erreur d'insertion : " . $e->getMessage();
+            echo "Erreur d'insertion : " . sanitize_output($e->getMessage());
         }
     ?>
 </div>

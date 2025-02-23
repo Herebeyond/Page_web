@@ -12,6 +12,11 @@ function isImageLinkValid($url) {
     return false;
 }
 
+// Function to sanitize output
+function sanitize_output($data) {
+    return htmlspecialchars($data, ENT_QUOTES, 'UTF-8');
+}
+
 
 
 ?>

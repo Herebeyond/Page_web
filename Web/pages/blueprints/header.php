@@ -34,8 +34,8 @@
                                 if ($autorisation[$page] == 'all' && $type[$page] == 'common' ) { // If the page is public and part of the main group
                                     echo '
                                         <li>
-                                            <div class=liIntro onclick=window.location.href="./' . $page . '.php">
-                                                <span> ' . $page . '</span>';
+                                            <div class=liIntro onclick=window.location.href="./' . sanitize_output($page) . '.php">
+                                                <span> ' . sanitize_output($page) . '</span>';
                                                 foreach ($pages as $page2) {
                                                     if ($type[$page2] == $page) {
                                                         echo '
@@ -51,8 +51,8 @@
                                         echo '
                                             
                                                 <li>
-                                                    <div class=liIntro onclick=window.location.href="./' . $page3 . '.php">
-                                                        <span>' . $page3 . '</span>
+                                                    <div class=liIntro onclick=window.location.href="./' . sanitize_output($page3) . '.php">
+                                                        <span>' . sanitize_output($page3) . '</span>
                                                     </div>
                                                 </li>
                                             ';
@@ -65,7 +65,7 @@
                                 }
                             }
                         } catch (Exception $e) {
-                            echo "". $e->getMessage() ."";
+                            echo "". sanitize_output($e->getMessage()) ."";
                         }
                     ?>
                 </ul>
@@ -86,7 +86,7 @@
                             while ($row = $query->fetch(PDO::FETCH_ASSOC)) {
                                 
                                 // Create a list item for each species
-                                $nomSpecie = $row["nom_specie"];
+                                $nomSpecie = sanitize_output($row["nom_specie"]);
                                 echo ' 
                                     <li>
                                         <div class=liIntro onclick=window.location.href="./Affichage_specie.php?specie=' . urlencode($nomSpecie) . '">
@@ -96,7 +96,7 @@
                                 '; // The onclick=window.location. allows me to remove the blue underlined link style
                             }
                         } catch (Exception $e) {
-                            echo "". $e->getMessage() ."";
+                            echo "". sanitize_output($e->getMessage()) ."";
                         }
                     ?>
                 </ul>
@@ -117,8 +117,8 @@
                             while ($row = $query->fetch(PDO::FETCH_ASSOC)) {
                                 
                                 // Create a list item for each race
-                                $nomRace = $row["nom_race"];
-                                $Correspondance = $row["correspondance"];
+                                $nomRace = sanitize_output($row["nom_race"]);
+                                $Correspondance = sanitize_output($row["correspondance"]);
                                 echo ' 
                                     <li>
                                         <div class=liIntro onclick=window.location.href="./Affichage_specie.php?specie=' . urlencode(str_replace(" ", "_", $Correspondance)) . '&race=' . urlencode(str_replace(" ", "_", $nomRace)) . '">
@@ -128,7 +128,7 @@
                                 ';
                             }
                         } catch (Exception $e) {
-                            echo "". $e->getMessage() ."";
+                            echo "". sanitize_output($e->getMessage()) ."";
                         }
                     ?>
                 </ul>
@@ -175,8 +175,8 @@
                     if ($autorisation[$page] == 'admin') {
                         echo '
                             <li>
-                                <div class=liIntro onclick=window.location.href="./' . $page . '.php">
-                                    <span>' . $page . '</span>
+                                <div class=liIntro onclick=window.location.href="./' . sanitize_output($page) . '.php">
+                                    <span>' . sanitize_output($page) . '</span>
                                 </div>
                             </li>'; // Link to the corresponding page in the $pages array
                             // The onclick=window.location. allows me to remove the blue underlined link style
@@ -204,7 +204,7 @@
                     $stmt = $pdo->prepare("SELECT username FROM users WHERE id = ?");
                     $stmt->execute([$_SESSION['user']]);
                     $user = $stmt->fetch(); 
-                    echo "<span>Welcome, " . htmlspecialchars($user['username']) . "!</span>"; // Display the username
+                    echo "<span>Welcome, " . sanitize_output($user['username']) . "!</span>"; // Display the username
                     echo '<a href="../login/logout.php">Disconnect</a>'; // Logout link
                 } else {
                     echo '<div id="LoginDeco">'; // Div for the login and register links

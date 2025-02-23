@@ -5,7 +5,7 @@ require "./blueprints/gl_ap_start.php"; // inclut le fichier d'initialisation de
 
 if (isset($_GET['specie'])) {
     // Récupère les valeurs des paramètres 'race' et 'specie' et les nettoie
-    $specie = htmlspecialchars(trim($_GET['specie']), ENT_QUOTES, 'UTF-8');
+    $specie = sanitize_output($_GET['specie']);
 
     // Prépare et exécute la requête pour récupérer les informations de la specie
     try {
@@ -14,7 +14,7 @@ if (isset($_GET['specie'])) {
         $specieInfo = $stmt->fetch(PDO::FETCH_ASSOC);
 
         if(isset($_GET['race'])) {
-            $race = htmlspecialchars(trim($_GET['race']), ENT_QUOTES, 'UTF-8');
+            $race = sanitize_output($_GET['race']);
 
             // Prépare et exécute la requête pour récupérer les informations de la race
             $stmt = $pdo->prepare("SELECT * FROM races WHERE nom_race = ?");
@@ -31,7 +31,7 @@ if (isset($_GET['specie'])) {
 
                 <div id='textePrincipal'> <!-- Div de droite -->
                     <a id=retourArriere onclick='window.history.back()'> Retour </a><br>
-                    <span class='Titre'> <?php echo htmlspecialchars($specie, ENT_QUOTES, 'UTF-8'); ?> </span> <!-- affiche le nom de la specie en entête -->
+                    <span class='Titre'> <?php echo sanitize_output($specie); ?> </span> <!-- affiche le nom de la specie en entête -->
                     <?php
                         try {
                             // Récupération des données du tableau races
@@ -44,7 +44,7 @@ if (isset($_GET['specie'])) {
                             $rowR = $queryR->fetch(PDO::FETCH_ASSOC);
                             if ($rowR) { // le if au lieu de while permet de récupérer une seule ligne
                                 if ($rowR['content_specie'] != '' && $rowR['content_specie'] != null) {
-                                    echo "<p>" . nl2br(htmlspecialchars($rowR['content_specie'])) . "</p>";
+                                    echo "<p>" . nl2br(sanitize_output($rowR['content_specie'])) . "</p>";
                                 } else {
                                     echo "Aucun content trouvé pour la Specie $specie.";
                                 }
@@ -62,7 +62,7 @@ if (isset($_GET['specie'])) {
                                     $imgPath = '../images/icon_default.png'; // chemin de l'image par défaut
                                 } else { // si l'image existe, on la met
                                     $imgPath = str_replace(" ", "_", "$imgPath"); // remplace les espaces par des _ pour les noms de fichiers
-                                    $imgPath = "../images/" . htmlspecialchars($imgPath, ENT_QUOTES, 'UTF-8') . "." . $rowF['icon_type_race']; // chemin de l'image, le htmlspecialchars permet d'échapper les caractères spéciaux dans la chaîne de caractères (tel que les ' et ") et ainsi les empêche de fermer des chaines de caractères
+                                    $imgPath = "../images/" . sanitize_output($imgPath) . "." . $rowF['icon_type_race']; // chemin de l'image, le htmlspecialchars permet d'échapper les caractères spéciaux dans la chaîne de caractères (tel que les ' et ") et ainsi les empêche de fermer des chaines de caractères
                                 }
 
                                 if (!isImageLinkValid($imgPath)) { // si l'image n'est pas valide
@@ -95,33 +95,33 @@ if (isset($_GET['specie'])) {
 
                                 // Création d'une div pour chaque race
                                 $divsSelec .= " 
-                                        <div class='selection' id=" . htmlspecialchars(str_replace(" ", "_", $rowF['nom_race']), ENT_QUOTES, 'UTF-8') . ">
+                                        <div class='selection' id=" . sanitize_output(str_replace(" ", "_", $rowF['nom_race'])) . ">
                                             <div class=infobox>
                                                 <div class='classImgSelection'>
                                                     <img class='imgSelection' src='" . $imgPath . "'>
-                                                    " . htmlspecialchars($rowF['nom_race'], ENT_QUOTES, 'UTF-8') . "
+                                                    " . sanitize_output($rowF['nom_race']) . "
                                                 </div>
                                                 <div class=infos>
                                                     <div>
                                                         <p class=infosP> Espérance de vie : </p>
-                                                        <p class=infosT>" . htmlspecialchars($lifespan, ENT_QUOTES, 'UTF-8') . "</p>
+                                                        <p class=infosT>" . sanitize_output($lifespan) . "</p>
                                                     </div>
                                                     <div>
                                                         <p class=infosP> Plan de résidence : </p>
-                                                        <p class=infosT>" . htmlspecialchars($homeworld, ENT_QUOTES, 'UTF-8') . "</p>
+                                                        <p class=infosT>" . sanitize_output($homeworld) . "</p>
                                                     </div>
                                                     <div>
                                                         <p class=infosP> Pays de résidence : </p>
-                                                        <p class=infosT>" . htmlspecialchars($country, ENT_QUOTES, 'UTF-8') . "</p>
+                                                        <p class=infosT>" . sanitize_output($country) . "</p>
                                                     </div>
                                                     <div>
                                                         <p class=infosP> Habitat : </p>
-                                                        <p class=infosT>" . htmlspecialchars($habitat, ENT_QUOTES, 'UTF-8') . "</p>
+                                                        <p class=infosT>" . sanitize_output($habitat) . "</p>
                                                     </div>
                                                 </div>
                                             </div>
                                             <div class='texteSelection'>
-                                                <p>" . nl2br(htmlspecialchars($rowF['content_race'] ?? '', ENT_QUOTES, 'UTF-8')) . "</p>
+                                                <p>" . nl2br(sanitize_output($rowF['content_race'] ?? '')) . "</p>
                                             </div>
                                         </div>
                                 ";
