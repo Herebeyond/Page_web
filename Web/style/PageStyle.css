@@ -317,7 +317,18 @@ html body {
 }
 
 #textePrincipalList {
+    margin: 0px;
     flex-direction: row;
+}
+
+#pagination {
+    display: flex;
+    justify-content: center;
+    margin: 20px;
+}
+
+#pagination a {
+    margin: 10px;
 }
 
 #add_specie, #add_race {
