@@ -5,7 +5,7 @@ header('Content-Type: application/json');
 
 if (isset($_GET['race'])) {
     $raceName = trim($_GET['race']);
-    $stmt = $pdo->prepare("DELETE FROM races WHERE nom_Race = ?;");
+    $stmt = $pdo->prepare("DELETE FROM races WHERE race_name = ?;");
     $stmt->execute([$raceName]);
 
     echo json_encode([

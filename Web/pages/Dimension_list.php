@@ -1,23 +1,23 @@
 <?php
-require "./blueprints/page_init.php"; // inclut le fichier d'initialisation de la page
+require "./blueprints/page_init.php"; // includes the page initialization file
 include "./blueprints/gl_ap_start.php";
 ?>
 
-<div id='textePrincipal'> <!-- Div de droite -->
-    <a id=retourArriere onclick='window.history.back()'> Retour </a><br>
-    <span class='Titre'> Dimensions </span> <!-- affiche le nom de la specie en entête -->
+<div id='mainText'> <!-- Right div -->
+    <a id=Return onclick='window.history.back()'> Return </a><br>
+    <span class='title'> Dimensions </span> <!-- display the title -->
     <?php
     try {
-        // génère le texte principal de la page
+        // generate the main text of the page
         echo '<span>' . nl2br(sanitize_output(file_get_contents("../texte/dimensions.txt"))) . '</span>';
         echo '<br><br>';
 
         $dimensionsInfos = $pdo->prepare("SELECT * FROM dimensions");
         $dimensionsInfos->execute();
         while ($row = $dimensionsInfos->fetch(PDO::FETCH_ASSOC)) {
-            // génère les divs éventuelles pour chaque races
+            // generate the divs for each dimension
             $divsSelec = '';
-                $DimensionName = sanitize_output($row['nom_dimension']);
+                $DimensionName = sanitize_output($row['dimension_name']);
                 $DimensionType = sanitize_output($row['type']);
                 if ($DimensionType == null || $DimensionType == '') {
                     $DimensionType = 'Not specified';
@@ -38,22 +38,22 @@ include "./blueprints/gl_ap_start.php";
                     $Content = 'Not specified';
                 }
 
-                // Création d'une div pour chaque race
+                // Create a div for each dimension
                 $divsSelec .= '
-                        <span class=nomDimension> ' . $DimensionName . '</span>
+                        <span class=dimensionName> ' . $DimensionName . '</span>
                         <div class="selection">
                             <div class=infobox>
                                 <div class=infos>
                                     <div>
-                                        <p class=infosP> Dimension type : </p>
+                                        <p class=infosP> Dimension type: </p>
                                         <p class=infosT>' . $DimensionType . '</p>
                                     </div>
                                     <div>
-                                        <p class=infosP> Which reality : </p>
+                                        <p class=infosP> Which reality: </p>
                                         <p class=infosT>' . $Reality . '</p>
                                     </div>
                                     <div>
-                                        <p class=infosP> Which Gods live here : </p>
+                                        <p class=infosP> Which Gods live here: </p>
                                         <p class=infosT>' . $GodHome . '</p>
                                     </div>
                                 </div>
@@ -64,7 +64,7 @@ include "./blueprints/gl_ap_start.php";
                         </div>
                 ';
                 
-                $row["nom_dimension"];
+                $row["dimension_name"];
                 
             
             echo '<div class=sous_section>';
@@ -72,8 +72,8 @@ include "./blueprints/gl_ap_start.php";
             echo '</div>';
         }
     } catch (PDOException $e) {
-        // Gestion des erreurs
-        echo "Erreur de connexion : " . sanitize_output($e->getMessage());
+        // Error handling
+        echo "Connection error: " . sanitize_output($e->getMessage());
     }
     ?>
 </div>

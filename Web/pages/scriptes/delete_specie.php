@@ -5,7 +5,7 @@ header('Content-Type: application/json');
 
 if (isset($_GET['specie'])) {
     $specieName = trim($_GET['specie']);
-    $stmt = $pdo->prepare("DELETE FROM species WHERE nom_Specie = ?;");
+    $stmt = $pdo->prepare("DELETE FROM species WHERE specie_name = ?;");
     $stmt->execute([$specieName]);
 
     echo json_encode([

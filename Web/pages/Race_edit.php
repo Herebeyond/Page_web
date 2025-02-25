@@ -1,9 +1,9 @@
 <?php
-require './blueprints/page_init.php'; // inclut le fichier page_init.php
+require './blueprints/page_init.php'; // includes the page initialization file
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST') { // Vérifie si le formulaire a été soumis
-    $RaceName = isset($_POST['Race_name']) ? trim($_POST['Race_name']) : ''; // Nettoyage des entrées utilisateur
-    $Correspondance = isset($_POST['Correspondance']) ? trim($_POST['Correspondance']) : '';
+if ($_SERVER['REQUEST_METHOD'] === 'POST') { // Check if the form has been submitted
+    $RaceName = isset($_POST['Race_name']) ? trim($_POST['Race_name']) : ''; // Trim whitespace from user input
+    $correspondence = isset($_POST['correspondence']) ? trim($_POST['correspondence']) : '';
     $RaceIcon = isset($_POST['icon_Race']) ? trim($_POST['icon_Race']) : '';
     $IconTypeRace = isset($_POST['icon_Type_Race']) ? trim($_POST['icon_Type_Race']) : '';
     $RaceContent = isset($_POST['Race_text']) ? trim($_POST['Race_text']) : '';
@@ -12,13 +12,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') { // Vérifie si le formulaire a ét�
     $Country = isset($_POST['Country']) ? trim($_POST['Country']) : '';
     $Habitat = isset($_POST['Habitat']) ? trim($_POST['Habitat']) : '';
 
-    // Préparer la requête SQL dynamique
+    // Prepare the dynamic SQL query
     $fields = [];
     $params = [];
 
-    if ($Correspondance !== '' && $RaceIcon != null) {
-        $fields[] = 'correspondance = ?';
-        $params[] = $Correspondance;
+    if ($correspondence !== '' && $RaceIcon != null) {
+        $fields[] = 'correspondence = ?';
+        $params[] = $correspondence;
     }
     if ($RaceIcon !== '' && $RaceIcon != null) {
         $fields[] = 'icon_Race = ?';
@@ -50,8 +50,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') { // Vérifie si le formulaire a ét�
     }
     $params[] = $RaceName;
 
-    if (!empty($fields)) {
-        $sql = "UPDATE races SET " . implode(', ', $fields) . " WHERE nom_Race = ?";
+    if (!empty($fields)) { // Check if there are fields to update
+        // Update only the fields that have been filled in
+        $sql = "UPDATE races SET " . implode(', ', $fields) . " WHERE race_name = ?";
         $stmt = $pdo->prepare($sql);
         $stmt->execute($params);
 
@@ -68,9 +69,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') { // Vérifie si le formulaire a ét�
 require "./blueprints/gl_ap_start.php";
 ?>
 
-<div id="textePrincipal"> <!-- Div de droite -->
-    <a id=retourArriere onclick='window.history.back()'> Retour </a><br>
-    <?php // Afficher les messages d'erreur ou de succès après la soumission du formulaire
+<div id="mainText"> <!-- Right div -->
+    <a id=Return onclick='window.history.back()'> Return </a><br>
+    <?php // Display error or success messages after form submission
         if (isset($_SESSION['error'])) {
             echo '<p style="color:red;">' . sanitize_output($_SESSION['error']) . '</p>';
             unset($_SESSION['error']);
@@ -80,27 +81,27 @@ require "./blueprints/gl_ap_start.php";
             unset($_SESSION['success']);
         }
     ?>
-    <h2> Modifie a Race </h2><br>
+    <h2> Edit a Race </h2><br>
     <form method="POST" action="Race_edit.php" onsubmit="return confirmSubmit()">
         <label for="Race_name">Race Name</label>
         <select name="Race_name" required>
             <option value="">Select a race</option>
-            <?php // Récupérer les noms des Race depuis la base de données et les afficher dans une liste déroulante
-                $stmt = $pdo->prepare("SELECT * FROM races ORDER BY nom_Race;");
+            <?php // Retrieve the names of the races from the database and display them in a dropdown list
+                $stmt = $pdo->prepare("SELECT * FROM races ORDER BY race_name;");
                 $stmt->execute();
                 while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
-                    echo '<option value="' . sanitize_output($row['nom_race']) . '">' . sanitize_output($row['nom_race']) . '</option>';
+                    echo '<option value="' . sanitize_output($row['race_name']) . '">' . sanitize_output($row['race_name']) . '</option>';
                 }
             ?>
         </select><br>
-        <label for="Correspondance">Correspondance</label>
-        <select name="Correspondance" required>
+        <label for="correspondence">correspondence</label>
+        <select name="correspondence">
             <option value="">Select a specie</option>
-            <?php // Récupérer les noms des Specie depuis la base de données et les afficher dans une liste déroulante
-                $stmt = $pdo->prepare("SELECT * FROM species ORDER BY nom_specie;");
+            <?php // Retrieve the names of the species from the database and display them in a dropdown list
+                $stmt = $pdo->prepare("SELECT * FROM species ORDER BY specie_name;");
                 $stmt->execute();
                 while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
-                    echo '<option value="' . sanitize_output($row['nom_specie']) . '">' . sanitize_output($row['nom_specie']) . '</option>';
+                    echo '<option value="' . sanitize_output($row['specie_name']) . '">' . sanitize_output($row['specie_name']) . '</option>';
                 }
             ?>
         </select><br>
@@ -116,16 +117,15 @@ require "./blueprints/gl_ap_start.php";
         <input type="text" name="Country"><br>
         <label for="Habitat">Habitat</label>
         <input type="text" name="Habitat"><br>
-        <label for="Race_text">Race content :</label><br>
+        <label for="Race_text">Race content</label><br>
         <textarea type="text" name="Race_text" id="content_input"></textarea><br><br>
         <button type="submit">Submit</button> 
         <button type="button" onclick="fetchRaceInfo()">Fetch Info</button><br><br>
-        <button type="button" onclick="confirmRaceDelete()">Delete Specie</button>
+        <button type="button" onclick="confirmRaceDelete()">Delete Race</button>
     </form><br>
-    <!-- Afficher le text et l'icon de la Race sélectionnée -->
+    <!-- Display the text and icon of the selected race -->
     <div id="raceInfo"></div>
 </div>
-
 
 <?php
 require "./blueprints/gl_ap_end.php";

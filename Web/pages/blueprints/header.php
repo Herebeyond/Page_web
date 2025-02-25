@@ -1,16 +1,16 @@
-<div id=enTete>
+<div id=header>
     <img id=icon src='../images/Eye.jpg'> <!-- Display the header icon -->
     <div id=divTitre>
-        <span class=TitrePrincipal> Les Chroniques de la Faille </span> <!-- Main title -->
-        <span class=TitrePrincipal> Les mondes oubliés </span> <!-- Subtitle -->
+        <span class=Title> Les Chroniques de la Faille </span> <!-- Main title -->
+        <span class=Title> Les mondes oubliés </span> <!-- Subtitle -->
     </div>
 
     <nav id=nav>
         <ul class="menu">
             <li class="menu-item">
-                <div id="liNavigation" class="divLi" onclick="window.location.href='./Accueil.php'">
+                <div id="liNavigation" class="divLi" onclick="window.location.href='./Homepage.php'">
                     <a> Navigation </a>
-                    <img class="small-icon" src="../images/petite_img/fleche-deroulante.png" > <!-- Dropdown arrow icon -->
+                    <img class="small-icon" src="../images/small_img/fleche-deroulante.png" > <!-- Dropdown arrow icon -->
                 </div>
                 <ul class="dropdown">
                     <?php // Display all pages
@@ -21,7 +21,7 @@
                             if (is_dir($dir)) { // Check if the directory exists
                                 if ($dh = opendir($dir)) { // Open the directory for reading
                                     while (($file = readdir($dh)) !== false) { // Read files in the directory
-                                        if ($file != '.' && $file != '..' && pathinfo($file, PATHINFO_EXTENSION) == 'php' && $file != "Accueil.php") { // If the file is not a directory and has a .php extension, add it to the $pages array
+                                        if ($file != '.' && $file != '..' && pathinfo($file, PATHINFO_EXTENSION) == 'php' && $file != "Homepage.php") { // If the file is not a directory and has a .php extension, add it to the $pages array
                                             $pages[] = pathinfo($file, PATHINFO_FILENAME);
                                         }
                                     }
@@ -31,7 +31,7 @@
 
                             // Loop through the array and display the elements in the list
                             foreach ($pages as $page) { // For each element in the $pages array, display a link to the corresponding page
-                                if ($autorisation[$page] == 'all' && $type[$page] == 'common' ) { // If the page is public and part of the main group
+                                if ($authorisation[$page] == 'all' && $type[$page] == 'common' ) { // If the page is public and part of the main group
                                     echo '
                                         <li>
                                             <div class=liIntro onclick=window.location.href="./' . sanitize_output($page) . '.php">
@@ -39,7 +39,7 @@
                                                 foreach ($pages as $page2) {
                                                     if ($type[$page2] == $page) {
                                                         echo '
-                                                <img class="small-icon" src=../images/petite_img/fleche-deroulante.png>
+                                                <img class="small-icon" src=../images/small_img/fleche-deroulante.png>
                                                             ';
                                                         break;
                                                     }
@@ -75,7 +75,7 @@
             <li class=menu-item>
                 <div id=liSpecies class=divLi onclick=window.location.href='./Species.php'>
                     <span> Species </span>
-                    <img class=small-icon src="../images/petite_img/fleche-deroulante.png" > <!-- Dropdown arrow icon -->
+                    <img class=small-icon src="../images/small_img/fleche-deroulante.png" > <!-- Dropdown arrow icon -->
                 </div>
                 <ul class="dropdown">
                     <?php // Display all species
@@ -87,7 +87,7 @@
                             while ($row = $query->fetch(PDO::FETCH_ASSOC)) {
                                 
                                 // Create a list item for each species
-                                $nomSpecie = sanitize_output($row["nom_specie"]);
+                                $nomSpecie = sanitize_output($row["specie_name"]);
                                 echo ' 
                                     <li>
                                         <div class=liIntro onclick=window.location.href="./Affichage_specie.php?specie=' . urlencode($nomSpecie) . '">
@@ -107,7 +107,7 @@
             <li class=menu-item>
                 <div id=liRaces class=divLi onclick=window.location.href='./Races.php'>
                     <span> Races </span>
-                    <img class=small-icon src="../images/petite_img/fleche-deroulante.png" > <!-- Dropdown arrow icon -->
+                    <img class=small-icon src="../images/small_img/fleche-deroulante.png" > <!-- Dropdown arrow icon -->
                 </div>
                 <ul class="dropdown">
                     <?php // Display all races
@@ -119,11 +119,11 @@
                             while ($row = $query->fetch(PDO::FETCH_ASSOC)) {
                                 
                                 // Create a list item for each race
-                                $nomRace = sanitize_output($row["nom_race"]);
-                                $Correspondance = sanitize_output($row["correspondance"]);
+                                $nomRace = sanitize_output($row["race_name"]);
+                                $correspondence = sanitize_output($row["correspondence"]);
                                 echo ' 
                                     <li>
-                                        <div class=liIntro onclick=window.location.href="./Affichage_specie.php?specie=' . urlencode(str_replace(" ", "_", $Correspondance)) . '&race=' . urlencode(str_replace(" ", "_", $nomRace)) . '">
+                                        <div class=liIntro onclick=window.location.href="./Affichage_specie.php?specie=' . urlencode(str_replace(" ", "_", $correspondence)) . '&race=' . urlencode(str_replace(" ", "_", $nomRace)) . '">
                                             <span> ' . $nomRace . '</span>
                                         </div>
                                     </li>
@@ -145,7 +145,7 @@
         if (is_dir($dir)) { // Check if the directory exists
             if ($dh = opendir($dir)) { // Open the directory for reading
                 while (($file = readdir($dh)) !== false) { // Read files in the directory
-                    if ($file != '.' && $file != '..' && pathinfo($file, PATHINFO_EXTENSION) == 'php' && $file != "Accueil.php") { // If the file is not a directory and has a .php extension, add it to the $pages array
+                    if ($file != '.' && $file != '..' && pathinfo($file, PATHINFO_EXTENSION) == 'php') { // If the file is not a directory and has a .php extension, add it to the $pages array
                         $pages[] = pathinfo($file, PATHINFO_FILENAME);
                     }
                 }
@@ -167,14 +167,14 @@
                         <li class=menu-item>
                             <div id=liAdmin class=divLi>
                                 <span> Admin </span>
-                                <img class=small-icon src="../images/petite_img/fleche-deroulante.png">
+                                <img class=small-icon src="../images/small_img/fleche-deroulante.png">
                             </div>
                 ';
 
                 echo '<ul class="dropdown">';
                 // Loop through the array and display the elements in the list
                 foreach ($pages as $page) { // For each element in the $pages array, display a link to the corresponding page
-                    if ($autorisation[$page] == 'admin') {
+                    if ($authorisation[$page] == 'admin') {
                         echo '
                             <li>
                                 <div class=liIntro onclick=window.location.href="./' . sanitize_output($page) . '.php">
@@ -188,33 +188,33 @@
 
             } elseif (($user["admin"]) == null) {
             } else {
-                echo "erreur dans la colonne admin<br>";
+                echo "error in the admin column<br>";
             }
         }
             
         ?>
     </nav>
+    
+    <div id=divConnect>
+        <?php
+        include './scriptes/authorisation.php'; // Include the authorisation.php file
 
-    <div id=divacceuil>
-        
-                <?php
-                include './scriptes/autorisation.php'; // Include the autorisation.php file
-
-                if (isset($_SESSION['user'])) { // If the user is logged in, display their name
-                    echo '<div id="LoginCo">'; // Div for the username and logout link
-                    // Retrieve the username from the database
-                    $stmt = $pdo->prepare("SELECT username FROM users WHERE id = ?");
-                    $stmt->execute([$_SESSION['user']]);
-                    $user = $stmt->fetch(); 
-                    echo "<span>Welcome, " . sanitize_output($user['username']) . "!</span>"; // Display the username
-                    echo '<a href="../login/logout.php">Disconnect</a>'; // Logout link
-                } else {
-                    echo '<div id="LoginDeco">'; // Div for the login and register links
-                    echo '<a href="../login/login.php">Sign In</a> <span> &nbsp | &nbsp </span> <a href="../login/register.php">Register</a>'; // Login and register links
-                }
-                ?>
-        </div>
-        <div id=acceuil onclick=window.location.href="./Accueil.php">
+        if (isset($_SESSION['user'])) { // If the user is logged in, display their name
+            echo '<div id="LoginCo">'; // Div for the username and logout link
+            // Retrieve the username from the database
+            $stmt = $pdo->prepare("SELECT username FROM users WHERE id = ?");
+            $stmt->execute([$_SESSION['user']]);
+            $user = $stmt->fetch(); 
+            echo "<span>Welcome, " . sanitize_output($user['username']) . "!</span>"; // Display the username
+            echo '<a href="../login/logout.php">Disconnect</a>'; // Logout link
+            echo '</div>';
+        } else {
+            echo '<div id="LoginDeco">'; // Div for the login and register links
+            echo '<a href="../login/login.php">Sign In</a> <span> &nbsp | &nbsp </span> <a href="../login/register.php">Register</a>'; // Login and register links
+            echo '</div>';
+        }
+        ?>
+        <div id=Connect onclick=window.location.href="./Homepage.php">
             <a> La Grande Librairie </a> <!-- Link to the home page -->
         </div>
     </div>

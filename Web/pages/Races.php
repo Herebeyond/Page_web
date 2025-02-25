@@ -2,16 +2,16 @@
 require "./blueprints/page_init.php";
 require "./blueprints/gl_ap_start.php";
 
-// Nombre de races par page
+// Number of races per page
 $perPage = 8;
 
-// Calculer le nombre total de pages
+// Calculate the total number of pages
 $totalRacesQuery = $pdo->prepare("SELECT COUNT(*) FROM races");
 $totalRacesQuery->execute();
 $totalRaces = $totalRacesQuery->fetchColumn();
 $totalPages = ceil($totalRaces / $perPage);
 
-// Obtenir la page actuelle à partir de l'URL, par défaut 1
+// Get the current page from the URL, default is page 1
 $page = isset($_GET['page']) && is_numeric($_GET['page']) ? (int)$_GET['page'] : 1;
 if ($page < 1) {
     $page = 1;
@@ -19,57 +19,56 @@ if ($page < 1) {
     $page = $totalPages;
 }
 
-// Calculer l'offset pour la requête SQL
+// Calculate the offset for the SQL query
 $offset = ($page - 1) * $perPage;
 ?>
 
-<div id="textePrincipal"> <!-- Div de droite -->
-    <a id=retourArriere onclick='window.history.back()'> Retour </a><br>
-    <div id="textePrincipalList">
+<div id="mainText"> <!-- Right div -->
+    <a id=Return onclick='window.history.back()'> Return </a><br>
+    <div id="mainTextList">
         <?php
             try {
                 // Retrieval of data from table races with pagination
-                $query = $pdo->prepare("SELECT * FROM races ORDER BY correspondance LIMIT :limit OFFSET :offset");
+                $query = $pdo->prepare("SELECT * FROM races ORDER BY correspondence LIMIT :limit OFFSET :offset");
                 $query->bindValue(':limit', $perPage, PDO::PARAM_INT);
                 $query->bindValue(':offset', $offset, PDO::PARAM_INT);
                 $query->execute();
 
                 while ($row = $query->fetch(PDO::FETCH_ASSOC)) {
-                    $imgPath = isset($row['icon_race']) ? $row['icon_race'] : null; // vérifie si l'image existe
-                    if ($imgPath == null || $imgPath == '') { // si l'image n'existe pas ou est vide, on met une image par défaut
-                        $imgPath = '../images/icon_default.png'; // chemin de l'image par défaut
-                    } else { // si l'image existe
-                        $imgPath = str_replace(" ", "_", "$imgPath"); // remplace les espaces par des _ pour les noms de fichiers
-                        $imgPath = "../images/" . sanitize_output($imgPath) . "." . sanitize_output($row["icon_type_race"]); // chemin de l'image, le sanitize_output permet d'échapper les caractères spéciaux dans la chaîne de caractères (tel que les ' et ") et ainsi les empêche de fermer des chaines de caractères
+                    $imgPath = isset($row['icon_race']) ? $row['icon_race'] : null; // check if the image exists
+                    if ($imgPath == null || $imgPath == '') { // if the image doesn't exist or is empty, use a default image
+                        $imgPath = '../images/icon_default.png'; // path to the default image
+                    } else { // if the image exists
+                        $imgPath = str_replace(" ", "_", "$imgPath"); // replace spaces with underscores for file names
+                        $imgPath = "../images/" . sanitize_output($imgPath) . "." . sanitize_output($row["icon_type_race"]); // path to the image, sanitize_output escapes special characters in the string (such as ' and ") and prevents them from closing strings
                     } 
                     
-                    if (!isImageLinkValid($imgPath)) { // si l'image n'est pas valide
-                        $imgPath = '../images/icon_invalide.png'; // chemin de l'image invalide
+                    if (!isImageLinkValid($imgPath)) { // if the image is not valid
+                        $imgPath = '../images/icon_invalide.png'; // path to the invalid image
                     }
 
-                    // Création d'une div pour chaque race
-                    $nomRace = sanitize_output($row["nom_race"]);
-                    $nomSpecie = sanitize_output($row["correspondance"]);
+                    // Create a div for each race
+                    $raceName = sanitize_output($row["race_name"]);
+                    $specieName = sanitize_output($row["correspondence"]);
                     $idrace = sanitize_output($row["id_race"]);
                     echo " 
-                        <div class='selectionAccueil'>
-                            <div id='$idrace' class='classImgSelectionAccueil' onclick=\"window.location.href='./Affichage_specie.php?race=" . urlencode(str_replace(" ", "_", $nomRace)) . "&specie=" . urlencode(str_replace(" ", "_", $nomSpecie)) . "'\">
-                                <img class='imgSelectionAccueil' src='" . $imgPath . "'>
-                                <span>" . $nomRace . "</span>
-                                <span> [" . $nomSpecie . "] </span>
+                        <div class='selection'>
+                            <div id='$idrace' class='classImgSelection' onclick=\"window.location.href='./Affichage_specie.php?race=" . urlencode(str_replace(" ", "_", $raceName)) . "&specie=" . urlencode(str_replace(" ", "_", $specieName)) . "'\">
+                                <img class='imgSelection' src='" . $imgPath . "'>
+                                <span>" . $raceName . "</span>
+                                <span> [" . $specieName . "] </span>
                             </div>
                         </div>
                     ";
                 }
             } catch (PDOException $e) {
-                // Gestion des erreurs
-                echo "Erreur d'insertion : " . sanitize_output($e->getMessage());
+                // Error handling
+                echo "Insertion error: " . sanitize_output($e->getMessage());
             }
         ?>
     </div>
 
-
-    <!-- Afficher les liens de pagination -->
+    <!-- Display pagination links -->
     <div id="pagination">
         <?php if ($page > 1): ?> <!-- If page is greater than 1, display the first page link -->
             <a href="?page=1">&lt;&lt;</a>
@@ -90,10 +89,7 @@ $offset = ($page - 1) * $perPage;
         <?php if ($page < $totalPages): ?> <!-- If page is less than the total pages, display the last page link -->
             <a href="?page=<?php echo $totalPages; ?>">&gt;&gt;</a>
         <?php endif; ?>
-
     </div>
-
-
 </div>
 
 <?php

@@ -8,8 +8,8 @@ $perPage = 8;
 // Calculate the total number of pages
 $totalSpeciesQuery = $pdo->prepare("SELECT COUNT(*) FROM species");
 $totalSpeciesQuery->execute();
-$totalSpecies = $totalSpeciesQuery->fetchColumn();
-$totalPages = ceil($totalSpecies / $perPage);
+$totalSpecies = $totalSpeciesQuery->fetchColumn(); // fetch the total number of species
+$totalPages = ceil($totalSpecies / $perPage); // calculate the total number of pages
 
 // Get the current page from the URL, default is 1
 $page = isset($_GET['page']) && is_numeric($_GET['page']) ? (int)$_GET['page'] : 1;
@@ -23,50 +23,48 @@ if ($page < 1) {
 $offset = ($page - 1) * $perPage;
 ?>
 
-<div id="textePrincipal"> <!-- Div de droite -->
-    <a id=retourArriere onclick='window.history.back()'> Retour </a><br>
-    <div id="textePrincipalList">
+<div id="mainText"> <!-- Right div -->
+    <a id=Return onclick='window.history.back()'> Return </a><br>
+    <div id="mainTextList">
         <?php
-
             try {
                 // Retrieval of data from table species with pagination
                 $query = $pdo->prepare("SELECT * FROM species ORDER BY id_specie LIMIT :limit OFFSET :offset");
-                $query->bindValue(':limit', $perPage, PDO::PARAM_INT);
-                $query->bindValue(':offset', $offset, PDO::PARAM_INT);
+                $query->bindValue(':limit', $perPage, PDO::PARAM_INT); // bind the limit value
+                $query->bindValue(':offset', $offset, PDO::PARAM_INT); // bind the offset value
                 $query->execute();
 
                 while ($row = $query->fetch(PDO::FETCH_ASSOC)) {
-                    $imgPath = isset($row['icon_specie']) ? $row['icon_specie'] : null; // vérifie si l'image existe
-                    if ($imgPath == null || $imgPath == '') { // si l'image n'existe pas ou est vide, on met une image par défaut
-                        $imgPath = '../images/icon_default.png'; // chemin de l'image par défaut
-                    } else { // si l'image existe et est valide
-                        $imgPath = str_replace(" ", "_", "$imgPath"); // remplace les espaces par des _ pour les noms de fichiers
-                        $imgPath = "../images/" . sanitize_output($imgPath); // chemin de l'image, le sanitize_output permet d'échapper les caractères spéciaux dans la chaîne de caractères (tel que les ' et ") et ainsi les empêche de fermer des chaines de caractères
+                    $imgPath = isset($row['icon_specie']) ? $row['icon_specie'] : null; // check if the image exists
+                    if ($imgPath == null || $imgPath == '') { // if the image doesn't exist or is empty, use a default image
+                        $imgPath = '../images/icon_default.png'; // path to the default image
+                    } else { // if the image exists and is valid
+                        $imgPath = str_replace(" ", "_", "$imgPath"); // replace spaces with underscores for file names
+                        $imgPath = "../images/" . sanitize_output($imgPath); // path to the image, sanitize_output escapes special characters in the string (such as ' and ") and prevents them from closing strings
                     } 
                     
-                    if (!isImageLinkValid($imgPath)) { // si l'image n'est pas valide
-                        $imgPath = '../images/icon_invalide.png'; // chemin de l'image invalide
+                    if (!isImageLinkValid($imgPath)) { // if the image is not valid
+                        $imgPath = '../images/icon_invalide.png'; // path to the invalid image
                     }
-            
-                    // Création d'une div pour chaque species
-                    $nomSpecie = sanitize_output($row["nom_specie"]);
+        
+                    // Create a div for each species
+                    $specieName = sanitize_output($row["specie_name"]);
                     echo " 
-                        <div class='selectionAccueil'>
-                            <div class='classImgSelectionAccueil'>
-                                <img class='imgSelectionAccueil' src='" . $imgPath . "' onclick=\"window.location.href='./Affichage_specie.php?specie=" . urlencode(str_replace(" ", "_", $nomSpecie)) . "'\">
-                                " . $nomSpecie . "
+                        <div class='selection'>
+                            <div class='classImgSelection'>
+                                <img class='imgSelection' src='" . $imgPath . "' onclick=\"window.location.href='./Affichage_specie.php?specie=" . urlencode(str_replace(" ", "_", $specieName)) . "'\">
+                                " . $specieName . "
                             </div>
                         </div>
                     ";
                 }
 
             } catch (PDOException $e) {
-                // Gestion des erreurs
-                echo "Erreur d'insertion : " . sanitize_output($e->getMessage());
+                // Error handling
+                echo "Insertion error: " . sanitize_output($e->getMessage());
             }
         ?>
     </div>
-
 
     <!-- Display pagination links -->
     <div id="pagination">
@@ -90,7 +88,6 @@ $offset = ($page - 1) * $perPage;
             <a href="?page=<?php echo $totalPages; ?>">&gt;&gt;</a>
         <?php endif; ?>
     </div>
-
 </div>
 
 <?php require "./blueprints/gl_ap_end.php"; ?>

@@ -1,7 +1,7 @@
 <?php
 
-$autorisation = array(
-    'Accueil' => 'all',
+$authorisation = array(
+    'Homepage' => 'all',
     'Map' => 'all',
     'Species' => 'all',
     'Specie_add' => 'admin',
@@ -17,7 +17,7 @@ $autorisation = array(
 );
 
 $type = array(
-    'Accueil' => 'common',
+    'Homepage' => 'common',
     'Map' => 'common',
     'Species' => 'common',
     'Specie_add' => 'common',

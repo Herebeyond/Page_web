@@ -5,7 +5,7 @@ header('Content-Type: application/json');
 
 if (isset($_GET['specie'])) {
     $specieName = trim($_GET['specie']);
-    $stmt = $pdo->prepare("SELECT icon_Specie, content_Specie FROM species WHERE nom_Specie = ?");
+    $stmt = $pdo->prepare("SELECT icon_Specie, content_Specie FROM species WHERE specie_name = ?");
     $stmt->execute([$specieName]);
     $specie = $stmt->fetch(PDO::FETCH_ASSOC);
 

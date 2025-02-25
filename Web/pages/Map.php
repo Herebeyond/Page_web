@@ -1,31 +1,31 @@
 <?php
-require "./blueprints/page_init.php"; // inclut le fichier d'initialisation de la page
+require "./blueprints/page_init.php"; // includes the page initialization file
 require "./blueprints/gl_ap_start.php";
 ?>
                 
-<div id="textePrincipal" style="opacity: 100%;"> 
+<div id="mainText" style="opacity: 100%;"> 
     <?php  
-    /// AFFICHAGE DE LA CARTE DES MONDES OUBLIES
-    /// il devrait pouvoir prendre le fichier doc3.pptx et afficher les informations dedans mais ne fonctionne pas
-    /// à cause de composer
+    /// DISPLAY THE MAP OF THE FORGOTTEN WORLDS
+    /// it should be able to take the doc3.pptx file and display the information inside but it doesn't work
+    /// because it needs composer and composer doesn't want to install itself correctly
     /*
     echo realpath(__DIR__ . '/../../../../vendor/autoload.php'); 
-    require dirname(__DIR__, 4) . '/vendor/autoload.php'; /// N'ARRIVE PAS A TROUVER LE FICHIER 
+    require dirname(__DIR__, 4) . '/vendor/autoload.php'; /// CANNOT FIND THE FILE 
 
     use PhpOffice\PhpPresentation\IOFactory;
     use PhpOffice\PhpPresentation\PhpPresentation;
     use PhpOffice\PhpPresentation\Slide\Slide;
     use PhpOffice\PhpPresentation\Writer\PowerPoint2007;
 
-    // Charger le fichier .pptx
+    // Load the .pptx file
     $pptReader = IOFactory::createReader('PowerPoint2007');
     $presentation = $pptReader->load(__DIR__ . '/../../../../BDD/doc3.pptx');
 
-    // Sélectionner la diapositive spécifique (par exemple, la deuxième diapositive)
-    $slideIndex = 0; // Les index commencent à 0
+    // Select the specific slide (for example, the second slide)
+    $slideIndex = 0; // Indexes start at 0
     $slide = $presentation->getSlide($slideIndex);
 
-    // Afficher le contenu de la diapositive
+    // Display the content of the slide
     foreach ($slide->getShapeCollection() as $shape) {
         if ($shape instanceof \PhpOffice\PhpPresentation\Shape\RichText) {
             foreach ($shape->getParagraphs() as $paragraph) {
@@ -36,11 +36,11 @@ require "./blueprints/gl_ap_start.php";
                 }
             }
         }
-    } */ /// NE FONCTIONNE PAS
+    } */ /// DOES NOT WORK
     ?>
 
-    <a id=retourArriere onclick='window.history.back()'> Retour </a><br>
-    <img src="../images/map/map_monde.png" alt="Carte des Mondes Oubliés" style="width: 100%; height: auto;">
+    <a id=Return onclick='window.history.back()'> Return </a><br>
+    <img src="../images/map/map_monde.png" alt="Map of the Forgotten Worlds" style="width: 100%; height: auto;">
 </div>
                 
 

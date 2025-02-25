@@ -77,7 +77,7 @@ function sanitize_output($data) {
                 })
                 .then(data => {
                     if (data.success) {
-                        let correspondanceHtml = data.correspondance ? `<p>Correspondance: ${escapeHtml(data.correspondance)}</p>` : '<p>Correspondance does not exist</p>';
+                        let correspondenceHtml = data.correspondence ? `<p>correspondence: ${escapeHtml(data.correspondence)}</p>` : '<p>correspondence does not exist</p>';
                         let icon = data.icon ? data.icon.replace(/ /g, '_') : '';
                         let iconHtml = icon ? `<p>Icon link: ${escapeHtml(icon)}.${escapeHtml(data.icon_type)}</p><p>Icon: <img id="imgEdit" src="../images/${escapeHtml(icon)}.${escapeHtml(data.icon_type)}" alt="Race Icon"></p>` : '<p>Icon does not exist</p>';
                         let contentHtml = data.content ? `<p>Content: <br>${nl2br(escapeHtml(data.content))}</p>` : '<p>Content does not exist</p>';
@@ -85,7 +85,7 @@ function sanitize_output($data) {
                         let homeworldHtml = data.homeworld ? `<p>Homeworld: ${escapeHtml(data.homeworld)}</p>` : '<p>Homeworld does not exist</p>';
                         let countryHtml = data.country ? `<p>Country: ${escapeHtml(data.country)}</p>` : '<p>Country does not exist</p>';
                         let habitatHtml = data.habitat ? `<p>Habitat: ${escapeHtml(data.habitat)}</p>` : '<p>Habitat does not exist</p>';
-                        document.getElementById('raceInfo').innerHTML = correspondanceHtml + iconHtml + lifespanHtml + homeworldHtml + countryHtml + habitatHtml + contentHtml; // permet l'affichage des infos
+                        document.getElementById('raceInfo').innerHTML = correspondenceHtml + iconHtml + lifespanHtml + homeworldHtml + countryHtml + habitatHtml + contentHtml; // permet l'affichage des infos
                     } else {
                         document.getElementById('raceInfo').innerHTML = '<p style="color:red;">' + escapeHtml(data.message) + '</p>';
                     }

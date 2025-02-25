@@ -1,8 +1,8 @@
 <?php
 require "./blueprints/page_init.php"; // includes the page initialization file
-require "./blueprints/gl_ap_start.php";
+require "./blueprints/gl_ap_start.php"; // includes the start of the general page file
 ?>
-                
+
 <div id="mainText"> <!-- Right div -->
 
     <a id=Return onclick='window.history.back()'> Return </a><br>
@@ -13,7 +13,7 @@ require "./blueprints/gl_ap_start.php";
     if (is_dir($dir)) { // if the directory exists
         if ($dh = opendir($dir)) { // open the directory for reading
             while (($file = readdir($dh)) !== false) { // read files in the directory
-                if ($file != '.' && $file != '..' && pathinfo($file, PATHINFO_EXTENSION) == 'php') { // if the file is not a directory and has a .php extension, add it to the $pages array
+                if ($file != '.' && $file != '..' && pathinfo($file, PATHINFO_EXTENSION) == 'php' && $file != "Homepage.php") { // if the file is not a directory and has a .php extension and isn't Homepage.php, add it to the $pages array
                     $pages[] = pathinfo($file, PATHINFO_FILENAME);
                 }
             }
@@ -29,8 +29,10 @@ require "./blueprints/gl_ap_start.php";
         $user = $stmt->fetch();
         
         // check if the user is admin or not
-        if (($user['admin']) == 1 ) { 
-        } elseif (($user["admin"]) == null || ($user["admin"]) == '') {
+        if ($user && $user['admin'] == 1) {
+            // User is admin
+        } elseif ($user && $user['admin'] === null) {
+            // User is not admin
         } else {
             echo "Error in the admin column<br>";
         }
@@ -39,11 +41,10 @@ require "./blueprints/gl_ap_start.php";
     sort($pages); // sort the array alphabetically
     $frstLetter = ""; // initialize the $frstLetter variable
 
-    /// in case the first page is for a page that the user shouldn't have access to like hidden or admin pages
-    // if the user is (logged in and is admin or the page is public) and the type of the page is Dimensions
-    if (((isset($_SESSION['user']) && ($authorisation[$pages[0]] == 'admin' && ($user['admin']) == 1)) || $authorisation[$pages[0]] == 'all') && $type[$pages[0]] == 'Dimensions') {
+    // in case the first page is for a page that the user shouldn't have access to like hidden or admin pages
+    if ((isset($_SESSION['user']) && ($authorisation[$pages[0]] == 'admin' && ($user['admin']) == 1)) || ($authorisation[$pages[0]] == 'all' && $type[$pages[0]] == 'common')) { // if the user is logged in and is admin or if the first page is public and of common type
         $frstLetter = mb_substr($pages[0], 0, 1); // get the first letter of the first element in the $pages array
-        echo "<span>$frstLetter</span>"; // display the first letter
+        echo "<span>" . $pages[0] . "</span>"; // display the first letter
         // Start of the unordered list here otherwise it creates an unsightly space
         echo "<ul>"; 
     } 
@@ -51,30 +52,24 @@ require "./blueprints/gl_ap_start.php";
     // Loop through the array and display the elements in the list
     foreach ($pages as $page) { // for each element in the $pages array, display a link to the corresponding page
         
-        // if the user is (logged in and is admin or the page is public) and the type of the page is Dimensions
-        if (((isset($_SESSION['user']) && ($authorisation[$page] == 'admin' && ($user['admin']) == 1)) || $authorisation[$page] == 'all') && $type[$page] == 'Dimensions') {
+        if ((isset($_SESSION['user']) && ($authorisation[$page] == 'admin' && $user['admin'] == 1)) || ($authorisation[$page] == 'all' && $type[$page] == 'common')) { // if the user is logged in and is admin or if the page is public and of common type
             // if the first letter of the element is different from the first letter of the first element in the $pages array, close the list and open a new one
             // this allows grouping elements by first letter
-            if(mb_substr($page, 0, 1) != $frstLetter) { 
-                echo "</ul>"; // even if the list isn't open, the closing tag won't cause any problem
+            if (mb_substr($page, 0, 1) != $frstLetter) { 
+                echo "</ul>";
                 $frstLetter = mb_substr($page, 0, 1);
-                echo "<span>$frstLetter</span>";
+                echo "<span>" . sanitize_output($frstLetter) . "</span>";
                 echo "<ul>";
             }
-            echo "<li><a href='./" . sanitize_output($page) . ".php'>$page</a></li>"; // link to the corresponding page in the $pages array
-        
+            echo "<li><a href='./" . sanitize_output($page) . ".php'>" . sanitize_output($page) . "</a></li>"; // link to the corresponding page in the $pages array
         }
-        
     }
-    
 
     // End of the list
     echo "</ul>";
     ?>
-
 </div>
-                
 
-<?php
-require "./blueprints/gl_ap_end.php";
+<?php 
+require "./blueprints/gl_ap_end.php"; 
 ?>

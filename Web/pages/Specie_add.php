@@ -1,26 +1,24 @@
 <?php
-require "./blueprints/page_init.php"; // inclut le fichier d'initialisation de la page
+require "./blueprints/page_init.php"; // includes the page initialization file
 
-
-if ($_SERVER['REQUEST_METHOD'] === 'POST') { // Vérifie si le formulaire a été soumis
-    $Specie_name = isset($_POST['Specie_name']) ? trim($_POST['Specie_name']) : ''; // Nettoyage des entrées utilisateur
+if ($_SERVER['REQUEST_METHOD'] === 'POST') { // Check if the form has been submitted
+    $Specie_name = isset($_POST['Specie_name']) ? trim($_POST['Specie_name']) : ''; // Trim whitespace from user input
     $Specie_Icon = isset($_POST['icon_Specie']) ? trim($_POST['icon_Specie']) : '';
     $Specie_content = isset($_POST['Specie_text']) ? trim($_POST['Specie_text']) : '';
 
-
-    // Récupérer le nom de la Specie depuis la base de données
-    $stmt = $pdo->prepare("SELECT * FROM species WHERE nom_Specie = ?"); 
+    // Retrieve the specie name from the database
+    $stmt = $pdo->prepare("SELECT * FROM species WHERE specie_name = ?"); 
     $stmt->execute([$Specie_name]);
     $Specie = $stmt->fetch();
 
-    // Vérifier si la Specie existe déjà dans la base, si non alors intégrer la Specie à la base de données
+    // Check if the specie already exists in the database, if not then add the specie to the database
     if ($Specie) {
         $_SESSION['error'] = "Specie already exists";
         header('Location: Specie_add.php');
         exit;
     } else {
-        // Insérer la nouvelle Specie dans la base de données
-        $stmt = $pdo->prepare("INSERT INTO species (nom_Specie, icon_Specie, content_Specie) VALUES (?, ?, ?)");
+        // Insert the new specie into the database
+        $stmt = $pdo->prepare("INSERT INTO species (specie_name, icon_Specie, content_Specie) VALUES (?, ?, ?)");
         $stmt->execute([$Specie_name, $Specie_Icon, $Specie_content]);
         $_SESSION['success'] = "Specie added successfully";
         header('Location: Specie_add.php');
@@ -28,12 +26,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') { // Vérifie si le formulaire a ét�
     }
 }
 
-require "./blueprints/gl_ap_start.php"; // inclut le fichier d'en-tête de la page
+require "./blueprints/gl_ap_start.php"; // includes the start of the general page file
 ?>
 
-
-<div id="textePrincipal"> <!-- Div de droite -->
-    <a id=retourArriere onclick='window.history.back()'> Retour </a><br>
+<div id="mainText"> <!-- Right div -->
+    <a id=Return onclick='window.history.back()'> Return </a><br>
     <?php
         if (isset($_SESSION['error'])) {
             echo '<p style="color:red;">' . sanitize_output($_SESSION['error']) . '</p>';
@@ -51,12 +48,10 @@ require "./blueprints/gl_ap_start.php"; // inclut le fichier d'en-tête de la pa
         <input type="text" name="Specie_name" required><br>
         <label for="Specie_icon">Specie Icon</label>
         <input type="text" name="icon_Specie"><br>
-        <label for="Specie_text">Specie content :</label><br>
+        <label for="Specie_text">Specie content</label><br>
         <input type="text" name="Specie_text" id="content_input"><br><br>
         <button type="submit">Submit</button>
     </form><br>
 </div>
 
-
-
-<?php require "./blueprints/gl_ap_end.php"; // inclut le fichier de pied de page ?>
+<?php require "./blueprints/gl_ap_end.php"; // includes the end of the general page file ?>

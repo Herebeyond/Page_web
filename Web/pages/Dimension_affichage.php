@@ -1,12 +1,12 @@
 <?php
-require "./blueprints/page_init.php"; // inclut le fichier d'initialisation de la page
+require "./blueprints/page_init.php"; // includes the page initialization file
 include "./blueprints/gl_ap_start.php";
 ?>
 
-<div id="textePrincipal" style="opacity: 100%;"> <!-- Div de droite -->
+<div id="mainText" style="opacity: 100%;"> <!-- Right div -->
     <div>
-        <a id=retourArriere onclick='window.history.back()'> Retour </a><br>
-        <img src="../images/map/dimensions.png" alt="Dimensions de l'univers" style="width: 100%; height: auto;">
+        <a id=Return onclick='window.history.back()'> Return </a><br>
+        <img src="../images/map/dimensions.png" alt="Dimensions of the universe" style="width: 100%; height: auto;">
     </div>
 </div>
 

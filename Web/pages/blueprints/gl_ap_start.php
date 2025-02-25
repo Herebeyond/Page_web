@@ -1,28 +1,27 @@
 <?php
-require "./scriptes/functions.php"; // inclut le fichier de fonctions
+require "./scriptes/functions.php"; // includes the functions file
 ?>
-
 
 <html>
     <head>
-        <link rel="stylesheet" href= "<?php echo "../style/PageStyle.css?ver=" . time(); ?>"> <!-- permet de créer un "nouveau" css pour que le site ne lise pas son cache et relise le css, ainsi applicant les changements écrit dedans -->
-        <!-- le echo time() permet de générer un nombre aléatoire pour générer une version différente "unique" -->
+        <link rel="stylesheet" href= "<?php echo "../style/PageStyle.css?ver=" . time(); ?>"> <!-- creates a "new" CSS so that the site does not read its cache and rereads the CSS, thus applying the changes written in it -->
+        <!-- echo time() generates a random number to generate a different "unique" version -->
         <title>
-            Page d'Accueil
+            Home Page
         </title>
     </head>
     <body>
         <div id=global>
-            <?php include "./blueprints/header.php" ?>
+            <?php require "./blueprints/header.php" ?>
             <div id=englobe>
-                <div class=texteGauche> <!-- Div de gauche -->
-                    <div id=enTeteTexteGauche>
+                <div class=leftText> <!-- Left div -->
+                    <div id=leftHeaderText>
                         <?php
                             for($i=0; $i<4; $i++) {
                                 echo "<div><img src=../images/Icon.png></div>";
-                            }?> <!-- permet de créer 4 images identiques comme décoration du texte de gauche-->
+                            }?> <!-- creates 4 identical images as decoration for the left text -->
                     </div> <br>
-                    <?php // créé un span et écrit dedans le contenu du fichier mondes_oubliés.txt
-                        echo '<span>' . nl2br(sanitize_output(file_get_contents("../texte/mondes_oubliés.txt"))) . '</span>';
+                    <?php // creates a span and writes the content of the forgotten_worlds.txt file inside
+                        echo '<span>' . nl2br(sanitize_output(file_get_contents("../texte/forgotten_worlds.txt"))) . '</span>';
                     ?>
                 </div>

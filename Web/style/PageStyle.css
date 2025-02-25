@@ -23,7 +23,7 @@ html body {
     height: auto;
 }
 
-.nomDimension {
+.dimensionName {
     font-size: 35px;
     font-weight: bold;
 }
@@ -137,7 +137,14 @@ html body {
     width: 0;
 } */
 
-#enTete { /* pour que le menu déroulant soit par dessus le reste et ne soit pas caché derrière texte principal */
+#header { /* pour que le menu déroulant soit par dessus le reste et ne soit pas caché derrière texte principal */
+    display: flex;
+    align-items: center; /* Center vertically */
+    justify-content: space-between;
+    height: 140px;
+    background-color: black;
+    opacity: 0.92;
+    border-radius: 0 0 50px 50px;
     position: relative; /* Ensure z-index works */
     z-index: 1000; /* Ensure header is in the foreground */
 }
@@ -154,16 +161,6 @@ html body {
     margin-left: 50px;
     margin-top: 0px;
     border-radius: 100px 100px 100px 100px;
-}
-
-#enTete {
-    display: flex;
-    align-items: center; /* Center vertically */
-    justify-content: space-between;
-    height: 140px;
-    background-color: black;
-    opacity: 0.92;
-    border-radius: 0 0 50px 50px;
 }
 
 #global { /* Background image */
@@ -187,13 +184,13 @@ html body {
     font-weight: bold;
 }
 
-.TitrePrincipal {
+.Title {
     padding: 10px;
     font-size: 30px;
     margin: 0px;
 }
 
-#divacceuil { /* affichage en colonne */
+#divConnect { /* affichage en colonne */
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -227,7 +224,7 @@ html body {
     font-size: 13px;
 }
 
-#acceuil {
+#Connect {
     cursor: pointer;
     width: 250px;
     height: 20px;
@@ -241,16 +238,16 @@ html body {
     font-family: 'Cinzel', serif;
 }
 
-#englobe { /* texteGauche + texteDroite */
+#englobe { /* leftText + texteDroite */
     display: flex;
-    height: calc(100% - 280px); /* 100% of page - header height - margin of texteGauche - padding of texteGauche */
+    height: calc(100% - 280px); /* 100% of page - header height - margin of leftText - padding of leftText */
     width: 100%;
 }
 
 
 
 
-.texteGauche {
+.leftText {
     width: 700px;
     margin: 30px;
     padding: 20px;
@@ -265,11 +262,11 @@ html body {
     height: fit-content;
 }
 
-.texteGauche span {
+.leftText span {
     color: rgb(159, 169, 255);
 }
 
-#enTeteTexteGauche {
+#leftHeaderText {
     width: 100%;
     display: flex;
 }
@@ -280,13 +277,13 @@ html body {
     z-index: 1000; /* Ensure nav is in the foreground */
 }
 
-#enteteTexteGauche div {
+#leftHeaderText div {
     width: 50px;
     flex-grow: 1; /* Stretch to occupy full width */
     flex-shrink: 0; /* Prevent shrinking */
 }
 
-#enTeteTexteGauche img {
+#leftHeaderText img {
     width: 50px;
     height: 50px;
     margin: 0px;
@@ -299,7 +296,7 @@ html body {
     padding-left: 50;
 }
 
-#textePrincipal, #textePrincipalList {
+#mainText, #mainTextList {
     display: flex;
     flex-wrap: wrap;
     flex-direction: column;
@@ -316,7 +313,7 @@ html body {
     z-index: 1; /* Ensure them to be below dropdown */
 }
 
-#textePrincipalList {
+#mainTextList {
     margin: 0px;
     flex-direction: row;
 }
@@ -336,7 +333,7 @@ html body {
     flex-direction: column;
 }
 
-#add_race h2, #add_specie h2 { /* titre page add_race */
+#add_race h2, #add_specie h2 { /* title page add_race */
     margin: 10px;
 }
 
@@ -345,7 +342,7 @@ html body {
     height: 90px;
 }
 
-#retourArriere {
+#Return {
     color: blue; /* Text color */
     text-decoration: underline; /* Underline */
     cursor: pointer; /* Pointer cursor */
@@ -357,7 +354,7 @@ html body {
     margin-top: 20px;
 }
 
-.selectionAccueil { /* Encapsulate imgSelection and texteSelection */
+.selection { /* Encapsulate imgSelection and texteSelection */
     display: flex;
     justify-content: center; /* Center horizontally */
     margin: 20px;
@@ -367,7 +364,7 @@ html body {
     flex-basis: auto; /* Base size */
 }
 
-.classImgSelectionAccueil {
+.classImgSelection {
     cursor: pointer;
     display: flex;
     flex-direction: column;
@@ -376,7 +373,7 @@ html body {
     width: fit-content;
 }
 
-.imgSelectionAccueil {
+.imgSelection {
     width: 200px;
     height: auto;
     margin: 0px;
@@ -393,7 +390,7 @@ html body {
     position: absolute; /* Absolute positioning */
 }
 
-.Titre {
+.title {
     margin: 0px;
     padding: 10px;
     font-size: 40px;
@@ -450,11 +447,11 @@ html body {
 }
 
 /* Optional: Change color on hover */
-#retourArriere:hover {
+#Return:hover {
     color: darkblue; /* Hover color */
 }
 
-.selection {
+.selectionRace {
     display: flex;
     margin: 20px;
     padding: 0px;
@@ -464,7 +461,7 @@ html body {
     border: 3px solid grey;
 }
 
-.classImgSelection {
+.classImgSelectionRace {
     display: flex;
     flex-direction: column;
     text-align: center;
@@ -475,7 +472,7 @@ html body {
     font-size: 20px;
 }
 
-.imgSelection {
+.imgSelectionRace {
     width: 200px;
     height: auto;
     margin: 0px;

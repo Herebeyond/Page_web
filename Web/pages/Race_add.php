@@ -1,10 +1,9 @@
 <?php
-require "./blueprints/page_init.php"; // inclut le fichier d'initialisation de la page
+require "./blueprints/page_init.php"; // includes the page initialization file
 
-
-if ($_SERVER['REQUEST_METHOD'] === 'POST') { // Vérifie si le formulaire a été soumis
-    $RaceName = isset($_POST['Race_name']) ? trim($_POST['Race_name']) : ''; // Enlève les espaces en début et fin de chaîne
-    $Correspondance = isset($_POST['Correspondance']) ? trim($_POST['Correspondance']) : '';
+if ($_SERVER['REQUEST_METHOD'] === 'POST') { // Check if the form has been submitted
+    $RaceName = isset($_POST['Race_name']) ? trim($_POST['Race_name']) : ''; // Trim whitespace from user input
+    $correspondence = isset($_POST['correspondence']) ? trim($_POST['correspondence']) : '';
     $RaceIcon = isset($_POST['icon_Race']) ? trim($_POST['icon_Race']) : '';
     $IconTypeRace = isset($_POST['icon_Type_Race']) ? trim($_POST['icon_Type_Race']) : '';
     $RaceContent = isset($_POST['Race_text']) ? trim($_POST['Race_text']) : '';
@@ -13,20 +12,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') { // Vérifie si le formulaire a ét�
     $Country = isset($_POST['Country']) ? trim($_POST['Country']) : '';
     $Habitat = isset($_POST['Habitat']) ? trim($_POST['Habitat']) : '';
 
-    // Récupérer le nom de la Race depuis la base de données
-    $stmt = $pdo->prepare("SELECT * FROM races WHERE nom_Race = ?"); 
+    // Retrieve the race name from the database
+    $stmt = $pdo->prepare("SELECT * FROM races WHERE race_name = ?"); 
     $stmt->execute([$RaceName]);
     $Race = $stmt->fetch();
 
-    // Vérifier si la Race existe déjà dans la base, si non alors intégrer la Race à la base de données
+    // Check if the race already exists in the database, if not then add the race to the database
     if ($Race) {
         $_SESSION['error'] = "Race already exists";
-        header('Location: Race_add.php'); // Rediriger vers la page d'ajout de 
+        header('Location: Race_add.php'); // Redirect to the race add page
         exit;
     } else {
-        // Insérer la nouvelle Race dans la base de données
-        $stmt = $pdo->prepare("INSERT INTO races (nom_Race, correspondance, icon_Race, icon_Type_Race, content_Race, lifespan, homeworld, country, habitat) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
-        $stmt->execute([$RaceName, $Correspondance, $RaceIcon, $IconTypeRace, $RaceContent, $Lifespan, $Homeworld, $Country, $Habitat]);
+        // Insert the new race into the database
+        $stmt = $pdo->prepare("INSERT INTO races (race_name, correspondence, icon_Race, icon_Type_Race, content_Race, lifespan, homeworld, country, habitat) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
+        $stmt->execute([$RaceName, $correspondence, $RaceIcon, $IconTypeRace, $RaceContent, $Lifespan, $Homeworld, $Country, $Habitat]);
         $_SESSION['success'] = "Race added successfully";
         header('Location: Race_add.php');
         exit;
@@ -36,23 +35,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') { // Vérifie si le formulaire a ét�
 require "./blueprints/gl_ap_start.php";
 ?>
 
-
-<div id="textePrincipal"> <!-- Div de droite -->
-    <a id=retourArriere onclick='window.history.back()'> Retour </a><br>
-
+<div id="mainText"> <!-- Right div -->
+    <a id=Return onclick='window.history.back()'> Return </a><br>
 
     <h2> Add a Race </h2><br>
     <form method="POST" action="Race_add.php">
         <label for="Race_name">Race Name</label>
         <input type="text" name="Race_name" required><br>
-        <label for="Correspondance">Correspondance</label>
-        <select name="Correspondance" required> <!-- Liste déroulante pour sélectionner la correspondance de la race avec quel specie -->
+        <label for="correspondence">correspondence</label>
+        <select name="correspondence" required> <!-- Dropdown list to select the race's correspondence with which specie -->
             <option value="">Select a specie</option>
-            <?php // Récupérer les noms des Specie depuis la base de données et les afficher dans une liste déroulante
-                $stmt = $pdo->prepare("SELECT * FROM species ORDER BY nom_specie;");
+            <?php // Retrieve the names of the species from the database and display them in a dropdown list
+                $stmt = $pdo->prepare("SELECT * FROM species ORDER BY specie_name;");
                 $stmt->execute();
                 while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
-                    echo '<option value="' . sanitize_output($row['nom_specie']) . '">' . sanitize_output($row['nom_specie']) . '</option>';
+                    echo '<option value="' . sanitize_output($row['specie_name']) . '">' . sanitize_output($row['specie_name']) . '</option>';
                 }
             ?>
         </select><br>
@@ -68,11 +65,10 @@ require "./blueprints/gl_ap_start.php";
         <input type="text" name="Country"><br>
         <label for="Habitat">Habitat</label>
         <input type="text" name="Habitat"><br>
-        <label for="Race_text">Race content :</label><br>
+        <label for="Race_text">Race content</label><br>
         <textarea type="text" name="Race_text" id="content_input"></textarea><br><br>
         <button type="submit">Submit</button>
     </form><br>
-
 
     <?php
         if (isset($_SESSION['error'])) {
