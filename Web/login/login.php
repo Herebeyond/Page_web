@@ -23,7 +23,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') { // Check if the form has been submi
     $failed_attempts = $_SESSION['failed_attempts'];
     $last_failed_attempt = $_SESSION['last_failed_attempt'];
     $current_time = new DateTime();
-    $block_duration = new DateInterval('PT5M'); // 5 minutes block duration
+    $block_duration = new DateInterval('PT2M'); // 2 minutes block duration
 
     if ($failed_attempts >= 3 && $last_failed_attempt) {
         $last_failed_attempt_time = new DateTime($last_failed_attempt);
