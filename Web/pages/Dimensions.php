@@ -30,7 +30,9 @@ require "./blueprints/gl_ap_start.php";
         
         // check if the user is admin or not
         if (($user['admin']) == 1 ) { 
+            // User is admin
         } elseif (($user["admin"]) == null || ($user["admin"]) == '') {
+            // User is not admin
         } else {
             echo "Error in the admin column<br>";
         }

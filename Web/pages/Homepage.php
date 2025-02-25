@@ -29,9 +29,9 @@ require "./blueprints/gl_ap_start.php"; // includes the start of the general pag
         $user = $stmt->fetch();
         
         // check if the user is admin or not
-        if ($user && $user['admin'] == 1) {
+        if ($user['admin'] == 1) {
             // User is admin
-        } elseif ($user && $user['admin'] === null) {
+        } elseif ($user["admin"] == null || $user["admin"] == '') {
             // User is not admin
         } else {
             echo "Error in the admin column<br>";
