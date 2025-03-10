@@ -40,7 +40,7 @@ $offset = ($page - 1) * $perPage;
                         $imgPath = '../images/icon_default.png'; // path to the default image
                     } else { // if the image exists
                         $imgPath = str_replace(" ", "_", "$imgPath"); // replace spaces with underscores for file names
-                        $imgPath = "../images/" . sanitize_output($imgPath) . "." . sanitize_output($row["icon_type_race"]); // path to the image, sanitize_output escapes special characters in the string (such as ' and ") and prevents them from closing strings
+                        $imgPath = "../images/" . sanitize_output($imgPath); // path to the image, sanitize_output escapes special characters in the string (such as ' and ") and prevents them from closing strings
                     } 
                     
                     if (!isImageLinkValid($imgPath)) { // if the image is not valid

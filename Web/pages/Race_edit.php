@@ -5,7 +5,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') { // Check if the form has been submi
     $RaceName = isset($_POST['Race_name']) ? trim($_POST['Race_name']) : ''; // Trim whitespace from user input
     $correspondence = isset($_POST['correspondence']) ? trim($_POST['correspondence']) : '';
     $RaceIcon = isset($_POST['icon_Race']) ? trim($_POST['icon_Race']) : '';
-    $IconTypeRace = isset($_POST['icon_Type_Race']) ? trim($_POST['icon_Type_Race']) : '';
     $RaceContent = isset($_POST['Race_text']) ? trim($_POST['Race_text']) : '';
     $Lifespan = isset($_POST['Lifespan']) ? trim($_POST['Lifespan']) : '';
     $Homeworld = isset($_POST['Homeworld']) ? trim($_POST['Homeworld']) : '';
@@ -23,10 +22,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') { // Check if the form has been submi
     if ($RaceIcon !== '' && $RaceIcon != null) {
         $fields[] = 'icon_Race = ?';
         $params[] = $RaceIcon;
-    }
-    if ($IconTypeRace !== '' && $IconTypeRace != null) {
-        $fields[] = 'icon_Type_Race = ?';
-        $params[] = $IconTypeRace;
     }
     if ($RaceContent !== '' && $RaceContent != null) {
         $fields[] = 'content_Race = ?';
@@ -106,9 +101,7 @@ require "./blueprints/gl_ap_start.php";
             ?>
         </select><br>
         <label for="Race_icon">Race Icon</label>
-        <input type="text" name="icon_Race"><br>
-        <label for="Icon_Type_Race">Race Icon Type</label>
-        <input type="text" name="icon_Type_Race"><br>
+        <input type="file" name="icon_Race"><br>
         <label for="Lifespan">Lifespan</label>
         <input type="text" name="Lifespan"><br>
         <label for="Homeworld">Homeworld</label>

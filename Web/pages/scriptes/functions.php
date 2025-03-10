@@ -79,7 +79,7 @@ function sanitize_output($data) {
                     if (data.success) {
                         let correspondenceHtml = data.correspondence ? `<p>correspondence: ${escapeHtml(data.correspondence)}</p>` : '<p>correspondence does not exist</p>';
                         let icon = data.icon ? data.icon.replace(/ /g, '_') : '';
-                        let iconHtml = icon ? `<p>Icon link: ${escapeHtml(icon)}.${escapeHtml(data.icon_type)}</p><p>Icon: <img id="imgEdit" src="../images/${escapeHtml(icon)}.${escapeHtml(data.icon_type)}" alt="Race Icon"></p>` : '<p>Icon does not exist</p>';
+                        let iconHtml = icon ? `<p>Icon link: ${escapeHtml(icon)}</p><p>Icon: <img id="imgEdit" src="../images/${escapeHtml(icon)}" alt="Race Icon"></p>` : '<p>Icon does not exist</p>';
                         let contentHtml = data.content ? `<p>Content: <br>${nl2br(escapeHtml(data.content))}</p>` : '<p>Content does not exist</p>';
                         let lifespanHtml = data.lifespan ? `<p>Lifespan: ${escapeHtml(data.lifespan)}</p>` : '<p>Lifespan does not exist</p>';
                         let homeworldHtml = data.homeworld ? `<p>Homeworld: ${escapeHtml(data.homeworld)}</p>` : '<p>Homeworld does not exist</p>';

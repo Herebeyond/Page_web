@@ -63,7 +63,7 @@ require 'blueprints/gl_ap_start.php'; // includes the start of the general page 
             ?>
         </select><br>
         <label for="Specie_icon">Specie Icon</label>
-        <input type="text" name="icon_Specie"><br>
+        <input type="file" name="icon_Specie"><br>
         <label for="Specie_text">Specie content</label><br>
         <textarea type="text" name="Specie_text"></textarea><br><br>
         <button type="submit">Submit</button> 

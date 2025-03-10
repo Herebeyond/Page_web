@@ -5,7 +5,7 @@ header('Content-Type: application/json');
 
 if (isset($_GET['race'])) {
     $raceName = trim($_GET['race']);
-    $stmt = $pdo->prepare("SELECT correspondence, icon_Race, icon_Type_Race, content_Race, lifespan, homeworld, country, habitat FROM races WHERE race_name = ?");
+    $stmt = $pdo->prepare("SELECT correspondence, icon_Race, content_Race, lifespan, homeworld, country, habitat FROM races WHERE race_name = ?");
     $stmt->execute([$raceName]);
     $race = $stmt->fetch(PDO::FETCH_ASSOC);
 
@@ -14,7 +14,6 @@ if (isset($_GET['race'])) {
             'success' => true,
             'correspondence' => $race['correspondence'],
             'icon' => $race['icon_Race'],
-            'icon_type' => $race['icon_Type_Race'],
             'content' => $race['content_Race'],
             'lifespan' => $race['lifespan'],
             'homeworld' => $race['homeworld'],

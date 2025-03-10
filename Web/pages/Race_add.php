@@ -5,7 +5,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') { // Check if the form has been submi
     $RaceName = isset($_POST['Race_name']) ? trim($_POST['Race_name']) : ''; // Trim whitespace from user input
     $correspondence = isset($_POST['correspondence']) ? trim($_POST['correspondence']) : '';
     $RaceIcon = isset($_POST['icon_Race']) ? trim($_POST['icon_Race']) : '';
-    $IconTypeRace = isset($_POST['icon_Type_Race']) ? trim($_POST['icon_Type_Race']) : '';
     $RaceContent = isset($_POST['Race_text']) ? trim($_POST['Race_text']) : '';
     $Lifespan = isset($_POST['Lifespan']) ? trim($_POST['Lifespan']) : '';
     $Homeworld = isset($_POST['Homeworld']) ? trim($_POST['Homeworld']) : '';
@@ -24,7 +23,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') { // Check if the form has been submi
         exit;
     } else {
         // Insert the new race into the database
-        $stmt = $pdo->prepare("INSERT INTO races (race_name, correspondence, icon_Race, icon_Type_Race, content_Race, lifespan, homeworld, country, habitat) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
+        $stmt = $pdo->prepare("INSERT INTO races (race_name, correspondence, icon_Race, content_Race, lifespan, homeworld, country, habitat) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
         $stmt->execute([$RaceName, $correspondence, $RaceIcon, $IconTypeRace, $RaceContent, $Lifespan, $Homeworld, $Country, $Habitat]);
         $_SESSION['success'] = "Race added successfully";
         header('Location: Race_add.php');
@@ -54,9 +53,7 @@ require "./blueprints/gl_ap_start.php";
             ?>
         </select><br>
         <label for="Race_icon">Race Icon</label>
-        <input type="text" name="icon_Race"><br>
-        <label for="Icon_Type_Race">Icon Type Race</label>
-        <input type="text" name="icon_Type_Race"><br>
+        <input type="file" name="icon_Race"><br>
         <label for="Lifespan">Lifespan</label>
         <input type="text" name="Lifespan"><br>
         <label for="Homeworld">Homeworld</label>
