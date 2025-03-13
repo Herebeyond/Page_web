@@ -2,14 +2,15 @@
 require "./blueprints/page_init.php"; // includes the page initialization file
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') { // Check if the form has been submitted
-    $RaceName = isset($_POST['Race_name']) ? trim($_POST['Race_name']) : ''; // Trim whitespace from user input
-    $correspondence = isset($_POST['correspondence']) ? trim($_POST['correspondence']) : '';
-    $RaceIcon = isset($_POST['icon_Race']) ? trim($_POST['icon_Race']) : '';
-    $RaceContent = isset($_POST['Race_text']) ? trim($_POST['Race_text']) : '';
-    $Lifespan = isset($_POST['Lifespan']) ? trim($_POST['Lifespan']) : '';
-    $Homeworld = isset($_POST['Homeworld']) ? trim($_POST['Homeworld']) : '';
-    $Country = isset($_POST['Country']) ? trim($_POST['Country']) : '';
-    $Habitat = isset($_POST['Habitat']) ? trim($_POST['Habitat']) : '';
+    $RaceName = isset($_POST['Race_name']) ? trim($_POST['Race_name']) : null; // Trim whitespace from user input
+    $correspondence = isset($_POST['correspondence']) ? trim($_POST['correspondence']) : null;
+    $RaceIcon = isset($_POST['icon_Race']) ? trim($_POST['icon_Race']) : null;
+    $RaceContent = isset($_POST['Race_text']) ? trim($_POST['Race_text']) : null;
+    $Lifespan = isset($_POST['Lifespan']) ? trim($_POST['Lifespan']) : null;
+    $Homeworld = isset($_POST['Homeworld']) ? trim($_POST['Homeworld']) : null;
+    $Country = isset($_POST['Country']) ? trim($_POST['Country']) : null;
+    $Habitat = isset($_POST['Habitat']) ? trim($_POST['Habitat']) : null;
+    $Unique = isset($_POST['Unique']) ? trim($_POST['Unique']) : 0;
 
     // Retrieve the race name from the database
     $stmt = $pdo->prepare("SELECT * FROM races WHERE race_name = ?"); 
@@ -23,8 +24,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') { // Check if the form has been submi
         exit;
     } else {
         // Insert the new race into the database
-        $stmt = $pdo->prepare("INSERT INTO races (race_name, correspondence, icon_Race, content_Race, lifespan, homeworld, country, habitat) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
-        $stmt->execute([$RaceName, $correspondence, $RaceIcon, $IconTypeRace, $RaceContent, $Lifespan, $Homeworld, $Country, $Habitat]);
+        $stmt = $pdo->prepare("INSERT INTO races (race_name, correspondence, icon_Race, content_Race, lifespan, homeworld, country, habitat, race_is_unique) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
+        $stmt->execute([$RaceName, $correspondence, $RaceIcon, $RaceContent, $Lifespan, $Homeworld, $Country, $Habitat, $Unique]);
         $_SESSION['success'] = "Race added successfully";
         header('Location: Race_add.php');
         exit;
@@ -40,7 +41,7 @@ require "./blueprints/gl_ap_start.php";
     <h2> Add a Race </h2><br>
     <form method="POST" action="Race_add.php">
         <label for="Race_name">Race Name</label>
-        <input type="text" name="Race_name" required><br>
+        <input type="text" name="Race_name" required placeholder="Entrez votre nom"><br>
         <label for="correspondence">correspondence</label>
         <select name="correspondence" required> <!-- Dropdown list to select the race's correspondence with which specie -->
             <option value="">Select a specie</option>
@@ -62,6 +63,7 @@ require "./blueprints/gl_ap_start.php";
         <input type="text" name="Country"><br>
         <label for="Habitat">Habitat</label>
         <input type="text" name="Habitat"><br>
+        <input type="checkbox" name="Unique" value="1">Unique<br>
         <label for="Race_text">Race content</label><br>
         <textarea type="text" name="Race_text" id="content_input"></textarea><br><br>
         <button type="submit">Submit</button>

@@ -60,7 +60,7 @@ if (isset($_GET['specie'])) {
                     $imgPath = '../images/icon_default.png'; // path to the default image
                 } else { // if the image exists, use it
                     $imgPath = str_replace(" ", "_", "$imgPath"); // replace spaces with underscores for file names
-                    $imgPath = "../images/" . sanitize_output($imgPath) . "." . $rowF['icon_type_race']; // path to the image, sanitize_output escapes special characters in the string (such as ' and ") and prevents them from closing strings
+                    $imgPath = "../images/" . sanitize_output($imgPath); // path to the image, sanitize_output escapes special characters in the string (such as ' and ") and prevents them from closing strings
                 }
 
                 if (!isImageLinkValid($imgPath)) { // if the image is not valid
@@ -93,11 +93,20 @@ if (isset($_GET['specie'])) {
 
                 // Create a div for each race
                 $divsSelec .= " 
-                        <div class='selectionRace' id=" . sanitize_output(str_replace(" ", "_", $rowF['race_name'])) . ">
+                        <div class='selectionRace fadeIn' id=" . sanitize_output(str_replace(" ", "_", $rowF['race_name'])) . ">
                             <div class=infobox>
                                 <div class='classImgSelectionRace'>
                                     <img class='imgSelectionRace' src='" . $imgPath . "'>
-                                    " . sanitize_output($rowF['race_name']) . "
+                                    <span class='
+                                    ";
+                                    if ($rowF['race_is_unique'] == "0") {
+                                        $divsSelec .= 'raceNameMulti';
+                                    } else {
+                                        $divsSelec .= 'raceNameUnique';
+                                    }
+
+                                    $divsSelec .=
+                                "'>" . sanitize_output($rowF['race_name']) . "</span>
                                 </div>
                                 <div class=infos>
                                     <div>
@@ -115,8 +124,16 @@ if (isset($_GET['specie'])) {
                                     <div>
                                         <p class=infosP> Habitat: </p>
                                         <p class=infosT>" . sanitize_output($habitat) . "</p>
-                                    </div>
-                                </div>
+                                    </div>";
+
+                                    if ($rowF['race_is_unique'] == "0") {
+                                        $divsSelec .=
+                                        "<div>
+                                            <p class=infosT> Only of its Specie </p>
+                                        </div>";
+                                    }
+                                    $divsSelec .=
+                                "</div>
                             </div>
                             <div class='texteSelection'>
                                 <p>" . nl2br(sanitize_output($rowF['content_race'] ?? '')) . "</p>
@@ -148,6 +165,23 @@ if (isset($_GET['specie'])) {
             }
         }
     });
+
+    // Intersection Observer to fade in the elements when they are in the viewport
+    // Check if the elements of the class .fadeIn are actually visible to activate the fade-in effect
+    document.addEventListener("DOMContentLoaded", function() {
+            const observer = new IntersectionObserver((entries, observer) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add("visible");
+                        observer.unobserve(entry.target); // stop observing the element once it's visible
+                    }
+                });
+            });
+
+            document.querySelectorAll(".fadeIn").forEach(element => {
+                observer.observe(element);
+            });
+        });
 </script>
 </body>
 </html>

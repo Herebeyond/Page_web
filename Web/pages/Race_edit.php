@@ -2,14 +2,15 @@
 require './blueprints/page_init.php'; // includes the page initialization file
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') { // Check if the form has been submitted
-    $RaceName = isset($_POST['Race_name']) ? trim($_POST['Race_name']) : ''; // Trim whitespace from user input
-    $correspondence = isset($_POST['correspondence']) ? trim($_POST['correspondence']) : '';
-    $RaceIcon = isset($_POST['icon_Race']) ? trim($_POST['icon_Race']) : '';
-    $RaceContent = isset($_POST['Race_text']) ? trim($_POST['Race_text']) : '';
-    $Lifespan = isset($_POST['Lifespan']) ? trim($_POST['Lifespan']) : '';
-    $Homeworld = isset($_POST['Homeworld']) ? trim($_POST['Homeworld']) : '';
-    $Country = isset($_POST['Country']) ? trim($_POST['Country']) : '';
-    $Habitat = isset($_POST['Habitat']) ? trim($_POST['Habitat']) : '';
+    $RaceName = isset($_POST['Race_name']) ? trim($_POST['Race_name']) : null; // Trim whitespace from user input
+    $correspondence = isset($_POST['correspondence']) ? trim($_POST['correspondence']) : null;
+    $RaceIcon = isset($_POST['icon_Race']) ? trim($_POST['icon_Race']) : null;
+    $RaceContent = isset($_POST['Race_text']) ? trim($_POST['Race_text']) : null;
+    $Lifespan = isset($_POST['Lifespan']) ? trim($_POST['Lifespan']) : null;
+    $Homeworld = isset($_POST['Homeworld']) ? trim($_POST['Homeworld']) : null;
+    $Country = isset($_POST['Country']) ? trim($_POST['Country']) : null;
+    $Habitat = isset($_POST['Habitat']) ? trim($_POST['Habitat']) : null;
+    $Unique = isset($_POST['Unique']) ? trim($_POST['Unique']) : 0;
 
     // Prepare the dynamic SQL query
     $fields = [];
@@ -42,6 +43,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') { // Check if the form has been submi
     if ($Habitat !== '' && $Habitat != null) {
         $fields[] = 'habitat = ?';
         $params[] = $Habitat;
+    }
+    if ($Unique !== '' && $Unique != null) {
+        $fields[] = 'race_is_unique = ?';
+        $params[] = $Unique;
     }
     $params[] = $RaceName;
 
@@ -110,6 +115,8 @@ require "./blueprints/gl_ap_start.php";
         <input type="text" name="Country"><br>
         <label for="Habitat">Habitat</label>
         <input type="text" name="Habitat"><br>
+        <input type="radio" name="Unique" value="1">Unique<br>
+        <input type="radio" name="Unique" value="0">Multiple<br>
         <label for="Race_text">Race content</label><br>
         <textarea type="text" name="Race_text" id="content_input"></textarea><br><br>
         <button type="submit">Submit</button> 

@@ -143,7 +143,7 @@ html body {
     justify-content: space-between;
     height: 140px;
     background-color: black;
-    opacity: 0.92;
+    opacity: 0.94;
     border-radius: 0 0 50px 50px;
     position: relative; /* Ensure z-index works */
     z-index: 1000; /* Ensure header is in the foreground */
@@ -167,7 +167,7 @@ html body {
     height: fit-content; /* Total page height */
     min-height: 100%;
     width: 100%;
-    background-image: url('../images/52868b823af3ebefdfaa9ff87d9244a8.png');
+    background-image: url('../images/Qarios_constellation_eye.webp'); /* Background image */
     background-size: 100vh; /* Cover entire page */
     background-position: center; /* Center image */
     background-size: cover; /* Cover entire surface */
@@ -253,7 +253,7 @@ html body {
     padding: 20px;
     padding-top: 0px;
     background-color: black;
-    opacity: 0.9;
+    opacity: 0.92;
     color: white;
     display: flex;
     text-align: center;
@@ -305,7 +305,7 @@ html body {
     margin-inline: 2%; /* Margin between elements */
     padding: 20px;
     background-color: black;
-    opacity: 0.93;
+    opacity: 0.96;
     color: white;
     border-radius: 8px 8px 8px 8px;
     height: fit-content;
@@ -340,6 +340,17 @@ html body {
 #content_input {
     width: 70%;
     height: 90px;
+}
+
+.raceNameMulti {
+    color: blue;
+    font-weight: bold;
+}
+
+.raceNameUnique {
+    color: red;
+    font-weight: bold;
+    font-size: 22px;
 }
 
 #Return {
@@ -502,3 +513,15 @@ html body {
 .dropdown li:hover ul {
     display: block; /* Show on hover */
 }
+
+.fadeIn { /* Fade in effect */
+    opacity: 0;
+    transform: translateX(-20%);
+    transition: opacity 0.5s ease, transform 0.5s ease;
+}
+
+.fadeIn.visible { /* Visible class */
+    opacity: 1;
+    transform: translateX(0);
+}
+

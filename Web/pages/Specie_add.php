@@ -2,9 +2,10 @@
 require "./blueprints/page_init.php"; // includes the page initialization file
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') { // Check if the form has been submitted
-    $Specie_name = isset($_POST['Specie_name']) ? trim($_POST['Specie_name']) : ''; // Trim whitespace from user input
-    $Specie_Icon = isset($_POST['icon_Specie']) ? trim($_POST['icon_Specie']) : '';
-    $Specie_content = isset($_POST['Specie_text']) ? trim($_POST['Specie_text']) : '';
+    $Specie_name = isset($_POST['Specie_name']) ? trim($_POST['Specie_name']) : null; // Trim whitespace from user input
+    $Specie_Icon = isset($_POST['icon_Specie']) ? trim($_POST['icon_Specie']) : null;
+    $Specie_content = isset($_POST['Specie_text']) ? trim($_POST['Specie_text']) : null;
+    $Unique = isset($_POST['Unique']) ? trim($_POST['Unique']) : 0;
 
     // Retrieve the specie name from the database
     $stmt = $pdo->prepare("SELECT * FROM species WHERE specie_name = ?"); 
@@ -18,8 +19,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') { // Check if the form has been submi
         exit;
     } else {
         // Insert the new specie into the database
-        $stmt = $pdo->prepare("INSERT INTO species (specie_name, icon_Specie, content_Specie) VALUES (?, ?, ?)");
-        $stmt->execute([$Specie_name, $Specie_Icon, $Specie_content]);
+        $stmt = $pdo->prepare("INSERT INTO species (specie_name, icon_Specie, content_Specie, specie_is_unique) VALUES (?, ?, ?, ?)");
+        $stmt->execute([$Specie_name, $Specie_Icon, $Specie_content, $Unique]);
         $_SESSION['success'] = "Specie added successfully";
         header('Location: Specie_add.php');
         exit;
@@ -48,6 +49,7 @@ require "./blueprints/gl_ap_start.php"; // includes the start of the general pag
         <input type="text" name="Specie_name" required><br>
         <label for="Specie_icon">Specie Icon</label>
         <input type="file" name="icon_Specie"><br>
+        <input type="checkbox" name="Unique" value=1>Unique<br>
         <label for="Specie_text">Specie content</label><br>
         <input type="text" name="Specie_text" id="content_input"><br><br>
         <button type="submit">Submit</button>

@@ -51,7 +51,8 @@ function sanitize_output($data) {
                     if (data.success) {
                         let iconHtml = data.icon ? `<p>Icon link: ${escapeHtml(data.icon)}</p><p>Icon: <img id="imgEdit" src="../images/${escapeHtml(data.icon)}" alt="Specie Icon"></p>` : '<p>Icon does not exist</p>';
                         let contentHtml = data.content ? `<p>Content: <br>${nl2br(escapeHtml(data.content))}</p>` : '<p>Content does not exist</p>';
-                        document.getElementById('specieInfo').innerHTML = iconHtml + contentHtml;
+                        let uniqueHtml = Boolean(data.unique) ? `<p>Is Unique</p>` : "<p>Isn't Unique</p>";
+                        document.getElementById('specieInfo').innerHTML = iconHtml + uniqueHtml + contentHtml;
                     } else {
                         document.getElementById('specieInfo').innerHTML = '<p style="color:red;">' + escapeHtml(data.message) + '</p>';
                     }
@@ -85,7 +86,8 @@ function sanitize_output($data) {
                         let homeworldHtml = data.homeworld ? `<p>Homeworld: ${escapeHtml(data.homeworld)}</p>` : '<p>Homeworld does not exist</p>';
                         let countryHtml = data.country ? `<p>Country: ${escapeHtml(data.country)}</p>` : '<p>Country does not exist</p>';
                         let habitatHtml = data.habitat ? `<p>Habitat: ${escapeHtml(data.habitat)}</p>` : '<p>Habitat does not exist</p>';
-                        document.getElementById('raceInfo').innerHTML = correspondenceHtml + iconHtml + lifespanHtml + homeworldHtml + countryHtml + habitatHtml + contentHtml; // permet l'affichage des infos
+                        let uniqueHtml = data.unique ? `<p>Is Unique</p>` : "<p>Isn't Unique</p>";
+                        document.getElementById('raceInfo').innerHTML = correspondenceHtml + iconHtml + lifespanHtml + homeworldHtml + countryHtml + habitatHtml + uniqueHtml + contentHtml; // permet l'affichage des infos
                     } else {
                         document.getElementById('raceInfo').innerHTML = '<p style="color:red;">' + escapeHtml(data.message) + '</p>';
                     }

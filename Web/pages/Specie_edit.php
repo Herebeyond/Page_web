@@ -2,9 +2,10 @@
 require 'blueprints/page_init.php'; // includes the page initialization file
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') { // Check if the form has been submitted
-    $Specie_name = isset($_POST['Specie_name']) ? trim($_POST['Specie_name']) : ''; // Trim whitespace from user input
-    $Specie_Icon = isset($_POST['icon_Specie']) ? trim($_POST['icon_Specie']) : '';
-    $Specie_content = isset($_POST['Specie_text']) ? trim($_POST['Specie_text']) : '';
+    $Specie_name = isset($_POST['Specie_name']) ? trim($_POST['Specie_name']) : null; // Trim whitespace from user input
+    $Specie_Icon = isset($_POST['icon_Specie']) ? trim($_POST['icon_Specie']) : null;
+    $Specie_content = isset($_POST['Specie_text']) ? trim($_POST['Specie_text']) : null;
+    $Unique = isset($_POST['Unique']) ? trim($_POST['Unique']) : 0;
 
     // Prepare the dynamic SQL query
     $fields = [];
@@ -17,6 +18,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') { // Check if the form has been submi
     if ($Specie_content !== '' && $Specie_content != null) {
         $fields[] = 'content_Specie = ?';
         $params[] = $Specie_content;
+    }
+    if ($Unique !== '' && $Unique != null) {
+        $fields[] = 'race_is_unique = ?';
+        $params[] = $Unique;
     }
     $params[] = $Specie_name;
 
@@ -64,6 +69,8 @@ require 'blueprints/gl_ap_start.php'; // includes the start of the general page 
         </select><br>
         <label for="Specie_icon">Specie Icon</label>
         <input type="file" name="icon_Specie"><br>
+        <input type="radio" name="Unique" value="1">Unique<br>
+        <input type="radio" name="Unique" value="0">Multiple<br>
         <label for="Specie_text">Specie content</label><br>
         <textarea type="text" name="Specie_text"></textarea><br><br>
         <button type="submit">Submit</button> 
