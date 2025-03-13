@@ -96,10 +96,10 @@
                                 $hasRaces = $queryR->rowCount() > 0;
                                 
                                 // Create a list item for each species
-                                $specieName = sanitize_output($rowS["specie_name"]);
+                                $specieName = $rowS["specie_name"];
                                 echo ' 
                                     <li class="dropdownFirstLevel">
-                                        <div class=liIntro onclick=window.location.href="./Affichage_specie.php?specie=' . urlencode($specieName) . '">
+                                        <div class=liIntro onclick="window.location.href=\'./Affichage_specie.php?specie=' . sanitize_output($specieName) . '\'">
                                             <span> ' . $specieName . '</span>';
                                 if ($hasRaces) { // If the species has no race to show, doesn't put the small arrow next to their name
                                     echo '
@@ -112,12 +112,12 @@
                                     while ($rowR = $queryR->fetch(PDO::FETCH_ASSOC)) { // For each races in the table
 
                                         // Create a list item for each races corresponding to the specie
-                                        $raceName = sanitize_output($rowR["race_name"]);
+                                        $raceName = $rowR["race_name"];
                                         if ($rowR["correspondence"] == $specieName) { // if the race has the same correspondence as the specie it is added
                                         echo '
                                             
                                                 <li>
-                                                    <div class=liIntro onclick=window.location.href="./Affichage_specie.php?specie=' . sanitize_output($specieName) . '&race=' . sanitize_output($raceName) . '">
+                                                    <div class=liIntro onclick="window.location.href=\'./Affichage_specie.php?specie=' . str_replace(" ", "_", sanitize_output($specieName)) . '&race=' . str_replace(" ", "_", sanitize_output($raceName)) . '\'">
                                                         <span>' . sanitize_output($raceName) . '</span>
                                                     </div>
                                                 </li>

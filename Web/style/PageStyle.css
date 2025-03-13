@@ -530,3 +530,22 @@ html body {
     transform: translateX(0);
 }
 
+#scrollToTop {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    display: none; /* Hidden by default */
+    background-color: #222088;
+    color: white;
+    padding: 10px;
+    border-radius: 50%;
+    text-align: center;
+    font-size: 24px;
+    cursor: pointer;
+    z-index: 1000; /* Ensure it is in the foreground */
+}
+
+#scrollToTop:hover {
+    background-color: #a1abff; /* Change color on hover */
+}
+

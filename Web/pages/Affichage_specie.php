@@ -93,7 +93,7 @@ if (isset($_GET['specie'])) {
 
                 // Create a div for each race
                 $divsSelec .= " 
-                        <div class='selectionRace fadeIn' id=" . sanitize_output(str_replace(" ", "_", $rowF['race_name'])) . ">
+                        <div class='selectionRace fadeIn' id=" . str_replace(" ", "_", sanitize_output($rowF['race_name'])) . ">
                             <div class=infobox>
                                 <div class='classImgSelectionRace'>
                                     <img class='imgSelectionRace' src='" . $imgPath . "'>
