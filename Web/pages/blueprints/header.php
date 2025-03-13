@@ -36,7 +36,7 @@
                                         <li>
                                             <div class=liIntro onclick=window.location.href="./' . sanitize_output($page) . '.php">
                                                 <span> ' . sanitize_output($page) . '</span>';
-                                                foreach ($pages as $page2) {
+                                                foreach ($pages as $page2) { // 
                                                     if ($type[$page2] == $page) {
                                                         echo '
                                                 <img class="small-icon" src=../images/small_img/fleche-deroulante.png>
@@ -61,7 +61,6 @@
                                     echo '
                                             </ul>
                                         </li>'; // Link to the corresponding page in the $pages array
-                                    // The onclick=window.location. allows me to remove the blue underlined link style
                                 }
                             }
                         } catch (Exception $e) {
@@ -81,17 +80,52 @@
                     <?php // Display all species
                         try {
                             // Retrieve data from the Species table
-                            $query = $pdo->prepare("SELECT * FROM Species ORDER BY id_specie;");
-                            $query->execute();
+                            $queryS = $pdo->prepare("SELECT * FROM Species ORDER BY id_specie;");
+                            $queryS->execute();
 
-                            while ($row = $query->fetch(PDO::FETCH_ASSOC)) {
+
+
+
+
+                            while ($rowS = $queryS->fetch(PDO::FETCH_ASSOC)) { // For each species in the table
+                                // Make the query for eache races restart from the start for each species
+                                $queryR = $pdo->prepare("SELECT * FROM Races WHERE correspondence = ? ORDER BY id_race;");
+                                $queryR->execute([$rowS["specie_name"]]);
+
+                                // Check if there are any races for the species
+                                $hasRaces = $queryR->rowCount() > 0;
                                 
                                 // Create a list item for each species
-                                $nomSpecie = sanitize_output($row["specie_name"]);
+                                $specieName = sanitize_output($rowS["specie_name"]);
                                 echo ' 
-                                    <li>
-                                        <div class=liIntro onclick=window.location.href="./Affichage_specie.php?specie=' . urlencode($nomSpecie) . '">
-                                            <span> ' . $nomSpecie . '</span>
+                                    <li class="dropdownFirstLevel">
+                                        <div class=liIntro onclick=window.location.href="./Affichage_specie.php?specie=' . urlencode($specieName) . '">
+                                            <span> ' . $specieName . '</span>';
+                                if ($hasRaces) { // If the species has no race to show, doesn't put the small arrow next to their name
+                                    echo '
+                                            <img class="small-icon" src=../images/small_img/fleche-deroulante.png>';
+                                }                                        
+                                    echo'
+                                        </div>
+                                        <div>
+                                            <ul class="dropdown2">';
+                                    while ($rowR = $queryR->fetch(PDO::FETCH_ASSOC)) { // For each races in the table
+
+                                        // Create a list item for each races corresponding to the specie
+                                        $raceName = sanitize_output($rowR["race_name"]);
+                                        if ($rowR["correspondence"] == $specieName) { // if the race has the same correspondence as the specie it is added
+                                        echo '
+                                            
+                                                <li>
+                                                    <div class=liIntro onclick=window.location.href="./Affichage_specie.php?specie=' . sanitize_output($specieName) . '&race=' . sanitize_output($raceName) . '">
+                                                        <span>' . sanitize_output($raceName) . '</span>
+                                                    </div>
+                                                </li>
+                                            ';
+                                        }
+                                    }
+                                    echo '
+                                            </ul>
                                         </div>
                                     </li>
                                 '; // The onclick=window.location. allows me to remove the blue underlined link style

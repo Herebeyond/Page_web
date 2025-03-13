@@ -126,10 +126,10 @@ if (isset($_GET['specie'])) {
                                         <p class=infosT>" . sanitize_output($habitat) . "</p>
                                     </div>";
 
-                                    if ($rowF['race_is_unique'] == "0") {
+                                    if ($rowF['race_is_unique'] == "1") {
                                         $divsSelec .=
                                         "<div>
-                                            <p class=infosT> Only of its Specie </p>
+                                            <p class=infosT> Only of its Race </p>
                                         </div>";
                                     }
                                     $divsSelec .=

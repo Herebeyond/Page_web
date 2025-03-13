@@ -82,12 +82,21 @@ html body {
     width: auto; /* Width */
 }
 
+.dropdownFirstLevel {
+    position: relative; /* Ensure dropdown2 is positioned relative to this */
+}
+
+.dropdownFirstLevel:hover .dropdown2 {
+    display: block; /* Show on hover */
+}
+
 .dropdown2 {
     list-style: none; /* Remove bullets */
     padding: 0;
     margin: 0;
     position: absolute; /* Position relative to parent */
-    transform: 0; /* Centered */
+    top: 0; /* Align with parent */
+    left: 100%; /* To the right of parent */
     display: none; /* Hidden by default */
     box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1); /* Shadow */
     width: auto; /* Width */
@@ -108,10 +117,6 @@ html body {
 }
 
 .menu-item:hover .dropdown {
-    display: block; /* Show on hover */
-}
-
-.liIntern:hover .dropdown2 {
     display: block; /* Show on hover */
 }
 
