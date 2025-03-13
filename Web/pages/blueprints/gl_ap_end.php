@@ -1,5 +1,5 @@
+                <a href="#" id="scrollToTop" title="Back to top">&#8679;</a> <!-- Arrow pointing up -->
             </div>
-            <a href="#" id="scrollToTop" title="Back to top">&#8679;To the top</a> <!-- Arrow pointing up -->
         </div>
         <script>
             // JavaScript to scroll to top

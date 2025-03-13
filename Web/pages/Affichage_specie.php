@@ -27,6 +27,37 @@ if (isset($_GET['specie'])) {
 }
 ?>
 
+<script>
+    // scroll to the race selected if selected in the URL
+    document.addEventListener("DOMContentLoaded", function() { // wait for the document to load before executing the script
+        const urlParams = new URLSearchParams(window.location.search);
+        const race = urlParams.get('race'); 
+        if (race) { // if the race variable is in the URL
+            const raceElement = document.getElementById(race);
+            if (raceElement) { // find the div with the id
+                raceElement.scrollIntoView({ behavior: 'smooth' }); // scroll to the div with the race id
+            }
+        }
+    });
+
+    // Intersection Observer to fade in the elements when they are in the viewport
+    // Check if the elements of the class .fadeIn are actually visible to activate the fade-in effect
+    document.addEventListener("DOMContentLoaded", function() {
+            const observer = new IntersectionObserver((entries, observer) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add("visible");
+                        observer.unobserve(entry.target); // stop observing the element once it's visible
+                    }
+                });
+            });
+
+            document.querySelectorAll(".fadeIn").forEach(element => {
+                observer.observe(element);
+            });
+        });
+</script>
+
 <div id='mainText'> <!-- Right div -->
     <a id=Return onclick='window.history.back()'> Return </a><br>
     <span class='title'> <?php echo sanitize_output($specie); ?> </span> <!-- display the specie name as header -->
@@ -151,38 +182,8 @@ if (isset($_GET['specie'])) {
         echo '</div>';
     ?>
 </div>
-</div>
-</div>
-<script>
-    // scroll to the race selected if selected in the URL
-    document.addEventListener("DOMContentLoaded", function() { // wait for the document to load before executing the script
-        const urlParams = new URLSearchParams(window.location.search);
-        const race = urlParams.get('race'); 
-        if (race) { // if the race variable is in the URL
-            const raceElement = document.getElementById(race);
-            if (raceElement) { // find the div with the id
-                raceElement.scrollIntoView({ behavior: 'smooth' }); // scroll to the div with the race id
-            }
-        }
-    });
 
-    // Intersection Observer to fade in the elements when they are in the viewport
-    // Check if the elements of the class .fadeIn are actually visible to activate the fade-in effect
-    document.addEventListener("DOMContentLoaded", function() {
-            const observer = new IntersectionObserver((entries, observer) => {
-                entries.forEach(entry => {
-                    if (entry.isIntersecting) {
-                        entry.target.classList.add("visible");
-                        observer.unobserve(entry.target); // stop observing the element once it's visible
-                    }
-                });
-            });
-
-            document.querySelectorAll(".fadeIn").forEach(element => {
-                observer.observe(element);
-            });
-        });
-</script>
-</body>
-</html>
+<?php
+require "./blueprints/gl_ap_end.php"; // includes the end of the general page file
+?>
 
