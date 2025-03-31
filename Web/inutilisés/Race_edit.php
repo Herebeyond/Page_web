@@ -119,7 +119,7 @@ require "./blueprints/gl_ap_start.php";
         <input type="radio" name="Unique" value="0">Multiple<br>
         <label for="Race_text">Race content</label><br>
         <textarea type="text" name="Race_text" id="content_input"></textarea><br><br>
-        <button type="submit">Submit</button> 
+        <button type="submit">Submit</button>
         <button type="button" onclick="fetchRaceInfo()">Fetch Info</button><br><br>
         <button type="button" onclick="confirmRaceDelete()">Delete Race</button>
     </form><br>

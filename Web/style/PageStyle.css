@@ -249,9 +249,6 @@ html body {
     width: 100%;
 }
 
-
-
-
 .leftText {
     width: 700px;
     margin: 30px;
@@ -349,13 +346,19 @@ html body {
 
 .raceNameMulti {
     color: blue;
-    font-weight: bold;
 }
 
 .raceNameUnique {
     color: red;
-    font-weight: bold;
     font-size: 22px;
+}
+
+.raceNameUnique, .raceNameMulti {
+    font-weight: bold;
+    display: flex;
+    align-items: center; /* Center items vertically */
+    justify-content: center; /* Center items horizontally */
+    height: 100%; /* Ensure the element takes the full height of the parent */
 }
 
 #Return {
@@ -402,10 +405,6 @@ html body {
     font-family: 'Cinzel', serif;
 }
 
-#retour {
-    position: absolute; /* Absolute positioning */
-}
-
 .title {
     margin: 0px;
     padding: 10px;
@@ -420,7 +419,7 @@ html body {
     padding: 0px;
     border-right: 3px solid grey;
     opacity: 0.9;
-    height: fit-content;
+    height: auto;
     width: fit-content;
 }
 
@@ -430,12 +429,18 @@ html body {
     text-align: center;
     flex-grow: 1;
     width: fit-content;
+    max-width: 200px;
 }
 
 .infos div {
     border-bottom: grey 3px solid;
     flex-grow: 1;
     margin-top: 8%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 5px;
 }
 
 .infos div:last-child { /* No border-bottom for last child */
@@ -456,10 +461,10 @@ html body {
     font-weight: bold;
     margin: 0px;
     padding-inline: 5px;
-}
-
-.infos div p {
-    white-space: nowrap; /* No line break */
+    white-space: normal; /* Permettre le retour à la ligne */
+    word-wrap: break-word; /* Forcer le retour à la ligne pour les mots longs */
+    overflow-wrap: break-word; /* Forcer le retour à la ligne pour les mots longs */
+    max-width: 100%; /* Assurez-vous que le texte ne dépasse pas la largeur maximale */
 }
 
 /* Optional: Change color on hover */
@@ -467,7 +472,7 @@ html body {
     color: darkblue; /* Hover color */
 }
 
-.selectionRace {
+.selectionRace, .selectionDimension {   
     display: flex;
     margin: 20px;
     padding: 0px;
@@ -477,7 +482,7 @@ html body {
     border: 3px solid grey;
 }
 
-.classImgSelectionRace {
+.infosTitle {
     display: flex;
     flex-direction: column;
     text-align: center;
@@ -486,6 +491,8 @@ html body {
     width: fit-content;
     border-right: 3px solid grey;
     font-size: 20px;
+    align-items: center; /* Center items vertically */
+    justify-content: center; /* Center items horizontally */
 }
 
 .imgSelectionRace {
@@ -530,8 +537,8 @@ html body {
     transform: translateX(0);
 }
 
-#scrollToTop {
-    position: fixed;
+#scrollToTop { /* Scroll to top button */
+    position: fixed; /* Fixed position on the screen instead of page */
     bottom: 20px;
     right: 20px;
     background-color: #222088;
@@ -547,4 +554,3 @@ html body {
 #scrollToTop:hover {
     background-color: #a1abff; /* Change color on hover */
 }
-

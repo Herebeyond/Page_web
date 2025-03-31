@@ -25,6 +25,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') { // Check if the form has been submi
     $current_time = new DateTime();
     $block_duration = new DateInterval('PT2M'); // 2 minutes block duration
 
+    // Check if the user has reached the maximum number of failed attempts
     if ($failed_attempts >= 3 && $last_failed_attempt) {
         $last_failed_attempt_time = new DateTime($last_failed_attempt);
         $last_failed_attempt_time->add($block_duration);
@@ -51,7 +52,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') { // Check if the form has been submi
         $_SESSION['last_failed_attempt'] = null;
 
         $_SESSION['user'] = $user['id']; // Log in the user
-        header('Location: page.php');
+        header('Location: ../pages/Homepage.php');
         exit;
     } else {
         // Increment failed attempts on unsuccessful login

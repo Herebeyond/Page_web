@@ -137,39 +137,7 @@
                 </ul>
             </li>
         </ul> 
-        <ul class=menu>
-            <li class=menu-item>
-                <div id=liRaces class=divLi onclick=window.location.href='./Races.php'>
-                    <span> Races </span>
-                    <img class=small-icon src="../images/small_img/fleche-deroulante.png" > <!-- Dropdown arrow icon -->
-                </div>
-                <ul class="dropdown">
-                    <?php // Display all races
-                        try {
-                            // Retrieve data from the Races table
-                            $query = $pdo->prepare("SELECT * FROM Races ORDER BY id_race;");
-                            $query->execute();
 
-                            while ($row = $query->fetch(PDO::FETCH_ASSOC)) {
-                                
-                                // Create a list item for each race
-                                $nomRace = sanitize_output($row["race_name"]);
-                                $correspondence = sanitize_output($row["correspondence"]);
-                                echo ' 
-                                    <li>
-                                        <div class=liIntro onclick=window.location.href="./Affichage_specie.php?specie=' . urlencode(str_replace(" ", "_", $correspondence)) . '&race=' . urlencode(str_replace(" ", "_", $nomRace)) . '">
-                                            <span> ' . $nomRace . '</span>
-                                        </div>
-                                    </li>
-                                ';
-                            }
-                        } catch (Exception $e) {
-                            echo "". sanitize_output($e->getMessage()) ."";
-                        }
-                    ?>
-                </ul>
-            </li>
-        </ul>
 
         <?php
 

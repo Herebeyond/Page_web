@@ -38,7 +38,7 @@ function sanitize_output($data) {
     }
 
     function fetchSpecieInfo() { // Fonction pour récupérer et afficher les informations de la Specie sélectionnée dans l'option du select dans la form grace au bouton Fetch Info
-        var specieName = document.querySelector('select[name="Specie_name"]').value;
+        var specieName = document.querySelector('select[name="SpecieName"]').value;
         if (specieName) {
             fetch('scriptes/fetch_specie_info.php?specie=' + encodeURIComponent(specieName))
                 .then(response => {
@@ -107,7 +107,7 @@ function sanitize_output($data) {
 
     function confirmSpecieDelete() { // Fonction pour confirmer ou annuler la suppression de la Specie
         if (confirm("Are you sure you want to delete the specie?")) {
-            var specieName = document.querySelector('select[name="Specie_name"]').value;
+            var specieName = document.querySelector('select[name="SpecieName"]').value;
             if (specieName) {
                 fetch('scriptes/delete_specie.php?specie=' + encodeURIComponent(specieName))
                     .then(response => response.json())

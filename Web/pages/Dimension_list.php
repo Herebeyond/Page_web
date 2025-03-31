@@ -41,7 +41,7 @@ include "./blueprints/gl_ap_start.php";
                 // Create a div for each dimension
                 $divsSelec .= '
                         <span class=dimensionName> ' . $DimensionName . '</span>
-                        <div class="selection">
+                        <div class=selectionDimension>
                             <div class=infobox>
                                 <div class=infos>
                                     <div>

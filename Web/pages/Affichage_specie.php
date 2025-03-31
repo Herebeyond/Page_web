@@ -123,10 +123,11 @@ if (isset($_GET['specie'])) {
                 }
 
                 // Create a div for each race
+                // The id is important for the Intersection Observer to work (scroll to the div when a race selected in the URL)
                 $divsSelec .= " 
                         <div class='selectionRace fadeIn' id=" . str_replace(" ", "_", sanitize_output($rowF['race_name'])) . ">
                             <div class=infobox>
-                                <div class='classImgSelectionRace'>
+                                <div class='infosTitle'>
                                     <img class='imgSelectionRace' src='" . $imgPath . "'>
                                     <span class='
                                     ";
@@ -160,7 +161,7 @@ if (isset($_GET['specie'])) {
                                     if ($rowF['race_is_unique'] == "1") {
                                         $divsSelec .=
                                         "<div>
-                                            <p class=infosT> Only of its Race </p>
+                                            <p class=infosT> Peculiar individual of its specie </p>
                                         </div>";
                                     }
                                     $divsSelec .=

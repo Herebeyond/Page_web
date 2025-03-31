@@ -2,15 +2,51 @@
 require "./blueprints/page_init.php"; // includes the page initialization file
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') { // Check if the form has been submitted
-    $Specie_name = isset($_POST['Specie_name']) ? trim($_POST['Specie_name']) : null; // Trim whitespace from user input
+    if (isset($_POST['SpecieNameInput'])) {
+        $SpecieName = isset($_POST['SpecieNameInput']) ? trim($_POST['SpecieNameInput']) : null; // Trim whitespace from user input
+    } else {
+        $SpecieName = isset($_POST['SpecieName']) ? trim($_POST['SpecieName']) : null;
+    }
     $Specie_Icon = isset($_POST['icon_Specie']) ? trim($_POST['icon_Specie']) : null;
     $Specie_content = isset($_POST['Specie_text']) ? trim($_POST['Specie_text']) : null;
-    $Unique = isset($_POST['Unique']) ? trim($_POST['Unique']) : 0;
+    $Unique = isset($_POST['Unique']) ? trim($_POST['Unique']) : 0; // Default to 0 if not set, making it Multiple by default
 
     // Retrieve the specie name from the database
     $stmt = $pdo->prepare("SELECT * FROM species WHERE specie_name = ?"); 
-    $stmt->execute([$Specie_name]);
+    $stmt->execute([$SpecieName]);
     $Specie = $stmt->fetch();
+
+    // To update the specie
+    if (isset($_POST['SpecieName']) && ($_POST['SpecieName'] != "" || $_POST['SpecieName'] != null)) {
+        $fields = [];
+        $params = [];
+        $SpecieName = $_POST['SpecieName'];
+
+        if ($Specie_Icon !== '' && $Specie_Icon != null) {
+            $fields[] = 'icon_Specie = ?';
+            $params[] = $Specie_Icon;
+        }
+        if ($Specie_content !== '' && $Specie_content != null) {
+            $fields[] = 'content_Specie = ?';
+            $params[] = $Specie_content;
+        }
+        if ($Unique !== '' && $Unique != null) {
+            $fields[] = 'specie_is_unique = ?';
+            $params[] = $Unique;
+        }
+
+        if (count($fields) > 0) {
+            $fields = implode(', ', $fields);
+            $params[] = $SpecieName;
+            $stmt = $pdo->prepare("UPDATE species SET $fields WHERE specie_name = ?");
+            $stmt->execute($params);
+            $_SESSION['success'] = "Specie updated successfully";
+        } else {
+            $_SESSION['error'] = "No fields to update";
+        }
+        header('Location: Specie_add.php');
+        exit;
+    }
 
     // Check if the specie already exists in the database, if not then add the specie to the database
     if ($Specie) {
@@ -20,7 +56,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') { // Check if the form has been submi
     } else {
         // Insert the new specie into the database
         $stmt = $pdo->prepare("INSERT INTO species (specie_name, icon_Specie, content_Specie, specie_is_unique) VALUES (?, ?, ?, ?)");
-        $stmt->execute([$Specie_name, $Specie_Icon, $Specie_content, $Unique]);
+        $stmt->execute([$SpecieName, $Specie_Icon, $Specie_content, $Unique]);
         $_SESSION['success'] = "Specie added successfully";
         header('Location: Specie_add.php');
         exit;
@@ -45,15 +81,29 @@ require "./blueprints/gl_ap_start.php"; // includes the start of the general pag
 
     <h2> Add a Specie </h2><br>
     <form method="POST" action="Specie_add.php">
-        <label for="Specie_name">Specie Name</label>
-        <input type="text" name="Specie_name" required><br>
+        <label for="SpecieName">Specie Name</label>
+        <input type="text" name="SpecieNameInput"> <!-- To name a new specie being created -->
+        <select name="SpecieName"> <!-- To select an existing specie to modify -->
+            <option value="">Select a specie</option>
+            <?php // Retrieve the names of the species from the database and display them in a dropdown list
+                $stmt = $pdo->prepare("SELECT * FROM species ORDER BY specie_name;");
+                $stmt->execute();
+                while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+                    echo '<option value="' . sanitize_output($row['specie_name']) . '">' . sanitize_output($row['specie_name']) . '</option>';
+                }
+            ?>
+        </select><br>
         <label for="Specie_icon">Specie Icon</label>
         <input type="file" name="icon_Specie"><br>
-        <input type="checkbox" name="Unique" value=1>Unique<br>
+        <input type="radio" name="Unique" value="1">Unique<br>
+        <input type="radio" name="Unique" value="0">Multiple<br>
         <label for="Specie_text">Specie content</label><br>
         <input type="text" name="Specie_text" id="content_input"><br><br>
         <button type="submit">Submit</button>
+        <button type="button" onclick="fetchSpecieInfo()">Fetch Info</button><br><br>
+        <button type="button" onclick="confirmSpecieDelete()">Delete Specie</button>
     </form><br>
+    <div id="specieInfo"></div>
 </div>
 
 <?php require "./blueprints/gl_ap_end.php"; // includes the end of the general page file ?>
