@@ -70,7 +70,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') { // Check if the form has been submi
 <!DOCTYPE html>
 <html>
 <head>
-    <link rel="stylesheet" href="../style/PageStyle.css">
+    <link rel="stylesheet" href="../style/LoginStyle.css">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login</title>

@@ -1,0 +1,43 @@
+body { /* Body of the page */
+    margin: 0; /* Remove default margin */
+    padding: 0; /* Remove default padding */
+    font-family: 'Arial', sans-serif; /* Font family */
+    background-color: #f0f0f0; /* Light gray background */
+}
+
+
+#formLogin { /* Login form */
+    width: 100%; /* Full width */
+    display: flex; /* Flexbox for centering */
+    flex-direction: column; /* Column layout */
+    align-items: center; /* Center items vertically */
+    justify-content: center; /* Center items horizontally */
+}
+
+#globalLogin { /* Border of the Login form */
+    display: flex; /* Flexbox for centering */
+    justify-content: center; /* Center horizontally */
+    align-items: center; /* Center vertically */
+    width: 80%; /* Width of the form */
+    max-width: 500px; /* Maximum width of the form */
+    margin: auto; /* Center the form */
+    padding: 20px; /* Padding around the form */
+    background-color: rgb(255, 255, 255, 0.6); /* White background with opacity */
+    border-radius: 20px; /* Rounded corners */
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.5); /* Shadow */
+    border: 2px solid rgba(0, 0, 0, 0.8); /* Dark border */
+}
+
+#bodyLogin { /* Body of the login page */
+    height: 100vh;
+    width: 100vw;
+    background-image: url('../images/wallpaper_login.jpg');
+    background-size: cover; /* Cover entire surface */
+    background-attachment: fixed; /* Fixed during scroll */
+    background-repeat: no-repeat; /* No repeat */
+    background-position: center; /* Center image */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
