@@ -63,30 +63,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <!DOCTYPE html>
 <html>
 <head>
-    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../style/PageStyle.css">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Register</title>
 </head>
-<body>
-    <div id="global">
-        <div id="englobe">
-            <?php
-            if (isset($_SESSION['error'])) {
-                echo '<p style="color:red;">' . htmlspecialchars($_SESSION['error']) . '</p>';
-                unset($_SESSION['error']);
-            }
-            ?>
+<body id="bodyLogin">
+    <div id="globalLogin">
+        <?php
+        if (isset($_SESSION['error'])) {
+            echo '<p style="color:red;">' . htmlspecialchars($_SESSION['error']) . '</p>';
+            unset($_SESSION['error']);
+        }
+        ?>
+        
+        <form method="POST" action="register.php" id="formLogin">
             <h2> Register </h2>
-            <form method="POST" action="register.php">
-                <label for="Identification">Identification</label>
-                <input type="text" name="Identification" value="<?php echo htmlspecialchars($username); ?>" required><br>
-                <label for="psw">Password</label>
-                <input type="password" name="psw" value="<?php echo htmlspecialchars($password); ?>" required><br>
-                <button type="submit">Register</button>
-            </form><br>
-            <a href="login.php">Already registered ? Sign In</a> <span>  ||  </span> <a href="page.php">Home</a>
-        </div>
+            <label for="Identification">Identification</label>
+            <input type="text" id="Identification" name="Identification" value="<?php echo htmlspecialchars($username); ?>" required><br>
+            <label for="psw">Password</label>
+            <input type="password" id="psw" name="psw" value="<?php echo htmlspecialchars($password); ?>" required><br>
+            <button type="submit">Register</button><br>
+            <span><a href="login.php">Already registered ? Sign In</a>  ||  <a href="../pages/Homepage.php">Homepage</a></span>
+        </form><br>         
     </div>
 </body>
 </html>
