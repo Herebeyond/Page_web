@@ -85,7 +85,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <input type="password" id="psw" name="psw" value="<?php echo htmlspecialchars($password); ?>" required><br>
             <button type="submit">Register</button><br>
             <span><a href="login.php">Already registered ? Sign In</a>  ||  <a href="../pages/Homepage.php">Homepage</a></span>
-        </form><br>         
+        </form><br>
     </div>
 </body>
 </html>

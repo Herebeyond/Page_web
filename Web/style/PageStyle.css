@@ -75,31 +75,43 @@ html body {
     padding: 0;
     margin: 0;
     position: absolute; /* Position relative to parent */
-    left: 50%; /* Centered */
-    transform: translateX(-50%); /* Centered */
     display: none; /* Hidden by default */
     box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1); /* Shadow */
     width: auto; /* Width */
+    border-radius: 5px; /* Optional: Add rounded corners */
 }
 
 .dropdownFirstLevel {
+    height: 30px;
     position: relative; /* Ensure dropdown2 is positioned relative to this */
+    border-radius: 5px; /* Optional: Add rounded corners */
+    bottom: 30px; /* Move it up by its own size */
+
+    /* This ensure that dropdown2, that normally appear below its repective parrent, will appear to its right */
+    left: 100%; /* Move it to the right by its own size */
+    transform: translate(-100%, 30px); /* Position it back to its original place */
 }
 
-.dropdownFirstLevel:hover .dropdown2 {
+.dropdownFirstLevel:hover + .dropdown2 {
     display: block; /* Show on hover */
 }
 
 .dropdown2 {
-    list-style: none; /* Remove bullets */
-    padding: 0;
-    margin: 0;
-    position: absolute; /* Position relative to parent */
-    top: 0; /* Align with parent */
-    left: 100%; /* To the right of parent */
+    position: absolute;
+    top: 0; /* Align with the top of dropdownFirstLevel */
+    left: 100%; /* Position to the right of dropdownFirstLevel */
     display: none; /* Hidden by default */
-    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1); /* Shadow */
-    width: auto; /* Width */
+    max-height: 300px; /* Limit height */
+    overflow-y: auto; /* Enable scrolling if necessary */
+    background-color: #222088; /* Background color */
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1); /* Add shadow */
+    z-index: 1000; /* Ensure it's in the foreground */
+    list-style: none; /* Remove bullets */
+    padding: 0; /* Remove padding */
+    margin: 0; /* Remove margin */
+    border-radius: 5px; /* Optional: Add rounded corners */
+    width: auto; /* Adjust width as needed */
+    white-space: nowrap; /* Prevent text wrapping */
 }
 
 .liIntro {
@@ -124,6 +136,7 @@ html body {
     background-color: #222088; /* Background color */
 }
 
+
 .menu {
     list-style: none; /* Remove bullets */
     padding: 0;
@@ -131,16 +144,6 @@ html body {
     display: flex;
     height: fit-content;
 }
-
-/* .dropdown:after, .dropdown:before { Lorsque j'ai tenté de positionner mes dropdowns, mais trop complexe et marche pas
-    bottom: -1px;  Position at bottom 
-    content: "";
-    height: 0;
-    left: 50%;  Centered 
-    pointer-events: none;  No click 
-    position: absolute;  Absolute positioning 
-    width: 0;
-} */
 
 #header { /* pour que le menu déroulant soit par dessus le reste et ne soit pas caché derrière texte principal */
     display: flex;
@@ -183,19 +186,26 @@ html body {
 #divTitre {
     display: grid;
     place-items: center;
-    width: auto;
+    width: 80%; /* 80% of the page width */
+    max-width: 1200px; /* Maximum width of the title section */
+    margin: 0 auto; /* Center the title section */
     color: rgb(90, 14, 189);
     font-family: 'Cinzel', serif;
     font-weight: bold;
+    text-align: center;
 }
 
 .Title {
     padding: 10px;
-    font-size: 30px;
-    margin: 0px;
+    font-size: clamp(10px, 2vw, 50px); /* Responsive font size: min 20px, max 50px and preference for 2vw */
+    max-width: fit-content; /* Fit content width */
+    max-height: 100px;
+    margin: 0 auto; /* Center the title section */
+    text-align: center;
+    font-family: 'Cinzel', serif;
 }
 
-#divConnect { /* affichage en colonne */
+#divConnect { /* Login section */
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -330,6 +340,11 @@ html body {
     margin: 10px;
 }
 
+#Race_name_dropdown {
+    max-height: 30px;
+    overflow-y: hidden;
+}
+
 #add_specie, #add_race {
     flex-wrap: unset;
     flex-direction: column;
@@ -402,13 +417,6 @@ html body {
 .texteSelectionAccueil {
     width: 100%;
     text-align: center;
-    font-family: 'Cinzel', serif;
-}
-
-.title {
-    margin: 0px;
-    padding: 10px;
-    font-size: 40px;
     font-family: 'Cinzel', serif;
 }
 

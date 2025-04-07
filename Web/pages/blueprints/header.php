@@ -1,8 +1,8 @@
 <div id=header>
     <img id=icon src='../images/Eye.jpg'> <!-- Display the header icon -->
     <div id=divTitre>
-        <span class=Title> Les Chroniques de la Faille </span> <!-- Main title -->
-        <span class=Title> Les mondes oubliés </span> <!-- Subtitle -->
+        <span class=Title> Les Chroniques de la Faille <br> Les mondes oubliés </span>
+
     </div>
 
     <nav id=nav>
@@ -82,57 +82,48 @@
                             // Retrieve data from the Species table
                             $queryS = $pdo->prepare("SELECT * FROM Species ORDER BY id_specie;");
                             $queryS->execute();
-
-
-
-
-
+                        
                             while ($rowS = $queryS->fetch(PDO::FETCH_ASSOC)) { // For each species in the table
-                                // Make the query for eache races restart from the start for each species
+                                // Make the query for each race restart from the start for each species
                                 $queryR = $pdo->prepare("SELECT * FROM Races WHERE correspondence = ? ORDER BY id_race;");
                                 $queryR->execute([$rowS["specie_name"]]);
-
+                        
                                 // Check if there are any races for the species
                                 $hasRaces = $queryR->rowCount() > 0;
-                                
+                        
                                 // Create a list item for each species
                                 $specieName = $rowS["specie_name"];
                                 echo ' 
                                     <li class="dropdownFirstLevel">
-                                        <div class=liIntro onclick="window.location.href=\'./Affichage_specie.php?specie=' . sanitize_output($specieName) . '\'">
+                                        <div class="liIntro" onclick="window.location.href=\'./Affichage_specie.php?specie=' . sanitize_output($specieName) . '\'">
                                             <span> ' . $specieName . '</span>';
-                                if ($hasRaces) { // If the species has no race to show, doesn't put the small arrow next to their name
-                                    echo '
-                                            <img class="small-icon" src=../images/small_img/fleche-deroulante.png>';
-                                }                                        
-                                    echo'
+                                if ($hasRaces) {
+                                    echo '<img class="small-icon" src=../images/small_img/fleche-deroulante.png>';
+                                }
+                                echo '
                                         </div>
-                                        <div>
-                                            <ul class="dropdown2">';
-                                    while ($rowR = $queryR->fetch(PDO::FETCH_ASSOC)) { // For each races in the table
-
-                                        // Create a list item for each races corresponding to the specie
-                                        $raceName = $rowR["race_name"];
-                                        if ($rowR["correspondence"] == $specieName) { // if the race has the same correspondence as the specie it is added
+                                    </li>';
+                        
+                                // Create the dropdown2 outside of dropdownFirstLevel
+                                echo '<ul class="dropdown2" data-parent="' . sanitize_output($specieName) . '">'; // Dropdown list with limited height and scroll
+                                while ($rowR = $queryR->fetch(PDO::FETCH_ASSOC)) {
+                                    // For each race in the table
+                                    $raceName = $rowR["race_name"];
+                                    if ($rowR["correspondence"] == $specieName) {
                                         echo '
-                                            
-                                                <li>
-                                                    <div class=liIntro onclick="window.location.href=\'./Affichage_specie.php?specie=' . str_replace(" ", "_", sanitize_output($specieName)) . '&race=' . str_replace(" ", "_", sanitize_output($raceName)) . '\'">
-                                                        <span>' . sanitize_output($raceName) . '</span>
-                                                    </div>
-                                                </li>
-                                            ';
-                                        }
+                                            <li>
+                                                <div class="liIntro" onclick="window.location.href=\'./Affichage_specie.php?specie=' . str_replace(" ", "_", sanitize_output($specieName)) . '&race=' . str_replace(" ", "_", sanitize_output($raceName)) . '\'">
+                                                    <span>' . sanitize_output($raceName) . '</span>
+                                                </div>
+                                            </li>';
                                     }
-                                    echo '
-                                            </ul>
-                                        </div>
-                                    </li>
-                                '; // The onclick=window.location. allows me to remove the blue underlined link style
+                                }
+                                echo '</ul>';
                             }
                         } catch (Exception $e) {
                             echo "". sanitize_output($e->getMessage()) ."";
                         }
+                        
                     ?>
                 </ul>
             </li>
@@ -221,3 +212,42 @@
         </div>
     </div>
 </div>
+<script>
+document.querySelectorAll('.dropdownFirstLevel').forEach(item => {
+    const specieName = item.querySelector('.liIntro span').textContent.trim();
+    const dropdown = document.querySelector(`.dropdown2[data-parent="${specieName}"]`);
+
+    let hoverTimeout; // Variable to track the timeout
+
+    if (dropdown) {
+        // Show dropdown2 when hovering over dropdownFirstLevel
+        item.addEventListener('mouseenter', () => {
+            clearTimeout(hoverTimeout); // Clear any existing timeout
+            dropdown.style.display = 'block';
+            dropdown.style.position = 'absolute';
+            dropdown.style.top = `${item.offsetTop + item.offsetHeight}px`;
+            dropdown.style.left = `${item.offsetLeft}px`;
+        });
+
+        // Hide dropdown2 when leaving dropdownFirstLevel
+        item.addEventListener('mouseleave', () => {
+            hoverTimeout = setTimeout(() => {
+                dropdown.style.display = 'none';
+            }, 10); // Add a small delay to allow hover transition
+        });
+
+        // Keep dropdown2 visible when hovering over it
+        dropdown.addEventListener('mouseenter', () => {
+            clearTimeout(hoverTimeout); // Clear the timeout to prevent hiding
+            dropdown.style.display = 'block';
+        });
+
+        // Hide dropdown2 when leaving it
+        dropdown.addEventListener('mouseleave', () => {
+            hoverTimeout = setTimeout(() => {
+                dropdown.style.display = 'none';
+            }, 10); // Add a small delay to allow hover transition
+        });
+    }
+});
+</script>
