@@ -44,7 +44,7 @@ require "./blueprints/gl_ap_start.php"; // includes the start of the general pag
     // in case the first page is for a page that the user shouldn't have access to like hidden or admin pages
     if ((isset($_SESSION['user']) && ($authorisation[$pages[0]] == 'admin' && ($user['admin']) == 1)) || ($authorisation[$pages[0]] == 'all' && $type[$pages[0]] == 'common')) { // if the user is logged in and is admin or if the first page is public and of common type
         $frstLetter = mb_substr($pages[0], 0, 1); // get the first letter of the first element in the $pages array
-        echo "<span>" . $pages[0] . "</span>"; // display the first letter
+        echo "<span>" . $frstLetter . "</span>"; // display the first letter
         // Start of the unordered list here otherwise it creates an unsightly space
         echo "<ul>"; 
     } 

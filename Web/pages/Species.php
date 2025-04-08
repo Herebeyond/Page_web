@@ -52,7 +52,7 @@ $offset = ($page - 1) * $perPage;
                     echo " 
                         <div class='selection'>
                             <div class='classImgSelection'>
-                                <img class='imgSelection' src='" . $imgPath . "' onclick=\"window.location.href='./Affichage_specie.php?specie=" . urlencode(str_replace(" ", "_", $specieName)) . "'\">
+                                <img class='imgSelection' src='" . $imgPath . "' onclick=\"window.location.href='./Specie_display.php?specie=" . urlencode(str_replace(" ", "_", $specieName)) . "'\">
                                 " . $specieName . "
                             </div>
                         </div>

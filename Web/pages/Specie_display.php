@@ -2,6 +2,8 @@
 require "./blueprints/page_init.php"; // includes the page initialization file
 require "./blueprints/gl_ap_start.php"; // includes the start of the general page file
 
+$error_msg = ""; // initialize the error message variable
+
 if (isset($_GET['specie'])) {
     // Retrieve and sanitize the 'race' and 'specie' parameters
     $specie = sanitize_output($_GET['specie']);
@@ -11,19 +13,22 @@ if (isset($_GET['specie'])) {
         $stmt = $pdo->prepare("SELECT * FROM species WHERE specie_name = ?");
         $stmt->execute([$specie]);
         $specieInfo = $stmt->fetch(PDO::FETCH_ASSOC);
+        $id_specie = $specieInfo['id_specie']; // retrieve the id_specie of the specie
 
         if (isset($_GET['race'])) {
             $race = sanitize_output($_GET['race']);
 
             // Prepare and execute the query to retrieve race information
-            $stmt = $pdo->prepare("SELECT * FROM races WHERE race_name = ?");
+            $stmt = $pdo->prepare("SELECT * FROM races WHERE race_name = ? AND race_is_unique = 0");
             $stmt->execute([$race]);
             $raceInfo = $stmt->fetch(PDO::FETCH_ASSOC);
         }
     } catch (PDOException $e) {
         // Error handling
-        echo "Connection error: " . $e->getMessage();
+        $error_msg = "Connection error: " . $e->getMessage();
     }
+} else {
+    $error_msg = "No specie selected.";
 }
 ?>
 
@@ -59,13 +64,17 @@ if (isset($_GET['specie'])) {
 </script>
 
 <div id='mainText'> <!-- Right div -->
-    <a id=Return onclick='window.history.back()'> Return </a><br>
+    <a id=Return onclick='window.history.back()'> Return </a><br><br>
+    <?php if ($error_msg) { // display the error message if there is one
+        echo "<span class='title'>" . sanitize_output($error_msg) . "</span>";
+        exit; // exit the script if there is an error message
+    }?>
     <span class='title'> <?php echo sanitize_output($specie); ?> </span> <!-- display the specie name as header -->
     <?php
         try {
             // Retrieve data from the races table
-            $stmt = $pdo->prepare("SELECT * FROM races as r LEFT JOIN species as s ON r.correspondence = s.specie_name WHERE specie_name = ? ORDER BY r.id_race;");
-            $stmt->execute([$specie]);
+            $stmt = $pdo->prepare("SELECT * FROM races as r LEFT JOIN species as s ON r.correspondence = s.id_specie WHERE id_specie = ? AND race_is_unique = 0 ORDER BY r.id_race;");
+            $stmt->execute([$id_specie]);
             $queryR = $pdo->prepare("SELECT * FROM species WHERE specie_name = ?");
             $queryR->execute([$specie]);
 

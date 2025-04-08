@@ -33,7 +33,7 @@
                             foreach ($pages as $page) { // For each element in the $pages array, display a link to the corresponding page
                                 if ($authorisation[$page] == 'all' && $type[$page] == 'common' ) { // If the page is public and part of the main group
                                     echo '
-                                        <li>
+                                        <li class="dropdownFirstLevel">
                                             <div class=liIntro onclick=window.location.href="./' . sanitize_output($page) . '.php">
                                                 <span> ' . sanitize_output($page) . '</span>';
                                                 foreach ($pages as $page2) { // 
@@ -86,7 +86,7 @@
                             while ($rowS = $queryS->fetch(PDO::FETCH_ASSOC)) { // For each species in the table
                                 // Make the query for each race restart from the start for each species
                                 $queryR = $pdo->prepare("SELECT * FROM Races WHERE correspondence = ? ORDER BY id_race;");
-                                $queryR->execute([$rowS["specie_name"]]);
+                                $queryR->execute([$rowS["id_specie"]]);
                         
                                 // Check if there are any races for the species
                                 $hasRaces = $queryR->rowCount() > 0;
@@ -95,10 +95,10 @@
                                 $specieName = $rowS["specie_name"];
                                 echo ' 
                                     <li class="dropdownFirstLevel">
-                                        <div class="liIntro" onclick="window.location.href=\'./Affichage_specie.php?specie=' . sanitize_output($specieName) . '\'">
+                                        <div class=liIntro onclick="window.location.href=\'./Specie_display.php?specie=' . sanitize_output($specieName) . '\'">
                                             <span> ' . $specieName . '</span>';
                                 if ($hasRaces) {
-                                    echo '<img class="small-icon" src=../images/small_img/fleche-deroulante.png>';
+                                    echo '  <img class="small-icon" src=../images/small_img/fleche-deroulante.png>';
                                 }
                                 echo '
                                         </div>
@@ -109,10 +109,10 @@
                                 while ($rowR = $queryR->fetch(PDO::FETCH_ASSOC)) {
                                     // For each race in the table
                                     $raceName = $rowR["race_name"];
-                                    if ($rowR["correspondence"] == $specieName) {
+                                    if ($rowR["correspondence"] == $rowS["id_specie"]) {
                                         echo '
                                             <li>
-                                                <div class="liIntro" onclick="window.location.href=\'./Affichage_specie.php?specie=' . str_replace(" ", "_", sanitize_output($specieName)) . '&race=' . str_replace(" ", "_", sanitize_output($raceName)) . '\'">
+                                                <div class="liIntro" onclick="window.location.href=\'./Specie_display.php?specie=' . str_replace(" ", "_", sanitize_output($specieName)) . '&race=' . str_replace(" ", "_", sanitize_output($raceName)) . '\'">
                                                     <span>' . sanitize_output($raceName) . '</span>
                                                 </div>
                                             </li>';

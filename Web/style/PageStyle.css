@@ -175,7 +175,7 @@ html body {
     height: fit-content; /* Total page height */
     min-height: 100%;
     width: 100%;
-    background-image: url('../images/Qarios_constellation_eye.webp'); /* Background image */
+    background-image: url('../images/wallpaper.jpg'); /* Background image */
     background-size: 100vh; /* Cover entire page */
     background-position: center; /* Center image */
     background-size: cover; /* Cover entire surface */
@@ -316,7 +316,6 @@ html body {
     margin: 50px;
     margin-inline: 2%; /* Margin between elements */
     padding: 20px;
-    background-color: black;
     opacity: 0.96;
     color: white;
     border-radius: 8px 8px 8px 8px;
@@ -561,4 +560,151 @@ html body {
 
 #scrollToTop:hover {
     background-color: #a1abff; /* Change color on hover */
+}
+
+/* Styles for mainText and its contents in Beings.php */
+#mainText {
+    margin: 50px;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    background-color: rgb(0, 0, 0, 0.9);
+    max-width: 1200px;
+    font-family: 'Roboto', sans-serif;
+    color: #ffffff;
+}
+
+#mainText a#Return {
+    display: inline-block;
+    margin-bottom: 20px;
+    color: #1e90ff;
+    text-decoration: none;
+    font-weight: bold;
+    font-size: 1.2rem;
+    transition: color 0.3s;
+}
+
+#mainText a#Return:hover {
+    color: #87cefa;
+}
+
+.species-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    list-style: none;
+    padding: 0;
+    justify-content: center;
+}
+
+.species-item {
+    background-color: #1e1e1e;
+    border-radius: 10px;
+    padding: 15px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    text-align: center;
+    width: 200px;
+    transition: transform 0.3s, background-color 0.3s;
+    cursor: pointer;
+    height: fit-content;
+}
+
+.species-item:hover {
+    background-color: #1e90ff;
+    transform: translateY(-5px);
+}
+
+.species-name {
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: #ffffff;
+    cursor: pointer;
+    transition: color 0.3s;
+}
+
+.species-name:hover {
+    color: #87cefa;
+}
+
+.races-list {
+    list-style: none;
+    padding: 0;
+    margin-top: 10px;
+}
+
+.race-item {
+    background-color: #2e2e2e;
+    border: 1px solid #444;
+    border-radius: 5px;
+    padding: 5px;
+    margin: 5px 0;
+    transition: background-color 0.3s;
+    cursor: pointer;
+}
+
+.race-item:hover {
+    background-color: #1e90ff;
+}
+
+.race-name {
+    font-size: 1rem;
+    color: #ffffff;
+    cursor: pointer;
+    transition: color 0.3s;
+}
+
+.race-name:hover {
+    color: #87cefa;
+}
+
+
+
+
+
+
+
+
+
+/* Styles for pagination */
+#pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: 20px;
+    gap: 10px;
+    font-family: 'Roboto', sans-serif;
+}
+
+#pagination a {
+    text-decoration: none;
+    color: #1e90ff;
+    font-weight: bold;
+    padding: 8px 12px;
+    border: 1px solid #1e90ff;
+    border-radius: 5px;
+    transition: background-color 0.3s, color 0.3s, transform 0.2s;
+}
+
+#pagination a:hover {
+    background-color: #1e90ff;
+    color: #ffffff;
+    transform: scale(1.1);
+}
+
+#pagination a.active {
+    background-color: #1e90ff;
+    color: #ffffff;
+    pointer-events: none;
+    border: 1px solid #1e90ff;
+}
+
+#pagination a:first-child,
+#pagination a:last-child {
+    font-size: 1.2rem;
+    padding: 8px 16px;
+}
+
+#pagination a:first-child:hover,
+#pagination a:last-child:hover {
+    transform: scale(1.2);
 }
