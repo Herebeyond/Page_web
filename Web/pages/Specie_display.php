@@ -19,7 +19,7 @@ if (isset($_GET['specie'])) {
             $race = sanitize_output($_GET['race']);
 
             // Prepare and execute the query to retrieve race information
-            $stmt = $pdo->prepare("SELECT * FROM races WHERE race_name = ? AND race_is_unique = 0");
+            $stmt = $pdo->prepare("SELECT * FROM races WHERE race_name = ?");
             $stmt->execute([$race]);
             $raceInfo = $stmt->fetch(PDO::FETCH_ASSOC);
         }
@@ -73,7 +73,7 @@ if (isset($_GET['specie'])) {
     <?php
         try {
             // Retrieve data from the races table
-            $stmt = $pdo->prepare("SELECT * FROM races as r LEFT JOIN species as s ON r.correspondence = s.id_specie WHERE id_specie = ? AND race_is_unique = 0 ORDER BY r.id_race;");
+            $stmt = $pdo->prepare("SELECT * FROM races as r LEFT JOIN species as s ON r.correspondence = s.id_specie WHERE id_specie = ? ORDER BY r.id_race;");
             $stmt->execute([$id_specie]);
             $queryR = $pdo->prepare("SELECT * FROM species WHERE specie_name = ?");
             $queryR->execute([$specie]);
@@ -139,15 +139,7 @@ if (isset($_GET['specie'])) {
                                 <div class='infosTitle'>
                                     <img class='imgSelectionRace' src='" . $imgPath . "'>
                                     <span class='
-                                    ";
-                                    if ($rowF['race_is_unique'] == "0") {
-                                        $divsSelec .= 'raceNameMulti';
-                                    } else {
-                                        $divsSelec .= 'raceNameUnique';
-                                    }
-
-                                    $divsSelec .=
-                                "'>" . sanitize_output($rowF['race_name']) . "</span>
+                                    '>" . sanitize_output($rowF['race_name']) . "</span>
                                 </div>
                                 <div class=infos>
                                     <div>
@@ -165,16 +157,8 @@ if (isset($_GET['specie'])) {
                                     <div>
                                         <p class=infosP> Habitat: </p>
                                         <p class=infosT>" . sanitize_output($habitat) . "</p>
-                                    </div>";
-
-                                    if ($rowF['race_is_unique'] == "1") {
-                                        $divsSelec .=
-                                        "<div>
-                                            <p class=infosT> Peculiar individual of its specie </p>
-                                        </div>";
-                                    }
-                                    $divsSelec .=
-                                "</div>
+                                    </div>
+                                </div>
                             </div>
                             <div class='texteSelection'>
                                 <p>" . nl2br(sanitize_output($rowF['content_race'] ?? '')) . "</p>

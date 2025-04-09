@@ -7,7 +7,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') { // Check if the form has been submi
     } else {
         $RaceName = isset($_POST['Race_name']) ? trim($_POST['Race_name']) : null;
     }
-    $correspondence = isset($_POST['correspondence']) ? trim($_POST['correspondence']) : null;
+    $cor = $pdo->prepare("SELECT id_specie FROM species WHERE specie_name = ?");
+    $cor->execute([$_POST['correspondence']]);
+    $correspondence = $cor->fetchColumn(); // Get the id_specie of the selected correspondence
+    if ($correspondence === false) {
+        $_SESSION['error'] = "Correspondence error: Specie not found";
+    }
     $RaceIcon = isset($_POST['icon_Race']) ? trim($_POST['icon_Race']) : null;
     $RaceContent = isset($_POST['Race_text']) ? trim($_POST['Race_text']) : null;
     $Lifespan = isset($_POST['Lifespan']) ? trim($_POST['Lifespan']) : null;
@@ -55,10 +60,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') { // Check if the form has been submi
             $fields[] = 'habitat = ?';
             $params[] = $Habitat;
         }
-        if ($Unique !== '' && $Unique != null) {
-            $fields[] = 'race_is_unique = ?';
-            $params[] = $Unique;
-        }
+
         $params[] = $RaceName;
 
         if (!empty($fields)) { // Check if there are fields to update
@@ -88,8 +90,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') { // Check if the form has been submi
         exit;
     } else {
         // Insert the new race into the database
-        $stmt = $pdo->prepare("INSERT INTO races (race_name, correspondence, icon_Race, content_Race, lifespan, homeworld, country, habitat, race_is_unique) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
-        $stmt->execute([$RaceName, $correspondence, $RaceIcon, $RaceContent, $Lifespan, $Homeworld, $Country, $Habitat, $Unique]);
+        $stmt = $pdo->prepare("INSERT INTO races (race_name, correspondence, icon_Race, content_Race, lifespan, homeworld, country, habitat) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
+        $stmt->execute([$RaceName, $correspondence, $RaceIcon, $RaceContent, $Lifespan, $Homeworld, $Country, $Habitat]);
         $_SESSION['success'] = "Race added successfully";
         header('Location: Race_add.php');
         exit;
@@ -137,8 +139,6 @@ require "./blueprints/gl_ap_start.php";
         <input type="text" name="Country"><br>
         <label>Habitat</label>
         <input type="text" name="Habitat"><br>
-        <input type="radio" name="Unique" value="1">Unique<br>
-        <input type="radio" name="Unique" value="0">Multiple<br>
         <label>Race content</label><br>
         <textarea type="text" name="Race_text" id="content_input"></textarea><br><br>
         <button type="submit">Submit</button>

@@ -22,7 +22,7 @@ function sanitize_output($data) {
 ?>
 <script>
 
-    function escapeHtml(text) { // Fonction pour échapper les caractères spéciaux en HTML dans fetchSpecieInfo et fetchRaceInfo
+    function escapeHtml(text) { // Fonction to escape HTML characters in fetchSpecieInfo and fetchRaceInfo
         var map = {
             '&': '&amp;',
             '<': '&lt;',
@@ -33,11 +33,11 @@ function sanitize_output($data) {
         return text.replace(/[&<>"']/g, function(m) { return map[m]; });
     }
 
-    function nl2br(str) { // Fonction pour remplacer les sauts de ligne par des balises <br> dans fetchSpecieInfo et fetchRaceInfo
+    function nl2br(str) { // Fonction to convert new lines to <br> tags in fetchSpecieInfo and fetchRaceInfo
         return str.replace(/\n/g, '<br>');
     }
 
-    function fetchSpecieInfo() { // Fonction pour récupérer et afficher les informations de la Specie sélectionnée dans l'option du select dans la form grace au bouton Fetch Info
+    function fetchSpecieInfo() { // Fonction for getting and display the information of the specie selected in the option of the select in the form thanks to the button Fetch Info
         var specieName = document.querySelector('select[name="SpecieName"]').value;
         if (specieName) {
             fetch('scriptes/fetch_specie_info.php?specie=' + encodeURIComponent(specieName))
@@ -51,8 +51,7 @@ function sanitize_output($data) {
                     if (data.success) {
                         let iconHtml = data.icon ? `<p>Icon link: ${escapeHtml(data.icon)}</p><p>Icon: <img id="imgEdit" src="../images/${escapeHtml(data.icon)}" alt="Specie Icon"></p>` : '<p>Icon does not exist</p>';
                         let contentHtml = data.content ? `<p>Content: <br>${nl2br(escapeHtml(data.content))}</p>` : '<p>Content does not exist</p>';
-                        let uniqueHtml = Boolean(data.unique) ? `<p>Is Unique</p>` : "<p>Isn't Unique</p>";
-                        document.getElementById('specieInfo').innerHTML = iconHtml + uniqueHtml + contentHtml;
+                        document.getElementById('specieInfo').innerHTML = iconHtml + contentHtml;
                     } else {
                         document.getElementById('specieInfo').innerHTML = '<p style="color:red;">' + escapeHtml(data.message) + '</p>';
                     }
@@ -66,19 +65,21 @@ function sanitize_output($data) {
         }
     }
 
-    function fetchRaceInfo() { // Fonction pour récupérer et afficher les informations de la Race sélectionnée dans l'option du select dans la form grace au bouton Fetch Info
-        var raceName = document.querySelector('select[name="Race_name"]').value;
+    function fetchRaceInfo() { // Fonction for getting and display the information of the race selected in the option of the select in the form thanks to the button Fetch Info
+        var raceName = document.querySelector('select[name="Race_name"]').value; // Get the selected race name
+
         if (raceName) {
-            fetch('scriptes/fetch_race_info.php?race=' + encodeURIComponent(raceName))
+            fetch('scriptes/fetch_race_info.php?race=' + encodeURIComponent(raceName)) // Make a GET request to the backend
                 .then(response => {
-                    if (!response.ok) {
+                    if (!response.ok) { // Check if the response is not OK
                         throw new Error('Network response was not ok');
                     }
-                    return response.json();
+                    return response.json(); // Parse the response as JSON
                 })
                 .then(data => {
-                    if (data.success) {
-                        let correspondenceHtml = data.correspondence ? `<p>correspondence: ${escapeHtml(data.correspondence)}</p>` : '<p>correspondence does not exist</p>';
+                    if (data.success) { // If the backend indicates success
+                        // Build the HTML for the race information
+                        let correspondenceHtml = data.correspondence ? `<p>Correspondence: ${escapeHtml(data.correspondence)}</p>` : '<p>Correspondence does not exist</p>';
                         let icon = data.icon ? data.icon.replace(/ /g, '_') : '';
                         let iconHtml = icon ? `<p>Icon link: ${escapeHtml(icon)}</p><p>Icon: <img id="imgEdit" src="../images/${escapeHtml(icon)}" alt="Race Icon"></p>` : '<p>Icon does not exist</p>';
                         let contentHtml = data.content ? `<p>Content: <br>${nl2br(escapeHtml(data.content))}</p>` : '<p>Content does not exist</p>';
@@ -86,26 +87,29 @@ function sanitize_output($data) {
                         let homeworldHtml = data.homeworld ? `<p>Homeworld: ${escapeHtml(data.homeworld)}</p>` : '<p>Homeworld does not exist</p>';
                         let countryHtml = data.country ? `<p>Country: ${escapeHtml(data.country)}</p>` : '<p>Country does not exist</p>';
                         let habitatHtml = data.habitat ? `<p>Habitat: ${escapeHtml(data.habitat)}</p>` : '<p>Habitat does not exist</p>';
-                        let uniqueHtml = data.unique ? `<p>Is Unique</p>` : "<p>Isn't Unique</p>";
-                        document.getElementById('raceInfo').innerHTML = correspondenceHtml + iconHtml + lifespanHtml + homeworldHtml + countryHtml + habitatHtml + uniqueHtml + contentHtml; // permet l'affichage des infos
+
+                        // Display the race information in the raceInfo div
+                        document.getElementById('raceInfo').innerHTML = correspondenceHtml + iconHtml + lifespanHtml + homeworldHtml + countryHtml + habitatHtml + contentHtml;
                     } else {
+                        console.warn("Backend error message:", data.message); // Log the error message from the backend
                         document.getElementById('raceInfo').innerHTML = '<p style="color:red;">' + escapeHtml(data.message) + '</p>';
                     }
                 })
                 .catch(error => {
-                    console.error('There was a problem with the fetch operation:', error);
+                    console.error("Fetch operation error:", error); // Log any errors that occur during the fetch operation
                     document.getElementById('raceInfo').innerHTML = '<p style="color:red;">Error fetching race info</p>';
                 });
         } else {
+            console.warn("No race selected"); // Log a warning if no race is selected
             document.getElementById('raceInfo').innerHTML = '<p style="color:red;">Please select a race</p>';
         }
     }
 
-    function confirmSubmit() { // Fonction pour confirmer ou annuler la soumission du formulaire
+    function confirmSubmit() { // Fonction to confirm or cancel the submission of the form
         return confirm("Are you sure you want to update it?");
     }
 
-    function confirmSpecieDelete() { // Fonction pour confirmer ou annuler la suppression de la Specie
+    function confirmSpecieDelete() { // Fonction to confirm or cancel the deletion of the Specie
         if (confirm("Are you sure you want to delete the specie?")) {
             var specieName = document.querySelector('select[name="SpecieName"]').value;
             if (specieName) {
@@ -128,7 +132,7 @@ function sanitize_output($data) {
         }
     }
 
-    function confirmRaceDelete() { // Fonction pour confirmer ou annuler la suppression de la Specie
+    function confirmRaceDelete() { // Fonction to confirm or cancel the deletion of the Race
         if (confirm("Are you sure you want to delete the race?")) {
             var raceName = document.querySelector('select[name="Race_name"]').value;
             if (raceName) {

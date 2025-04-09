@@ -30,10 +30,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') { // Check if the form has been submi
             $fields[] = 'content_Specie = ?';
             $params[] = $Specie_content;
         }
-        if ($Unique !== '' && $Unique != null) {
-            $fields[] = 'specie_is_unique = ?';
-            $params[] = $Unique;
-        }
+
 
         if (count($fields) > 0) {
             $fields = implode(', ', $fields);
@@ -55,8 +52,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') { // Check if the form has been submi
         exit;
     } else {
         // Insert the new specie into the database
-        $stmt = $pdo->prepare("INSERT INTO species (specie_name, icon_Specie, content_Specie, specie_is_unique) VALUES (?, ?, ?, ?)");
-        $stmt->execute([$SpecieName, $Specie_Icon, $Specie_content, $Unique]);
+        $stmt = $pdo->prepare("INSERT INTO species (specie_name, icon_Specie, content_Specie) VALUES (?, ?, ?)");
+        $stmt->execute([$SpecieName, $Specie_Icon, $Specie_content]);
         $_SESSION['success'] = "Specie added successfully";
         header('Location: Specie_add.php');
         exit;
@@ -95,8 +92,7 @@ require "./blueprints/gl_ap_start.php"; // includes the start of the general pag
         </select><br>
         <label for="Specie_icon">Specie Icon</label>
         <input type="file" name="icon_Specie"><br>
-        <input type="radio" name="Unique" value="1">Unique<br>
-        <input type="radio" name="Unique" value="0">Multiple<br>
+
         <label for="Specie_text">Specie content</label><br>
         <input type="text" name="Specie_text" id="content_input"><br><br>
         <button type="submit">Submit</button>

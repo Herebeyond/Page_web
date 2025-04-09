@@ -78,6 +78,9 @@ html body {
     display: none; /* Hidden by default */
     box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1); /* Shadow */
     width: auto; /* Width */
+    top: 100%; /* Align with the bottom of parent */
+    left: 50%; /* Start at the center of the parent */
+    transform: translateX(-50%); /* Shift left by 50% of its own width to center it below its parent */
     border-radius: 5px; /* Optional: Add rounded corners */
 }
 
@@ -615,7 +618,7 @@ html body {
 }
 
 .species-name {
-    font-size: 1.2rem;
+    font-size: 1.4rem;
     font-weight: bold;
     color: #ffffff;
     cursor: pointer;
@@ -671,7 +674,7 @@ html body {
     justify-content: center;
     align-items: center;
     margin-top: 20px;
-    gap: 10px;
+    gap: 0px;
     font-family: 'Roboto', sans-serif;
 }
 
@@ -680,6 +683,7 @@ html body {
     color: #1e90ff;
     font-weight: bold;
     padding: 8px 12px;
+    margin: 5px;
     border: 1px solid #1e90ff;
     border-radius: 5px;
     transition: background-color 0.3s, color 0.3s, transform 0.2s;
