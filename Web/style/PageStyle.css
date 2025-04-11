@@ -163,7 +163,20 @@ html body {
 .small-icon {
     width: 10px;
     height: 10px;
+    margin-left: 5px; /* Space between icon and text */
     vertical-align: bottom; /* Align at bottom */
+}
+
+.small-icon-list {
+    width: 10px;
+    height: 10px;
+    margin-left: 5px; /* Space between icon and text */
+    vertical-align: bottom; /* Align at bottom */
+
+    /* suround the icon with a circle */
+    border-radius: 50%; /* Circle shape */
+    background-color: rgb(3, 0, 192); /* Background color */
+    padding: 5px; /* Space inside the circle */
 }
 
 #icon {
@@ -633,6 +646,8 @@ html body {
     list-style: none;
     padding: 0;
     margin-top: 10px;
+    max-height: 300px; /* Limit height */
+    overflow-y: auto; /* Enable scrolling if necessary */
 }
 
 .race-item {
@@ -658,6 +673,33 @@ html body {
 
 .race-name:hover {
     color: #87cefa;
+}
+
+.character-item {
+    background-color: #2e2e2e;
+    border: 1px solid #444;
+    border-radius: 5px;
+    padding: 10px;
+    margin: 5px 0;
+    text-align: center;
+    cursor: pointer;
+    transition: background-color 0.3s, transform 0.2s;
+}
+
+.character-item:hover {
+    background-color: #1e90ff;
+    transform: scale(1.05);
+}
+
+.character-item span {
+    font-size: 1rem;
+    color: #ffffff;
+    font-weight: bold;
+    transition: color 0.3s;
+}
+
+.character-item:hover span {
+    color: #ffffff;
 }
 
 

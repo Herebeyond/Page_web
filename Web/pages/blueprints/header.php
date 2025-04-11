@@ -95,7 +95,7 @@
                                 $specieName = $rowS["specie_name"];
                                 echo ' 
                                     <li class="dropdownFirstLevel">
-                                        <div class=liIntro onclick="window.location.href=\'./Specie_display.php?specie=' . sanitize_output($specieName) . '\'">
+                                        <div class=liIntro onclick="window.location.href=\'./Beings_display.php?specie=' . sanitize_output($specieName) . '\'">
                                             <span> ' . $specieName . '</span>';
                                 if ($hasRaces) {
                                     echo '  <img class="small-icon" src=../images/small_img/fleche-deroulante.png>';
@@ -112,7 +112,7 @@
                                     if ($rowR["correspondence"] == $rowS["id_specie"]) {
                                         echo '
                                             <li>
-                                                <div class="liIntro" onclick="window.location.href=\'./Specie_display.php?specie=' . str_replace(" ", "_", sanitize_output($specieName)) . '&race=' . str_replace(" ", "_", sanitize_output($raceName)) . '\'">
+                                                <div class="liIntro" onclick="window.location.href=\'./Beings_display.php?specie=' . str_replace(" ", "_", sanitize_output($specieName)) . '&race=' . str_replace(" ", "_", sanitize_output($raceName)) . '\'">
                                                     <span>' . sanitize_output($raceName) . '</span>
                                                 </div>
                                             </li>';
@@ -164,7 +164,7 @@
                             </div>
                 ';
 
-                echo '<ul class="dropdown">';
+                echo '      <ul class="dropdown">';
                 // Loop through the array and display the elements in the list
                 foreach ($pages as $page) { // For each element in the $pages array, display a link to the corresponding page
                     if ($authorisation[$page] == 'admin') {
@@ -177,7 +177,9 @@
                             // The onclick=window.location. allows me to remove the blue underlined link style
                     }
                 }
-                echo '</ul></li></ul>';
+                echo '      </ul>
+                        </li>
+                    </ul>';
 
             } elseif (($user["admin"]) == null) {
             } else {
@@ -190,7 +192,7 @@
     
     <div id=divConnect>
         <?php
-        include './scriptes/authorisation.php'; // Include the authorisation.php file
+        require_once './scriptes/authorisation.php'; // require_once the authorisation.php file
 
         if (isset($_SESSION['user'])) { // If the user is logged in, display their name
             echo '<div id="LoginCo">'; // Div for the username and logout link

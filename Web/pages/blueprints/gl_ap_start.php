@@ -1,5 +1,5 @@
 <?php
-require "./scriptes/functions.php"; // includes the functions file
+require_once "./scriptes/functions.php"; // includes the functions file
 ?>
 
 <html>
@@ -12,7 +12,7 @@ require "./scriptes/functions.php"; // includes the functions file
     </head>
     <body>
         <div id=global>
-            <?php require "./blueprints/header.php" ?>
+            <?php require_once "./blueprints/header.php" ?>
             <div id=englobe>
                 <div class=leftText> <!-- Left div -->
                     <div id=leftHeaderText>

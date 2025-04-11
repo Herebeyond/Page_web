@@ -1,5 +1,5 @@
 <?php
-require "./blueprints/page_init.php"; // includes the page initialization file
+require_once "./blueprints/page_init.php"; // includes the page initialization file
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') { // Check if the form has been submitted
     if (isset($_POST['Race_name_Input'])) {
@@ -12,6 +12,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') { // Check if the form has been submi
     $correspondence = $cor->fetchColumn(); // Get the id_specie of the selected correspondence
     if ($correspondence === false) {
         $_SESSION['error'] = "Correspondence error: Specie not found";
+    }
+    $RaceId = $_GET['race'] ?? null;
+    if ($RaceId) {
+        $selected = $pdo->prepare("SELECT race_name FROM races WHERE id_race = ?");
+        $selected->execute([$RaceId]);
+        $SelectedRace = $selected->fetchColumn();
+    } else {
+        $SelectedRace = null;
     }
     $RaceIcon = isset($_POST['icon_Race']) ? trim($_POST['icon_Race']) : null;
     $RaceContent = isset($_POST['Race_text']) ? trim($_POST['Race_text']) : null;
@@ -98,7 +106,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') { // Check if the form has been submi
     }
 }
 
-require "./blueprints/gl_ap_start.php";
+require_once "./blueprints/gl_ap_start.php";
 ?>
 
 <div id="mainText"> <!-- Right div -->
@@ -110,16 +118,19 @@ require "./blueprints/gl_ap_start.php";
         <input type="text" name="Race_name_Input"> <!-- To name a new race being created -->
         <select name="Race_name"> <!-- Dropdown selection to choose a race to modify -->
             <option value="">Select a race</option>
-            <?php // Retrieve the names of the races from the database and display them in a dropdown list
+            <?php 
+                // Retrieve the names of the races from the database and display them in a dropdown list
                 $stmt = $pdo->prepare("SELECT * FROM races ORDER BY race_name;");
                 $stmt->execute();
                 while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
-                    echo '<option value="' . sanitize_output($row['race_name']) . '">' . sanitize_output($row['race_name']) . '</option>';
+                    // Check if the current race matches SelectedRace
+                    $selected = ($row['race_name'] === $SelectedRace) ? 'selected' : '';
+                    echo '<option value="' . sanitize_output($row['race_name']) . '" ' . $selected . '>' . sanitize_output($row['race_name']) . '</option>';
                 }
             ?>
         </select><br>
         <label for="correspondence">correspondence</label>
-        <select name="correspondence" id="correspondence" required> <!-- Dropdown list to select the race's correspondence with which specie -->
+        <select name="correspondence" id="correspondence" required > <!-- Dropdown list to select the race's correspondence with which specie -->
             <option value="">Select a specie</option>
             <?php // Retrieve the names of the species from the database and display them in a dropdown list
                 $stmt = $pdo->prepare("SELECT * FROM species ORDER BY specie_name;");
@@ -160,5 +171,5 @@ require "./blueprints/gl_ap_start.php";
 </div>
 
 <?php
-require "./blueprints/gl_ap_end.php";
+require_once "./blueprints/gl_ap_end.php";
 ?>

@@ -1,6 +1,6 @@
 <?php
-require "./blueprints/page_init.php"; // includes the page initialization file
-include "./blueprints/gl_ap_start.php";
+require_once "./blueprints/page_init.php"; // includes the page initialization file
+require_once "./blueprints/gl_ap_start.php";
 ?>
 
 <div id="mainText" style="opacity: 100%;"> <!-- Right div -->
@@ -11,5 +11,5 @@ include "./blueprints/gl_ap_start.php";
 </div>
 
 <?php
-include "./blueprints/gl_ap_end.php";
+require_once "./blueprints/gl_ap_end.php";
 ?>

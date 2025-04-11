@@ -1,6 +1,6 @@
 <?php
-require "./blueprints/page_init.php"; // includes the page initialization file
-require "./blueprints/gl_ap_start.php"; // includes the start of the general page file
+require_once "./blueprints/page_init.php"; // includes the page initialization file
+require_once "./blueprints/gl_ap_start.php"; // includes the start of the general page file
 ?>
 
 <div id="mainText"> <!-- Right div -->
@@ -71,5 +71,5 @@ require "./blueprints/gl_ap_start.php"; // includes the start of the general pag
 </div>
 
 <?php 
-require "./blueprints/gl_ap_end.php"; 
+require_once "./blueprints/gl_ap_end.php"; 
 ?>

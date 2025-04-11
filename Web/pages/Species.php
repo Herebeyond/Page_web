@@ -1,6 +1,6 @@
 <?php
-require "./blueprints/page_init.php";
-require "./blueprints/gl_ap_start.php";
+require_once "./blueprints/page_init.php";
+require_once "./blueprints/gl_ap_start.php";
 
 // Number of species per page
 $perPage = 8;
@@ -52,7 +52,7 @@ $offset = ($page - 1) * $perPage;
                     echo " 
                         <div class='selection'>
                             <div class='classImgSelection'>
-                                <img class='imgSelection' src='" . $imgPath . "' onclick=\"window.location.href='./Specie_display.php?specie=" . urlencode(str_replace(" ", "_", $specieName)) . "'\">
+                                <img class='imgSelection' src='" . $imgPath . "' onclick=\"window.location.href='./Beings_display.php?specie=" . urlencode(str_replace(" ", "_", $specieName)) . "'\">
                                 " . $specieName . "
                             </div>
                         </div>
@@ -90,4 +90,4 @@ $offset = ($page - 1) * $perPage;
     </div>
 </div>
 
-<?php require "./blueprints/gl_ap_end.php"; ?>
+<?php require_once "./blueprints/gl_ap_end.php"; ?>

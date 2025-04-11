@@ -1,6 +1,6 @@
 <?php
-require "./blueprints/page_init.php"; // includes the page initialization file
-require "./blueprints/gl_ap_start.php";
+require_once "./blueprints/page_init.php"; // includes the page initialization file
+require_once "./blueprints/gl_ap_start.php";
 ?>
                 
 <div id="mainText" style="opacity: 100%;"> 
@@ -10,7 +10,7 @@ require "./blueprints/gl_ap_start.php";
     /// because it needs composer and composer doesn't want to install itself correctly
     /*
     echo realpath(__DIR__ . '/../../../../vendor/autoload.php'); 
-    require dirname(__DIR__, 4) . '/vendor/autoload.php'; /// CANNOT FIND THE FILE 
+    require_once dirname(__DIR__, 4) . '/vendor/autoload.php'; /// CANNOT FIND THE FILE 
 
     use PhpOffice\PhpPresentation\IOFactory;
     use PhpOffice\PhpPresentation\PhpPresentation;
@@ -45,5 +45,5 @@ require "./blueprints/gl_ap_start.php";
                 
 
 <?php
-require "./blueprints/gl_ap_end.php";
+require_once "./blueprints/gl_ap_end.php";
 ?>

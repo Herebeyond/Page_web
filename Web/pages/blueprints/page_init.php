@@ -30,8 +30,8 @@ if (isset($_SESSION['LAST_ACTIVITY']) && (time() - $_SESSION['LAST_ACTIVITY']) >
 }
 $_SESSION['LAST_ACTIVITY'] = time();
 
-require '../login/db.php'; // Database connection
-require "./scriptes/authorisation.php"; // includes the authorisation.php file
+require_once __DIR__ . '/../../login/db.php';
+require_once __DIR__ . '/../scriptes/authorisation.php'; // includes the authorisation.php file
 
 // store the name of the current page
 $current_page = htmlspecialchars(pathinfo(basename($_SERVER['PHP_SELF']), PATHINFO_FILENAME));

@@ -1,6 +1,11 @@
 <?php
-require "./blueprints/page_init.php"; // includes the page initialization file
-require "./blueprints/gl_ap_start.php"; // includes the start of the general page file
+require_once "./blueprints/page_init.php"; // includes the page initialization file
+require_once "./blueprints/gl_ap_start.php"; // includes the start of the general page file
+
+// Retrieve the username from the database to check if the user is an admin
+$stmt = $pdo->prepare("SELECT admin FROM users WHERE id = ?");
+$stmt->execute([$_SESSION['user']]);
+$user = $stmt->fetch();
 
 $error_msg = ""; // initialize the error message variable
 
@@ -13,6 +18,7 @@ if (isset($_GET['specie'])) {
         $stmt = $pdo->prepare("SELECT * FROM species WHERE specie_name = ?");
         $stmt->execute([$specie]);
         $specieInfo = $stmt->fetch(PDO::FETCH_ASSOC);
+        $id_specie = $specieInfo['id_specie']; // retrieve the id_specie of the specie
 
         if (isset($_GET['race'])) {
             $race = sanitize_output($_GET['race']);
@@ -72,10 +78,8 @@ if (isset($_GET['specie'])) {
     <?php
         try {
             // Retrieve data from the races table
-            $stmt = $pdo->prepare( "SELECT * FROM species s LEFT JOIN races r ON s.id_specie = r.correspondence LEFT JOIN characters c ON c.correspondence = r.id_race WHERE s.id_specie = ? ORDER BY r.id_race;");
-            $stmt->execute([$specie]);
-            $id_specie = $specieInfo['id_specie'];
-            echo $id_specie;
+            $stmt = $pdo->prepare("SELECT * FROM races as r JOIN species as s ON r.correspondence = s.id_specie WHERE id_specie = ? ORDER BY r.id_race;");
+            $stmt->execute([$id_specie]);
             $queryR = $pdo->prepare("SELECT * FROM species WHERE specie_name = ?");
             $queryR->execute([$specie]);
 
@@ -140,15 +144,7 @@ if (isset($_GET['specie'])) {
                                 <div class='infosTitle'>
                                     <img class='imgSelectionRace' src='" . $imgPath . "'>
                                     <span class='
-                                    ";
-                                    if ($rowF['race_is_unique'] == "0") {
-                                        $divsSelec .= 'raceNameMulti';
-                                    } else {
-                                        $divsSelec .= 'raceNameUnique';
-                                    }
-
-                                    $divsSelec .=
-                                "'>" . sanitize_output($rowF['race_name']) . "</span>
+                                    '>" . sanitize_output($rowF['race_name']) . "</span>
                                 </div>
                                 <div class=infos>
                                     <div>
@@ -166,20 +162,21 @@ if (isset($_GET['specie'])) {
                                     <div>
                                         <p class=infosP> Habitat: </p>
                                         <p class=infosT>" . sanitize_output($habitat) . "</p>
-                                    </div>";
-
-                                    if ($rowF['race_is_unique'] == "1") {
-                                        $divsSelec .=
-                                        "<div>
-                                            <p class=infosT> Peculiar individual of its specie </p>
-                                        </div>";
-                                    }
-                                    $divsSelec .=
-                                "</div>
+                                    </div>
+                                </div>
                             </div>
                             <div class='texteSelection'>
                                 <p>" . nl2br(sanitize_output($rowF['content_race'] ?? '')) . "</p>
-                            </div>
+                            </div>";
+                            // If the user is logged and is an admin, display the edit button
+                            if (isset($_SESSION['user']) && $user['admin'] == 1) {
+                                $divsSelec .= "
+                                    <div class='editButton'>
+                                        <a href='Race_add.php?race_id=" . $rowF['id_race'] . "'>Edit</a>
+                                    </div>";
+                            }
+                        
+                        $divsSelec .= " 
                         </div>
                 ";
             }
@@ -195,6 +192,6 @@ if (isset($_GET['specie'])) {
 </div>
 
 <?php
-require "./blueprints/gl_ap_end.php"; // includes the end of the general page file
+require_once "./blueprints/gl_ap_end.php"; // includes the end of the general page file
 ?>
 

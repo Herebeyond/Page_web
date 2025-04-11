@@ -9,12 +9,12 @@ $authorisation = array(
     'Races' => 'all',
     'Race_add' => 'admin',
     'Race_edit' => 'admin',
-    'Specie_display' => 'hidden',
+    'Beings_display' => 'hidden',
     'Dimensions' => 'all',
     'Dimension_affichage' => 'all',
     'Dimension_list' => 'all',
-    'Character_display_races' => 'all',
-    'Character_display_species' => 'all',
+    'Character_display' => 'hidden',
+    'Characters' => 'all',
     'Beings' => 'all',
 
 );
@@ -28,12 +28,12 @@ $type = array(
     'Races' => 'common',
     'Race_add' => 'common',
     'Race_edit' => 'common',
-    'Specie_display' => 'common',
+    'Beings_display' => 'common',
     'Dimensions' => 'common',
     'Dimension_affichage' => 'Dimensions',
     'Dimension_list' => 'Dimensions',
-    'Character_display_races' => 'common',
-    'Character_display_species' => 'common',
+    'Character_display' => 'common',
+    'Characters' => 'common',
     'Beings' => 'common',
 
 );

@@ -1,5 +1,5 @@
 <?php
-require "./blueprints/page_init.php"; // includes the page initialization file
+require_once "./blueprints/page_init.php"; // includes the page initialization file
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') { // Check if the form has been submitted
     if (isset($_POST['SpecieNameInput'])) {
@@ -60,7 +60,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') { // Check if the form has been submi
     }
 }
 
-require "./blueprints/gl_ap_start.php"; // includes the start of the general page file
+require_once "./blueprints/gl_ap_start.php"; // includes the start of the general page file
 ?>
 
 <div id="mainText"> <!-- Right div -->
@@ -102,4 +102,4 @@ require "./blueprints/gl_ap_start.php"; // includes the start of the general pag
     <div id="specieInfo"></div>
 </div>
 
-<?php require "./blueprints/gl_ap_end.php"; // includes the end of the general page file ?>
+<?php require_once "./blueprints/gl_ap_end.php"; // includes the end of the general page file ?>

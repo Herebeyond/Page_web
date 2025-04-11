@@ -1,6 +1,6 @@
 <?php
 session_start();
-require 'db.php'; // Database connection
+require_once 'db.php'; // Database connection
 
 // Initialize variables for form fields
 $username = '';

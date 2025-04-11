@@ -1,6 +1,6 @@
 <?php
 session_start();
-require 'db.php'; // Database connection
+require_once 'db.php'; // Database connection
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') { // Check if the form has been submitted
     $username = trim($_POST['Identification']); // Sanitize user input
