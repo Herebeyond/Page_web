@@ -1,5 +1,6 @@
 <?php
 
+
 // Start the session securely
 session_start([
     'cookie_lifetime' => 86400, // 1 day

@@ -1,3 +1,7 @@
+<?php
+
+
+?>
 <div id=header>
     <img id=icon src='../images/Eye.jpg'> <!-- Display the header icon -->
     <div id=divTitre>

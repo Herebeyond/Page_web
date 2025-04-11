@@ -24,7 +24,7 @@ $offset = ($page - 1) * $perPage;
 ?>
 
 <div id="mainText"> <!-- Right div -->
-    <a id="Return" onclick='window.history.back()'> Return </a><br>
+    <button id="Return" onclick="window.history.back()">Return</button><br>
     <div id="mainTextList" class="species-list"> <!-- Horizontal list for species -->
         <?php
             try {
@@ -79,11 +79,11 @@ $offset = ($page - 1) * $perPage;
         <?php endif; ?>
 
         <?php if ($page > 1): ?> <!-- If page is greater than 1, display the previous link -->
-            <a href="?page=<?php echo $page - 1; ?>">&lt;</a> 
+            <a href="?page=<?php echo $page - 1; ?>">&lt;</a>
         <?php endif; ?>
 
         <?php for ($i = 1; $i <= $totalPages; $i++): ?> <!-- Display the page numbers -->
-            <a href="?page=<?php echo $i; ?>"<?php if ($i == $page) echo ' class="active"'; ?>><?php echo $i; ?></a>
+            <a href="?page=<?php echo $i; ?>"<?php if ($i == $page) {echo ' class="active"';} ?>><?php echo $i; ?></a>
         <?php endfor; ?>
 
         <?php if ($page < $totalPages): ?> <!-- If page is less than the total pages, display the next link -->

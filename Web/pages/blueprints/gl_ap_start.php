@@ -25,3 +25,4 @@ require_once "./scriptes/functions.php"; // includes the functions file
                         echo '<span>' . nl2br(sanitize_output(file_get_contents("../texte/forgotten_worlds.txt"))) . '</span>';
                     ?>
                 </div>
+                

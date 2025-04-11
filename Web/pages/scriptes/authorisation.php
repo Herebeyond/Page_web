@@ -1,5 +1,6 @@
 <?php
 
+
 $authorisation = array(
     'Homepage' => 'all',
     'Map' => 'all',

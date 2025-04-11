@@ -4,7 +4,7 @@ require_once "./blueprints/gl_ap_start.php";
 ?>
 
 <div id='mainText'> <!-- Right div -->
-    <a id=Return onclick='window.history.back()'> Return </a><br>
+    <button id="Return" onclick="window.history.back()">Return</button><br>
     <span class='title'> Dimensions </span> <!-- display the title -->
     <?php
     try {

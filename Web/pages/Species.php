@@ -24,7 +24,7 @@ $offset = ($page - 1) * $perPage;
 ?>
 
 <div id="mainText"> <!-- Right div -->
-    <a id=Return onclick='window.history.back()'> Return </a><br>
+    <button id="Return" onclick="window.history.back()">Return</button><br>
     <div id="mainTextList">
         <?php
             try {

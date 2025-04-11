@@ -39,7 +39,7 @@ require_once "./blueprints/gl_ap_start.php";
     } */ /// DOES NOT WORK
     ?>
 
-    <a id=Return onclick='window.history.back()'> Return </a><br>
+    <button id="Return" onclick="window.history.back()">Return</button><br>
     <img src="../images/map/map_monde.png" alt="Map of the Forgotten Worlds" style="width: 100%; height: auto;">
 </div>
                 

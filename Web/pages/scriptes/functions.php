@@ -1,5 +1,7 @@
 <?php
 
+
+
 function isImageLinkValid($url) {
     // Convert relative URL to absolute path
     $absolutePath = realpath(__DIR__ . '/../' . $url);

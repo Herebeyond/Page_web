@@ -392,6 +392,8 @@ html body {
 }
 
 #Return {
+    background: none;
+    border: none;
     color: blue; /* Text color */
     text-decoration: underline; /* Underline */
     cursor: pointer; /* Pointer cursor */
@@ -590,7 +592,7 @@ html body {
     color: #ffffff;
 }
 
-#mainText a#Return {
+#mainText #Return {
     display: inline-block;
     margin-bottom: 20px;
     color: #1e90ff;
@@ -600,7 +602,7 @@ html body {
     transition: color 0.3s;
 }
 
-#mainText a#Return:hover {
+#mainText #Return:hover {
     color: #87cefa;
 }
 

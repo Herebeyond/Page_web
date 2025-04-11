@@ -64,7 +64,7 @@ require_once "./blueprints/gl_ap_start.php"; // includes the start of the genera
 ?>
 
 <div id="mainText"> <!-- Right div -->
-    <a id=Return onclick='window.history.back()'> Return </a><br>
+    <button id="Return" onclick="window.history.back()">Return</button><br>
     <?php
         if (isset($_SESSION['error'])) {
             echo '<p style="color:red;">' . sanitize_output($_SESSION['error']) . '</p>';

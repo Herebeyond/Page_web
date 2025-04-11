@@ -56,7 +56,7 @@ if (isset($_GET['race'])) {
 </script>
 
 <div id='mainText'> <!-- Right div -->
-    <a id=Return onclick='window.history.back()'> Return </a><br><br>
+    <button id="Return" onclick="window.history.back()">Return</button><br><br>
     <?php if ($error_msg) { // display the error message if there is one
         echo "<span class='title'>" . sanitize_output($error_msg) . "</span>";
         exit; // exit the script if there is an error message

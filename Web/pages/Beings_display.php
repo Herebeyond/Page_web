@@ -2,10 +2,15 @@
 require_once "./blueprints/page_init.php"; // includes the page initialization file
 require_once "./blueprints/gl_ap_start.php"; // includes the start of the general page file
 
-// Retrieve the username from the database to check if the user is an admin
-$stmt = $pdo->prepare("SELECT admin FROM users WHERE id = ?");
-$stmt->execute([$_SESSION['user']]);
-$user = $stmt->fetch();
+if (isset($_SESSION['user'])) { // if the user is not logged in, redirect to the login page
+    // Retrieve the username from the database to check if the user is an admin
+    $stmt = $pdo->prepare("SELECT admin FROM users WHERE id = ?");
+    $stmt->execute([$_SESSION['user']]);
+    $user = $stmt->fetch();
+} else {
+    $user = null; // if the user is not logged in, set user to null
+}
+
 
 $error_msg = ""; // initialize the error message variable
 
@@ -69,7 +74,7 @@ if (isset($_GET['specie'])) {
 </script>
 
 <div id='mainText'> <!-- Right div -->
-    <a id=Return onclick='window.history.back()'> Return </a><br><br>
+    <button id="Return" onclick="window.history.back()">Return</button><br><br>
     <?php if ($error_msg) { // display the error message if there is one
         echo "<span class='title'>" . sanitize_output($error_msg) . "</span>";
         exit; // exit the script if there is an error message
