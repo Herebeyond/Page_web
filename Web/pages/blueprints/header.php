@@ -195,7 +195,7 @@
     
     <div id=divConnect>
         <?php
-        include './scriptes/authorisation.php'; // Include the authorisation.php file
+        require_once './scriptes/authorisation.php'; // Include the authorisation script to check user permissions
 
         if (isset($_SESSION['user'])) { // If the user is logged in, display their name
             echo '<div id="LoginCo">'; // Div for the username and logout link
