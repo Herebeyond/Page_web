@@ -1,7 +1,6 @@
-<?php
 
 
-?>
+
 <div id=header>
     <img id=icon src='../images/Eye.jpg'> <!-- Display the header icon -->
     <div id=divTitre>
@@ -196,7 +195,7 @@
     
     <div id=divConnect>
         <?php
-        require_once './scriptes/authorisation.php'; // require_once the authorisation.php file
+        include './scriptes/authorisation.php'; // Include the authorisation.php file
 
         if (isset($_SESSION['user'])) { // If the user is logged in, display their name
             echo '<div id="LoginCo">'; // Div for the username and logout link

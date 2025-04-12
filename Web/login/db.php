@@ -1,10 +1,4 @@
 <?php
-
-namespace Login;
-
-use PDO;
-use PDOException;
-
 // Load environment variables from the .env file
 if (file_exists(__DIR__ . '/../BDD.env')) {
     $dotenv = parse_ini_file(__DIR__ . '/../BDD.env');
