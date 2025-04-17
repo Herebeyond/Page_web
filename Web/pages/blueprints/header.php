@@ -198,13 +198,17 @@
         require_once './scriptes/authorisation.php'; // Include the authorisation script to check user permissions
 
         if (isset($_SESSION['user'])) { // If the user is logged in, display their name
-            echo '<div id="LoginCo">'; // Div for the username and logout link
-            // Retrieve the username from the database
-            $stmt = $pdo->prepare("SELECT username FROM users WHERE id = ?");
+            // Retrieve the username and icon from the database
+            $stmt = $pdo->prepare("SELECT username, icon FROM users WHERE id = ?");
             $stmt->execute([$_SESSION['user']]);
-            $user = $stmt->fetch(); 
-            echo "<span>Welcome, " . sanitize_output($user['username']) . "!</span>"; // Display the username
-            echo '<a href="../login/logout.php">Disconnect</a>'; // Logout link
+            $user = $stmt->fetch();
+            echo '<div id="Login">';
+            echo '  <img id="iconUser" src="../images/' . sanitize_output($user['icon']) . '">'; // Display the user icon
+
+            echo '  <div id="LoginCo">'; // Div for the username and logout link
+            echo "      <span>Welcome, " . sanitize_output($user['username']) . "!</span>"; // Display the username
+            echo '      <a href="../login/logout.php">Disconnect</a>'; // Logout link
+            echo '  </div>';
             echo '</div>';
         } else {
             echo '<div id="LoginDeco">'; // Div for the login and register links

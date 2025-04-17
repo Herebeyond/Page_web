@@ -204,7 +204,7 @@ html body {
     place-items: center;
     width: 80%; /* 80% of the page width */
     max-width: 1200px; /* Maximum width of the title section */
-    margin: 0 auto; /* Center the title section */
+    margin: 0; /* Center the title section */
     color: rgb(90, 14, 189);
     font-family: 'Cinzel', serif;
     font-weight: bold;
@@ -226,6 +226,20 @@ html body {
     flex-direction: column;
     align-items: center;
     padding-right: 40;
+}
+
+#Login {
+    display: flex;
+    flex-direction: row;
+
+}
+
+#iconUser {
+    width: 50px;
+    height: 50px;
+    margin-left: 10px;
+    margin-right: 10px;
+    border-radius: 100px 100px 100px 100px;
 }
 
 #LoginCo {

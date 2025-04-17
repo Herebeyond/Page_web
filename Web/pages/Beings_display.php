@@ -2,7 +2,7 @@
 require_once "./blueprints/page_init.php"; // includes the page initialization file
 require_once "./blueprints/gl_ap_start.php"; // includes the start of the general page file
 
-if (isset($_SESSION['user'])) { // if the user is not logged in, redirect to the login page
+if (isset($_SESSION['user'])) {
     // Retrieve the username from the database to check if the user is an admin
     $stmt = $pdo->prepare("SELECT admin FROM users WHERE id = ?");
     $stmt->execute([$_SESSION['user']]);

@@ -17,6 +17,7 @@ $authorisation = array(
     'Character_display' => 'hidden',
     'Characters' => 'all',
     'Beings' => 'all',
+    'Admin' => 'admin',
 
 );
 
@@ -36,6 +37,7 @@ $type = array(
     'Character_display' => 'common',
     'Characters' => 'common',
     'Beings' => 'common',
+    'Admin' => 'common',
 
 );
 
