@@ -107,11 +107,11 @@ function sanitize_output($data) {
         }
     }
 
-    function fetchUserInfo() { // Fonction for getting and display the information of the user selected in the option of the select in the form thanks to the button Fetch Info
-        var userId = document.querySelector('select[name="User"]').value; // Get the selected user ID
+    function fetchUserInfo() { // Function to fetch and display user information
+        var username = document.getElementById('usernameSearch').value.trim(); // Get the username from the input field
 
-        if (userId) {
-            fetch('scriptes/fetch_user_info.php?user=' + encodeURIComponent(userId)) // Make a GET request to the backend
+        if (username) {
+            fetch('scriptes/fetch_user_info.php?user=' + encodeURIComponent(username)) // Make a GET request to the backend
                 .then(response => {
                     if (!response.ok) { // Check if the response is not OK
                         throw new Error('Network response was not ok');
@@ -121,30 +121,17 @@ function sanitize_output($data) {
                 .then(data => {
                     if (data.success) { // If the backend indicates success
                         // Build the HTML for the user information
-                        let iconHtml = data.icon ? `<p>Icon link: ${escapeHtml(data.icon)}</p><p>Icon: <img id="imgEdit" src="../images/${escapeHtml(data.icon)}" alt="User Icon"></p>` : '<p>Icon does not exist</p>';
-                        let idHtml = data.id ? `<p>ID: ${data.id}</p>` : '<p>ID does not exist</p>';
-                        let usernameHtml = data.username ? `<p>Username: ${escapeHtml(data.username)}</p>` : '<p>Username does not exist</p>';
-                        let blockedHtml = data.blocked ? `<p>Is Blocked</p>` : "<p>Isn't Blocked</p>";
+                        let iconHtml = data.icon ? `<p>Icon link: ${escapeHtml(data.icon)}</p><p>Icon: <img id="imgEdit" src="../images/${escapeHtml(data.icon)}" alt="User Icon"></p>` : "<p>Doesn't have an icon</p>";
+                        let idHtml = data.id ? `<p>ID: ${data.id}</p>` : '<p>Error with the ID data</p>';
+                        let usernameHtml = data.username ? `<p>Username: ${escapeHtml(data.username)}</p>` : '<p>Error with the Username data</p>';
                         let adminHtml = data.admin ? `<p>Is Admin</p>` : "<p>Isn't Admin</p>";
-                        let emailHtml = data.email ? `<p>Email: ${escapeHtml(data.email)}</p>` : '<p>Email does not exist</p>';
-                        // Format the created_at and last_updated_at fields
-                        data.created_at = new Date(data.created_at).toLocaleString('fr-FR', { timeZone: 'UTC' });
-                        data.last_updated_at = new Date(data.last_updated_at).toLocaleString('fr-FR', { timeZone: 'UTC' });
-                        // Format style "lundi 01 janvier 2023 12:00:00"
-                        data.created_at = data.created_at.replace(/(\d{1,2})\/(\d{1,2})\/(\d{4})/, function(match, p1, p2, p3) {
-                            const date = new Date(p3, p2 - 1, p1);
-                            return date.toLocaleString('fr-FR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' });
-                        });
-                        data.last_updated_at = data.last_updated_at.replace(/(\d{1,2})\/(\d{1,2})\/(\d{4})/, function(match, p1, p2, p3) {
-                            const date = new Date(p3, p2 - 1, p1);
-                            return date.toLocaleString('fr-FR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' });
-                        });
-                        
-                        let createdAtHtml = data.created_at ? `<p>Created at: ${escapeHtml(data.created_at)}</p>` : '<p>Created at does not exist</p>';
-                        let lastUpdatedAtHtml = data.last_updated_at ? `<p>Last updated at: ${escapeHtml(data.last_updated_at)}</p>` : '<p>Last updated at does not exist</p>';
+                        let emailHtml = data.email ? `<p>Email: ${escapeHtml(data.email)}</p>` : "<p>Doesn't have an email</p>";
+                        let createdAtHtml = data.created_at ? `<p>&emsp;Created at: ${escapeHtml(data.created_at)}</p>` : '<p>Error with the Created_at data</p>';
+                        let lastUpdatedAtHtml = data.last_updated_at ? `<p>&emsp;Last updated at: ${escapeHtml(data.last_updated_at)}</p>` : '<p>Error with the Last_updated_at data</p>';
+                        let blockedHtml = data.blocked ? `<p>Is Blocked</p><p>&emsp;The User was Blocked at : ${escapeHtml(data.blocked)}</p>` : "<p>Isn't Blocked</p>";
 
                         // Display the user information in the userInfo div
-                        document.getElementById('userInfo').innerHTML = idHtml + usernameHtml + iconHtml + blockedHtml + adminHtml + emailHtml + createdAtHtml + lastUpdatedAtHtml;
+                        document.getElementById('userInfo').innerHTML = idHtml + usernameHtml + iconHtml + emailHtml + createdAtHtml + lastUpdatedAtHtml + blockedHtml + adminHtml;
                     } else {
                         console.warn("Backend error message:", data.message); // Log the error message from the backend
                         document.getElementById('userInfo').innerHTML = '<p style="color:red;">' + escapeHtml(data.message) + '</p>';
@@ -155,11 +142,9 @@ function sanitize_output($data) {
                     document.getElementById('userInfo').innerHTML = '<p style="color:red;">Error fetching user info</p>';
                 });
         } else {
-            console.warn("No user selected"); // Log a warning if no user is selected
-            document.getElementById('userInfo').innerHTML = '<p style="color:red;">Please select a user</p>';
+            console.warn("No username entered"); // Log a warning if no username is entered
+            document.getElementById('userInfo').innerHTML = '<p style="color:red;">Please enter a username</p>';
         }
-        
-
     }
 
     function confirmSubmit() { // Fonction to confirm or cancel the submission of the form
@@ -212,27 +197,49 @@ function sanitize_output($data) {
         }
     }
 
-    function confirmUserDelete() {
-        if (confirm("Are you sure you want to delete the user?")) {
-            var userId = document.querySelector('select[name="User"]').value;
-            if (userId) {
-                fetch('scriptes/delete_user.php?user=' + encodeURIComponent(userId))
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.success) {
-                            alert("User deleted successfully");
-                            window.location.reload();
-                        } else {
-                            alert("Error deleting user: " + data.message);
-                        }
-                    })
-                    .catch(error => {
-                        alert("Error deleting user");
-                    });
-            } else {
-                alert("Please select a user");
-            }
+    function blockUser() { // Function to block the user entered in the input field
+        var username = document.getElementById('usernameSearch').value.trim(); // Get the username from the input field
+
+        if (username) {
+            fetch('scriptes/block_user.php?user=' + encodeURIComponent(username))
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert("User blocked successfully");
+                        window.location.reload();
+                    } else {
+                        alert("Error blocking user: " + data.message);
+                    }
+                })
+                .catch(error => {
+                    alert("Error blocking user");
+                });
+        } else {
+            alert("Please enter a username");
         }
     }
+
+    function unblockUser() { // Function to unblock the user entered in the input field
+    var username = document.getElementById('usernameSearch').value.trim(); // Get the username from the input field
+
+    if (username) {
+        fetch('scriptes/unblock_user.php?user=' + encodeURIComponent(username))
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert("User unblocked successfully");
+                    window.location.reload();
+                } else {
+                    alert("Error unblocking user: " + data.message);
+                }
+            })
+            .catch(error => {
+                alert("Error unblocking user");
+            });
+    } else {
+        alert("Please enter a username");
+    }
+}
+
     
 </script>
