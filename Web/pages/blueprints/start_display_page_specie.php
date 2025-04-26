@@ -3,7 +3,7 @@ require_once "./blueprints/page_init.php";
 require_once "./blueprints/gl_ap_start.php";
 
 // Number of races per page
-$perPage = 8;
+$perPage = 1;
 
 // Calculate the total number of pages
 $totalRacesQuery = $pdo->prepare("SELECT COUNT(*) FROM species");

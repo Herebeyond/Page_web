@@ -47,3 +47,47 @@ try {
 
 require_once "./blueprints/end_display_page_specie.php";
 ?>
+
+<script>
+    // Function to display the list of characters when clicking on a race
+    document.addEventListener('DOMContentLoaded', function () {
+        document.querySelectorAll('.race-item').forEach(function (raceItem) {
+            raceItem.addEventListener('click', function (event) {
+                event.stopPropagation(); // Prevent click event to propagate to parent elements
+
+                // Check if the clicked element has a child with class 'small-icon-list'
+                const hasArrow = this.querySelector('.small-icon-list');
+                if (!hasArrow) {
+                    return; // Prevent action if no arrow is present
+                }
+
+                const raceId = this.getAttribute('data-race-id');
+                const charactersList = document.getElementById(`characters-${raceId}`);
+
+                // Toggle visibility
+                if (charactersList.style.display === 'none') {
+                    // Fetch characters via AJAX
+                    fetch(`./scriptes/fetch_characters.php?race_id=${raceId}`)
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.error) {
+                                charactersList.innerHTML = `<li>${data.error}</li>`;
+                            } else {
+                                charactersList.innerHTML = data.map(character => `
+                                    <div class="character-item" onclick="window.location.href='./Character_display.php?character_id=${character.id_character}&race=${character.race_name}'">
+                                        <span>${character.character_name}</span>
+                                    </div>
+                                `).join('');
+                            }
+                            charactersList.style.display = 'block';
+                        })
+                        .catch(error => {
+                            console.error('Fetch error:', error); // Handle fetch error
+                        });
+                } else {
+                    charactersList.style.display = 'none';
+                }
+            });
+        });
+    });
+</script>

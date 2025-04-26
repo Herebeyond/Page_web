@@ -107,6 +107,46 @@ function sanitize_output($data) {
         }
     }
 
+    function fetchCharacterInfo() {
+        var characterName = document.querySelector('select[name="character_name"]').value; // Get the selected character name
+
+        if (characterName) {
+            fetch('scriptes/fetch_character_info.php?character=' + encodeURIComponent(characterName)) // Make a GET request to the backend
+                .then(response => {
+                    console.log("Raw response:", response); // Log the raw response
+                    if (!response.ok) { // Check if the response is not OK
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json(); // Parse the response as JSON
+                })
+                .then(data => {
+                    console.log("Parsed data:", data); // Log the parsed JSON data
+                    if (data.success) { // If the backend indicates success
+                        // Build the HTML for the character information
+                        let iconHtml = data.icon ? `<p>Icon link: ${escapeHtml(data.icon)}</p><p>Icon: <img id="imgEdit" src="../images/${escapeHtml(data.icon)}" alt="Display icon error"></p>` : '<p>Icon does not exist</p>';
+                        let ageHtml = data.age ? `<p>Age: ${escapeHtml(String(data.age))}</p>` : '<p>Age does not exist</p>';
+                        let countryHtml = data.country ? `<p>Country: ${escapeHtml(data.country)}</p>` : '<p>Country does not exist</p>';
+                        let habitatHtml = data.habitat ? `<p>Habitat: ${escapeHtml(data.habitat)}</p>` : '<p>Habitat does not exist</p>';
+                        let correspondenceHtml = data.correspondence ? `<p>Correspondence: ${escapeHtml(data.correspondence)}</p>` : '<p>Correspondence does not exist</p>';
+
+                        // Display the character information in the characterInfo div
+                        document.getElementById('characterInfo').innerHTML = iconHtml + ageHtml + countryHtml + habitatHtml + correspondenceHtml;
+                    } else {
+                        console.warn("Backend error message:", data.message); // Log the error message from the backend
+                        document.getElementById('characterInfo').innerHTML = '<p style="color:red;">' + escapeHtml(data.message) + '</p>';
+                    }
+                })
+                .catch(error => {
+                    console.error("Fetch operation error:", error); // Log any errors that occur during the fetch operation
+                    document.getElementById('characterInfo').innerHTML = '<p style="color:red;">Error fetching character info</p>';
+                });
+        } else {
+            console.warn("No character selected"); // Log a warning if no character is selected
+            document.getElementById('characterInfo').innerHTML = '<p style="color:red;">Please select a character</p>';
+        }
+    }
+
+
     function fetchUserInfo() { // Function to fetch and display user information
         var username = document.getElementById('usernameSearch').value.trim(); // Get the username from the input field
 
