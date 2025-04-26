@@ -1,5 +1,5 @@
 <?php
-require_once "./blueprints/page_init.php"; // includes the page initialization file
+require_once "./blueprints/page_init.php"; // Includes the page initialization file
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') { // Check if the form has been submitted
     if (isset($_POST['Race_name_Input'])) {
@@ -21,16 +21,39 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') { // Check if the form has been submi
     } else {
         $SelectedRace = null;
     }
-    $RaceIcon = isset($_POST['icon_Race']) ? trim($_POST['icon_Race']) : null;
+
     $RaceContent = isset($_POST['Race_text']) ? trim($_POST['Race_text']) : null;
     $Lifespan = isset($_POST['Lifespan']) ? trim($_POST['Lifespan']) : null;
     $Homeworld = isset($_POST['Homeworld']) ? trim($_POST['Homeworld']) : null;
     $Country = isset($_POST['Country']) ? trim($_POST['Country']) : null;
     $Habitat = isset($_POST['Habitat']) ? trim($_POST['Habitat']) : null;
-    $Unique = isset($_POST['Unique']) ? trim($_POST['Unique']) : 0;
+
+
+    // Handle file upload for the race icon
+    $RaceIcon = null;
+    if (isset($_FILES['icon_race']) && $_FILES['icon_race']['error'] === UPLOAD_ERR_OK) {
+        $uploadDir = __DIR__ . '/../images/'; // Define the target directory (relative to the current file)
+        $uniqueName = uniqid() . '_' . basename($_FILES['icon_race']['name']); // Generate a unique name
+        $uploadFile = $uploadDir . $uniqueName; // Define the target file path
+
+        // Ensure the images directory exists
+        if (!is_dir($uploadDir)) {
+            mkdir($uploadDir, 0777, true); // Create the directory if it doesn't exist
+        }
+
+        // Move the uploaded file to the target directory
+        if (move_uploaded_file($_FILES['icon_race']['tmp_name'], $uploadFile)) { // Check if the file was moved successfully
+            $RaceIcon = $uniqueName; // Save the unique name to the database
+        } else {
+            $_SESSION['error'] = "Failed to upload the race icon.";
+            header('Location: Race_add.php');
+            exit;
+        }
+    }
+
 
     // Retrieve the race name from the database
-    $stmt = $pdo->prepare("SELECT * FROM races WHERE race_name = ?"); 
+    $stmt = $pdo->prepare("SELECT * FROM races WHERE race_name = ?");
     $stmt->execute([$RaceName]);
     $Race = $stmt->fetch();
 
@@ -40,12 +63,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') { // Check if the form has been submi
         $params = [];
         $RaceName = $_POST['Race_name'];
 
-        if ($correspondence !== '' && $RaceIcon != null) {
+        if ($correspondence !== '' && $correspondence != null) {
             $fields[] = 'correspondence = ?';
             $params[] = $correspondence;
         }
         if ($RaceIcon !== '' && $RaceIcon != null) {
-            $fields[] = 'icon_Race = ?';
+            $fields[] = 'icon_race = ?';
             $params[] = $RaceIcon;
         }
         if ($RaceContent !== '' && $RaceContent != null) {
@@ -98,7 +121,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') { // Check if the form has been submi
         exit;
     } else {
         // Insert the new race into the database
-        $stmt = $pdo->prepare("INSERT INTO races (race_name, correspondence, icon_Race, content_Race, lifespan, homeworld, country, habitat) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
+        $stmt = $pdo->prepare("INSERT INTO races (race_name, correspondence, icon_race, content_Race, lifespan, homeworld, country, habitat) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
         $stmt->execute([$RaceName, $correspondence, $RaceIcon, $RaceContent, $Lifespan, $Homeworld, $Country, $Habitat]);
         $_SESSION['success'] = "Race added successfully";
         header('Location: Race_add.php');
@@ -113,7 +136,7 @@ require_once "./blueprints/gl_ap_start.php";
     <button id="Return" onclick="window.history.back()">Return</button><br>
 
     <h2> Add a Race </h2><br>
-    <form method="POST" action="Race_add.php" onsubmit="return validateForm()">
+    <form method="POST" action="Race_add.php" enctype="multipart/form-data" onsubmit="return confirmSubmit()">
         <label>Race Name</label>
         <input type="text" name="Race_name_Input"> <!-- To name a new race being created -->
         <select name="Race_name"> <!-- Dropdown selection to choose a race to modify -->
@@ -140,8 +163,8 @@ require_once "./blueprints/gl_ap_start.php";
                 }
             ?>
         </select><br>
-        <label name="icon_Race">Race Icon</label>
-        <input type="file" name="icon_Race"><br>
+        <label>Race Icon</label>
+        <input type="file" name="icon_race"><br>
         <label>Lifespan</label>
         <input type="text" name="Lifespan"><br>
         <label>Homeworld</label>

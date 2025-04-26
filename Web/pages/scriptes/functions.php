@@ -21,6 +21,7 @@ function sanitize_output($data) {
 
 
 
+
 ?>
 <script>
 
@@ -145,7 +146,6 @@ function sanitize_output($data) {
             document.getElementById('characterInfo').innerHTML = '<p style="color:red;">Please select a character</p>';
         }
     }
-
 
     function fetchUserInfo() { // Function to fetch and display user information
         var username = document.getElementById('usernameSearch').value.trim(); // Get the username from the input field

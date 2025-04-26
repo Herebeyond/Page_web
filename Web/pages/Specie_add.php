@@ -1,5 +1,5 @@
 <?php
-require_once "./blueprints/page_init.php"; // includes the page initialization file
+require_once "./blueprints/page_init.php"; // Includes the page initialization file
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') { // Check if the form has been submitted
     if (isset($_POST['SpecieNameInput'])) {
@@ -7,12 +7,33 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') { // Check if the form has been submi
     } else {
         $SpecieName = isset($_POST['SpecieName']) ? trim($_POST['SpecieName']) : null;
     }
-    $Specie_Icon = isset($_POST['icon_Specie']) ? trim($_POST['icon_Specie']) : null;
-    $Specie_content = isset($_POST['Specie_text']) ? trim($_POST['Specie_text']) : null;
-    $Unique = isset($_POST['Unique']) ? trim($_POST['Unique']) : 0; // Default to 0 if not set, making it Multiple by default
+
+    $SpecieContent = isset($_POST['Specie_text']) ? trim($_POST['Specie_text']) : null;
+
+    // Handle file upload for the specie icon
+    $SpecieIcon = null;
+    if (isset($_FILES['icon_Specie']) && $_FILES['icon_Specie']['error'] === UPLOAD_ERR_OK) {
+        $uploadDir = __DIR__ . '/../images/'; // Define the target directory (relative to the current file)
+        $uniqueName = uniqid() . '_' . basename($_FILES['icon_Specie']['name']); // Generate a unique name
+        $uploadFile = $uploadDir . $uniqueName; // Define the target file path
+
+        // Ensure the images directory exists
+        if (!is_dir($uploadDir)) {
+            mkdir($uploadDir, 0777, true); // Create the directory if it doesn't exist
+        }
+
+        // Move the uploaded file to the target directory
+        if (move_uploaded_file($_FILES['icon_Specie']['tmp_name'], $uploadFile)) { // Check if the file was moved successfully
+            $SpecieIcon = $uniqueName; // Save the unique name to the database
+        } else {
+            $_SESSION['error'] = "Failed to upload the specie icon.";
+            header('Location: Specie_add.php');
+            exit;
+        }
+    }
 
     // Retrieve the specie name from the database
-    $stmt = $pdo->prepare("SELECT * FROM species WHERE specie_name = ?"); 
+    $stmt = $pdo->prepare("SELECT * FROM species WHERE specie_name = ?");
     $stmt->execute([$SpecieName]);
     $Specie = $stmt->fetch();
 
@@ -22,25 +43,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') { // Check if the form has been submi
         $params = [];
         $SpecieName = $_POST['SpecieName'];
 
-        if ($Specie_Icon !== '' && $Specie_Icon != null) {
+        if ($SpecieIcon !== '' && $SpecieIcon != null) {
             $fields[] = 'icon_Specie = ?';
-            $params[] = $Specie_Icon;
+            $params[] = $SpecieIcon;
         }
-        if ($Specie_content !== '' && $Specie_content != null) {
+        if ($SpecieContent !== '' && $SpecieContent != null) {
             $fields[] = 'content_Specie = ?';
-            $params[] = $Specie_content;
+            $params[] = $SpecieContent;
         }
 
+        $params[] = $SpecieName;
 
-        if (count($fields) > 0) {
-            $fields = implode(', ', $fields);
-            $params[] = $SpecieName;
-            $stmt = $pdo->prepare("UPDATE species SET $fields WHERE specie_name = ?");
+        if (!empty($fields)) { // Check if there are fields to update
+            $sql = "UPDATE species SET " . implode(', ', $fields) . " WHERE specie_name = ?";
+            $stmt = $pdo->prepare($sql);
             $stmt->execute($params);
+
             $_SESSION['success'] = "Specie updated successfully";
         } else {
             $_SESSION['error'] = "No fields to update";
         }
+
         header('Location: Specie_add.php');
         exit;
     }
@@ -53,14 +76,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') { // Check if the form has been submi
     } else {
         // Insert the new specie into the database
         $stmt = $pdo->prepare("INSERT INTO species (specie_name, icon_Specie, content_Specie) VALUES (?, ?, ?)");
-        $stmt->execute([$SpecieName, $Specie_Icon, $Specie_content]);
+        $stmt->execute([$SpecieName, $SpecieIcon, $SpecieContent]);
         $_SESSION['success'] = "Specie added successfully";
         header('Location: Specie_add.php');
         exit;
     }
 }
 
-require_once "./blueprints/gl_ap_start.php"; // includes the start of the general page file
+require_once "./blueprints/gl_ap_start.php";
 ?>
 
 <div id="mainText"> <!-- Right div -->
@@ -77,7 +100,7 @@ require_once "./blueprints/gl_ap_start.php"; // includes the start of the genera
     ?>
 
     <h2> Add a Specie </h2><br>
-    <form method="POST" action="Specie_add.php">
+    <form method="POST" action="Specie_add.php" enctype="multipart/form-data" onsubmit="return confirmSubmit()">
         <label for="SpecieName">Specie Name</label>
         <input type="text" name="SpecieNameInput"> <!-- To name a new specie being created -->
         <select name="SpecieName"> <!-- To select an existing specie to modify -->

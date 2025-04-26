@@ -137,7 +137,7 @@ require_once "./blueprints/gl_ap_start.php";
     <button id="Return" onclick="window.history.back()">Return</button><br>
 
     <h2> Add a Character </h2><br>
-    <form method="POST" action="Character_add.php" enctype="multipart/form-data" onsubmit="return validateForm()"> <!-- enctype is used to upload files -->
+    <form method="POST" action="Character_add.php" enctype="multipart/form-data" onsubmit="return confirmSubmit()"> <!-- enctype is used to upload files -->
         <label>Character Name</label>
         <input type="text" name="character_name_Input"> <!-- To name a new character being created -->
         <select name="character_name"> <!-- Dropdown selection to choose a character to modify -->
