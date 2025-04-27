@@ -52,7 +52,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') { // Check if the form has been submi
         $_SESSION['last_failed_attempt'] = null;
 
         $_SESSION['user'] = $user['id']; // Log in the user
-        header('Location: ../pages/Homepage.php');
+
+        // Direct to the last page visited or homepage
+        header('Location: ' . ($_SESSION['last_page'] ?? '../pages/Homepage.php')); // Redirect to the last page visited or homepage
         exit;
     } else {
         // Increment failed attempts on unsuccessful login

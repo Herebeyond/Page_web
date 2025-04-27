@@ -10,6 +10,8 @@ session_start([
     'use_only_cookies' => true,
 ]);
 
+$_SESSION['last_page'] = $_SERVER['REQUEST_URI']; // Save the current page URL
+
 // Regenerate session ID to prevent session fixation
 if (!isset($_SESSION['initiated'])) {
     session_regenerate_id(true);
@@ -37,7 +39,7 @@ require_once __DIR__ . '/../scriptes/authorisation.php'; // includes the authori
 // store the name of the current page
 $current_page = htmlspecialchars(pathinfo(basename($_SERVER['PHP_SELF']), PATHINFO_FILENAME));
 
-/// BLOCKED VERIFICATION
+/// BLOCKED USER VERIFICATION
 if (isset($_SESSION['user'])) {
     // Retrieve the username from the database
     $stmt = $pdo->prepare("SELECT * FROM users WHERE id = ?");
@@ -76,14 +78,26 @@ if (is_dir($dir)) { // if the directory exists
 // Check if the user is admin or not
 if (isset($_SESSION['user']) && $user['admin'] == 1) {
     // User is admin
-} elseif ((isset($_SESSION['user']) && ($user["admin"] == null || $user["admin"] == '')) || !isset($_SESSION['user'])) { // If the user is not logged in or the user is not admin
+} elseif (!isset($_SESSION['user'])) { // If the user is not logged in
+    // User is not logged in
+    // Loop through the array until the current page is found
+    foreach ($pages as $page) {
+        // If the page authorisation is admin, block the page
+        if ($authorisation[$page] == 'admin' && $page == $current_page) {
+            echo "<p>You need to be logged and have a certain role to access this page</p><br>";
+            echo "<a href='../login/login.php'>Log here</a><span> or </span>";
+            echo "<a href='./Homepage.php'>Go back safely here</a>";
+            exit();
+        }
+    }
+} elseif (isset($_SESSION['user']) && ($user["admin"] == null || $user["admin"] == '')) { // If the user is not an admin
     // User is not admin
     // Loop through the array until the current page is found
     foreach ($pages as $page) {
         // If the page authorisation is admin, block the page
         if ($authorisation[$page] == 'admin' && $page == $current_page) {
-            echo "<p>You are not authorised to access this page.</p><br>";
-            echo "<a href='./Homepage.php'>Go back safely</a>";
+            echo "<p>You do not have the authorisation to access this page</p><br>";
+            echo "<a href='./Homepage.php'>Go back safely here</a>";
             exit();
         }
     }
