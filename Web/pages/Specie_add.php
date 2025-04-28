@@ -14,7 +14,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') { // Check if the form has been submi
     $SpecieIcon = null;
     if (isset($_FILES['icon_Specie']) && $_FILES['icon_Specie']['error'] === UPLOAD_ERR_OK) {
         $uploadDir = __DIR__ . '/../images/'; // Define the target directory (relative to the current file)
-        $uniqueName = uniqid() . '_' . basename($_FILES['icon_Specie']['name']); // Generate a unique name
+        $fileInfo = pathinfo($_FILES['icon_specie']['name']); // Get file information
+        $extension = strtolower($fileInfo['extension']); // Get the file extension and convert it to lowercase
+        $fileNameWithoutExtension = basename($fileInfo['filename']); // Get the filename without the extension
+        $uniqueName = $fileNameWithoutExtension . '_' . uniqid() . '.' . $extension; // Generate a unique name with the same extension
         $uploadFile = $uploadDir . $uniqueName; // Define the target file path
 
         // Ensure the images directory exists

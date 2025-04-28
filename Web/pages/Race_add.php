@@ -33,7 +33,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') { // Check if the form has been submi
     $RaceIcon = null;
     if (isset($_FILES['icon_race']) && $_FILES['icon_race']['error'] === UPLOAD_ERR_OK) {
         $uploadDir = __DIR__ . '/../images/'; // Define the target directory (relative to the current file)
-        $uniqueName = uniqid() . '_' . basename($_FILES['icon_race']['name']); // Generate a unique name
+        // Separate the extension from the filename
+        $fileInfo = pathinfo($_FILES['icon_race']['name']); // Get file information
+        $extension = strtolower($fileInfo['extension']); // Get the file extension and convert it to lowercase
+        $fileNameWithoutExtension = basename($fileInfo['filename']); // Get the filename without the extension
+        $uniqueName = $fileNameWithoutExtension . '_' . uniqid() . '.' . $extension; // Generate a unique name with the same extension
         $uploadFile = $uploadDir . $uniqueName; // Define the target file path
 
         // Ensure the images directory exists
@@ -105,7 +109,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') { // Check if the form has been submi
         } else {
             $_SESSION['error'] = "No fields to update";
         }
-
+        
         header('Location: Race_add.php');
         exit;
     }
