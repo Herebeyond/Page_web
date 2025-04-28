@@ -40,7 +40,7 @@ function sanitize_output($data) {
         return str.replace(/\n/g, '<br>');
     }
 
-    function fetchSpecieInfo() { // Fonction for getting and display the information of the specie selected in the option of the select in the form thanks to the button Fetch Info
+    function fetchSpecieInfo() { // Fonction for getting and display the information of the specie selected in the options of the select in the form thanks to the button Fetch Info in Specie_add.php
         var specieName = document.querySelector('select[name="SpecieName"]').value;
         if (specieName) {
             fetch('scriptes/fetch_specie_info.php?specie=' + encodeURIComponent(specieName))
@@ -68,7 +68,7 @@ function sanitize_output($data) {
         }
     }
 
-    function fetchRaceInfo() { // Fonction for getting and display the information of the race selected in the option of the select in the form thanks to the button Fetch Info
+    function fetchRaceInfo() { // Fonction for getting and display the information of the race selected in the options of the select in the form thanks to the button Fetch Info in Race_add.php
         var raceName = document.querySelector('select[name="Race_name"]').value; // Get the selected race name
 
         if (raceName) {
@@ -108,7 +108,7 @@ function sanitize_output($data) {
         }
     }
 
-    function fetchCharacterInfo() {
+    function fetchCharacterInfo() { // Fonction for getting and display the information of the character selected in the options of the select in the form thanks to the button Fetch Info in Character_add.php
         var characterName = document.querySelector('select[name="character_name"]').value; // Get the selected character name
 
         if (characterName) {

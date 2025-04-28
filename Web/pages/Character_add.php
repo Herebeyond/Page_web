@@ -147,8 +147,13 @@ require_once "./blueprints/gl_ap_start.php";
                 $stmt = $pdo->prepare("SELECT * FROM characters ORDER BY character_name;");
                 $stmt->execute();
                 while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
-                    // Check if the current character matches selectedCharacter
-                    $selected = ($row['character_name'] === $selectedCharacter) ? 'selected' : '';
+                    // Check if the current character matches selectedCharacter or the character_id in the URL
+                    $selected = '';
+                    if (isset($_GET['character_id']) && $_GET['character_id'] == $row['id_character']) {
+                        $selected = 'selected';
+                    } elseif ($row['character_name'] === $selectedCharacter) {
+                        $selected = 'selected';
+                    }
                     echo '<option value="' . sanitize_output($row['character_name']) . '" ' . $selected . '>' . sanitize_output($row['character_name']) . '</option>';
                 }
             ?>
@@ -156,11 +161,24 @@ require_once "./blueprints/gl_ap_start.php";
         <label for="correspondence">Correspondence</label>
         <select name="correspondence" id="correspondence" required> <!-- Dropdown list to select the character's correspondence with which race -->
             <option value="">Select a race</option>
-            <?php // Retrieve the names of the races from the database and display them in a dropdown list
+            <?php 
+                // Retrieve the race corresponding to the character_id from the database
+                $SelectedRace = null;
+                if (isset($_GET['character_id'])) { // If there is character_id in the URL, fetch the corresponding race
+                    $stmt = $pdo->prepare("SELECT race_name FROM characters 
+                                        JOIN races ON characters.correspondence = races.id_race
+                                        WHERE id_character = ?");
+                    $stmt->execute([$_GET['character_id']]);
+                    $SelectedRace = $stmt->fetchColumn();
+                }
+
+
+                // Retrieve the names of the races from the database and display them in a dropdown list
                 $stmt = $pdo->prepare("SELECT * FROM races ORDER BY race_name;");
                 $stmt->execute();
                 while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
-                    echo '<option value="' . sanitize_output($row['race_name']) . '">' . sanitize_output($row['race_name']) . '</option>';
+                    $selected = ($row['race_name'] === $SelectedRace) ? 'selected' : '';
+                    echo '<option value="' . sanitize_output($row['race_name']) . '" ' . $selected . '>' . sanitize_output($row['race_name']) . '</option>';
                 }
             ?>
         </select><br>

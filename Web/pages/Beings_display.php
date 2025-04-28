@@ -75,6 +75,9 @@ if (isset($_GET['specie'])) {
 
 <div id='mainText'> <!-- Right div -->
     <button id="Return" onclick="window.history.back()">Return</button><br><br>
+
+
+
     <?php if ($error_msg) { // display the error message if there is one
         echo "<span class='title'>" . sanitize_output($error_msg) . "</span>";
         exit; // exit the script if there is an error message
@@ -88,6 +91,8 @@ if (isset($_GET['specie'])) {
             $queryR = $pdo->prepare("SELECT * FROM species WHERE specie_name = ?");
             $queryR->execute([$specie]);
 
+
+
             // Generate the main text of the page
             $rowR = $queryR->fetch(PDO::FETCH_ASSOC);
             if ($rowR) { // the if instead of while allows retrieving a single row
@@ -98,6 +103,13 @@ if (isset($_GET['specie'])) {
                 }
             } else {
                 echo "No data found for the $specie Specie.";
+            }
+
+            // If the user is logged and is an admin, display the edit button
+            if (isset($_SESSION['user']) && $user['admin'] == 1) { // if the user is logged and is an admin
+                echo "<div class='editButton'>
+                        <a href='Specie_add.php?specie_id=" . sanitize_output($rowR['id_specie']) . "'>Edit</a>
+                    </div>";
             }
 
             echo '<br><br>';

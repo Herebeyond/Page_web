@@ -105,17 +105,22 @@ require_once "./blueprints/gl_ap_start.php";
         <input type="text" name="SpecieNameInput"> <!-- To name a new specie being created -->
         <select name="SpecieName"> <!-- To select an existing specie to modify -->
             <option value="">Select a specie</option>
-            <?php // Retrieve the names of the species from the database and display them in a dropdown list
+            <?php 
+                // Retrieve the names of the species from the database and display them in a dropdown list
                 $stmt = $pdo->prepare("SELECT * FROM species ORDER BY specie_name;");
                 $stmt->execute();
                 while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
-                    echo '<option value="' . sanitize_output($row['specie_name']) . '">' . sanitize_output($row['specie_name']) . '</option>';
+                    // Check if the current specie matches the specie_id in the URL
+                    $selected = '';
+                    if (isset($_GET['specie_id']) && $_GET['specie_id'] == $row['id_specie']) {
+                        $selected = 'selected';
+                    }
+                    echo '<option value="' . sanitize_output($row['specie_name']) . '" ' . $selected . '>' . sanitize_output($row['specie_name']) . '</option>';
                 }
             ?>
         </select><br>
-        <label for="Specie_icon">Specie Icon</label>
+        <label for="Specie_icon">Specie Icon (Max 5Mo)</label>
         <input type="file" name="icon_Specie"><br>
-
         <label for="Specie_text">Specie content</label><br>
         <input type="text" name="Specie_text" id="content_input"><br><br>
         <button type="submit">Submit</button>

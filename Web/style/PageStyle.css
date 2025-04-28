@@ -17,6 +17,20 @@ html body {
     padding: 0px;
 }
 
+.editButton { /* Position the button in the top right corner */
+    position: absolute;
+    top: 10px; /* Adjust as needed */
+    right: 10px; /* Adjust as needed */
+    background-color: #090842; /* Background color */
+    color: white; /* Text color */
+    border: none; /* No border */
+    padding: 10px; /* Padding around text */
+    font-weight: bold; /* Bold text */
+    cursor: pointer; /* Pointer cursor on hover */
+    border-radius: 50px 50px 50px 50px;
+    
+}
+
 #imgEdit {
     max-width: 400px;
     width: auto;
@@ -346,7 +360,6 @@ html body {
     margin: 50px;
     margin-inline: 2%; /* Margin between elements */
     padding: 20px;
-    opacity: 0.96;
     color: white;
     border-radius: 8px 8px 8px 8px;
     height: fit-content;

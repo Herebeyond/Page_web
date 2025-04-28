@@ -146,24 +146,41 @@ require_once "./blueprints/gl_ap_start.php";
                 $stmt = $pdo->prepare("SELECT * FROM races ORDER BY race_name;");
                 $stmt->execute();
                 while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
-                    // Check if the current race matches SelectedRace
-                    $selected = ($row['race_name'] === $SelectedRace) ? 'selected' : '';
+                    // Check if the current race matches SelectedRace or the race_id in the URL
+                    $selected = '';
+                    if (isset($_GET['race_id']) && $_GET['race_id'] == $row['id_race']) {
+                        $selected = 'selected';
+                    } elseif ($row['race_name'] === $SelectedRace) {
+                        $selected = 'selected';
+                    }
                     echo '<option value="' . sanitize_output($row['race_name']) . '" ' . $selected . '>' . sanitize_output($row['race_name']) . '</option>';
                 }
             ?>
         </select><br>
         <label for="correspondence">correspondence</label>
-        <select name="correspondence" id="correspondence" required > <!-- Dropdown list to select the race's correspondence with which specie -->
+        <select name="correspondence" id="correspondence" required> <!-- Dropdown list to select the race's correspondence with which specie -->
             <option value="">Select a specie</option>
-            <?php // Retrieve the names of the species from the database and display them in a dropdown list
+            <?php 
+                // Retrieve the specie corresponding to the race_id from the database
+                $selectedSpecie = null;
+                if (isset($_GET['race_id'])) { // If there is race_id in the URL, fetch the corresponding specie
+                    $stmt = $pdo->prepare("SELECT species.specie_name FROM races 
+                                        JOIN species ON races.correspondence = species.id_specie 
+                                        WHERE races.id_race = ?");
+                    $stmt->execute([$_GET['race_id']]);
+                    $selectedSpecie = $stmt->fetchColumn(); // Get the specie name corresponding to the race_id
+                }
+
+                // Retrieve the names of the species from the database and display them in a dropdown list
                 $stmt = $pdo->prepare("SELECT * FROM species ORDER BY specie_name;");
                 $stmt->execute();
                 while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
-                    echo '<option value="' . sanitize_output($row['specie_name']) . '">' . sanitize_output($row['specie_name']) . '</option>';
+                    $selected = ($row['specie_name'] === $selectedSpecie) ? 'selected' : '';
+                    echo '<option value="' . sanitize_output($row['specie_name']) . '" ' . $selected . '>' . sanitize_output($row['specie_name']) . '</option>';
                 }
             ?>
         </select><br>
-        <label>Race Icon</label>
+        <label>Race Icon (Max 5Mo)</label>
         <input type="file" name="icon_race"><br>
         <label>Lifespan</label>
         <input type="text" name="Lifespan"><br>
