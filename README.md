@@ -40,6 +40,7 @@
       * Attention, les champs non-remplis ne seront pas modifié, il n'y a donc pas besoin de rentrer toutes les informations lors d'une modification, cependant si il y a un espace, un caractère ou plus à l'intérieur, l'information précédente sera écrasé par cette nouvelle donnée.
    * Il est possible d'ajouter une image à chacun d'entre eux dans la rubrique "[character/race/specie] icon" en choisissant un fichier présent sur votre ordinateur
       * Le fichier sera alors téléchargé dans un dossier prévu sur le serveur, le fichier aura alors comme nom le nom original du fichier avec un id unique ajouté
+      * De préférance, ajouter des images au format carré pour la mise en forme
    * Dans chacune de ces pages il y a un boutton "Fetch Info" qui, une fois cliqué, affichera les informations de la race/espèce/personnage sélectionné plus haut
       * Cela ne marche pas si rien n'est sélectionné, par exemple lors d'une création au lieu d'une modification
    * Il est possible de supprimer la sélection en cliquant sur le boutton "Delete [race/specie/character]"
