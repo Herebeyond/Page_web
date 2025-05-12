@@ -1,5 +1,4 @@
 <?php
-// filepath: c:\Users\baill\OneDrive\Desktop\Docker\html\test\Web\pages\scriptes\block_user.php
 
 require_once '../../login/db.php'; // Include the database connection
 

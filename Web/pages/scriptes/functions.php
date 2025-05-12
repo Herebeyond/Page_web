@@ -241,18 +241,33 @@ function sanitize_output($data) {
         var username = document.getElementById('usernameSearch').value.trim(); // Get the username from the input field
 
         if (username) {
-            fetch('scriptes/block_user.php?user=' + encodeURIComponent(username))
+            // Rechercher l'ID utilisateur correspondant au nom d'utilisateur
+            fetch('scriptes/search_user.php?query=' + encodeURIComponent(username))
                 .then(response => response.json())
                 .then(data => {
-                    if (data.success) {
-                        alert("User blocked successfully");
-                        window.location.reload();
+                    if (data.success && data.users.length > 0) {
+                        const userId = data.users[0].id; // Supposons que le premier utilisateur correspond
+
+                        // Envoyer une requête pour bloquer l'utilisateur
+                        fetch('scriptes/block_user.php?user=' + encodeURIComponent(userId))
+                            .then(response => response.json())
+                            .then(data => {
+                                if (data.success) {
+                                    alert("User blocked successfully");
+                                    window.location.reload();
+                                } else {
+                                    alert("Error blocking user: " + data.message);
+                                }
+                            })
+                            .catch(error => {
+                                alert("Error blocking user");
+                            });
                     } else {
-                        alert("Error blocking user: " + data.message);
+                        alert("User not found");
                     }
                 })
                 .catch(error => {
-                    alert("Error blocking user");
+                    alert("Error searching for user");
                 });
         } else {
             alert("Please enter a username");
@@ -260,26 +275,41 @@ function sanitize_output($data) {
     }
 
     function unblockUser() { // Function to unblock the user entered in the input field
-    var username = document.getElementById('usernameSearch').value.trim(); // Get the username from the input field
+        var username = document.getElementById('usernameSearch').value.trim(); // Get the username from the input field
 
-    if (username) {
-        fetch('scriptes/unblock_user.php?user=' + encodeURIComponent(username))
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    alert("User unblocked successfully");
-                    window.location.reload();
-                } else {
-                    alert("Error unblocking user: " + data.message);
-                }
-            })
-            .catch(error => {
-                alert("Error unblocking user");
-            });
-    } else {
-        alert("Please enter a username");
+        if (username) {
+            // Rechercher l'ID utilisateur correspondant au nom d'utilisateur
+            fetch('scriptes/search_user.php?query=' + encodeURIComponent(username))
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success && data.users.length > 0) {
+                        const userId = data.users[0].id; // Supposons que le premier utilisateur correspond
+
+                        // Envoyer une requête pour débloquer l'utilisateur
+                        fetch('scriptes/unblock_user.php?user=' + encodeURIComponent(userId))
+                            .then(response => response.json())
+                            .then(data => {
+                                if (data.success) {
+                                    alert("User unblocked successfully");
+                                    window.location.reload();
+                                } else {
+                                    alert("Error unblocking user: " + data.message);
+                                }
+                            })
+                            .catch(error => {
+                                alert("Error unblocking user");
+                            });
+                    } else {
+                        alert("User not found");
+                    }
+                })
+                .catch(error => {
+                    alert("Error searching for user");
+                });
+        } else {
+            alert("Please enter a username");
+        }
     }
-}
 
     
 </script>
