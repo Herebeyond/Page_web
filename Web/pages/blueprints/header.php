@@ -4,7 +4,8 @@
 <div id=header>
     <img id=icon src='../images/Eye.jpg'> <!-- Display the header icon -->
     <div id=divTitre>
-        <span class=Title> Les Chroniques de la Faille <br> Les mondes oubliés </span>
+        <span class=Title>Les Chroniques de la Faille</span>
+        <span class=Title>Les mondes oubliés</span>
 
     </div>
 
@@ -73,6 +74,11 @@
                 </ul>
             </li>
         </ul>
+
+        <?php /*
+        Stopped using this dropdown menu because it was becoming too long and not very useful
+
+        // Display all species un a dropdown menu
         <ul class=menu>
             <li class=menu-item>
                 <div id=liSpecies class=divLi onclick=window.location.href='./Species.php'>
@@ -131,6 +137,8 @@
                 </ul>
             </li>
         </ul> 
+        */ ?>
+        
 
 
         <?php
@@ -202,11 +210,17 @@
             $stmt = $pdo->prepare("SELECT username, icon FROM users WHERE id = ?");
             $stmt->execute([$_SESSION['user']]);
             $user = $stmt->fetch();
-            echo '<div id="Login">';
+
+            if ($user['icon'] == null) { // If the user has no icon, set a default icon
+                $user['icon'] = "small_img/default_user_icon.png";
+            }
+
+
+            echo '<div id="Login">'; // Div for the user icon and name   
             echo '  <img id="iconUser" src="../images/' . sanitize_output($user['icon']) . '">'; // Display the user icon
 
             echo '  <div id="LoginCo">'; // Div for the username and logout link
-            echo "      <span>Welcome, " . sanitize_output($user['username']) . "!</span>"; // Display the username
+            echo "      <span>Welcome<br>" . sanitize_output($user['username']) . "!</span>"; // Display the username
             echo '      <a href="../login/logout.php">Disconnect</a>'; // Logout link
             echo '  </div>';
             echo '</div>';
@@ -216,9 +230,9 @@
             echo '</div>';
         }
         ?>
-        <div id=Connect onclick=window.location.href="./Homepage.php">
-            <a> La Grande Librairie </a> <!-- Link to the home page -->
-        </div>
+    </div>
+    <div id=Connect onclick=window.location.href="./Homepage.php">
+        <span> La Grande Librairie </span> <!-- Link to the home page -->
     </div>
 </div>
 <script>

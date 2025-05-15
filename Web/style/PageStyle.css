@@ -166,7 +166,7 @@ html body {
     display: flex;
     align-items: center; /* Center vertically */
     justify-content: space-between;
-    height: 140px;
+    height: 200px;
     background-color: black;
     opacity: 0.94;
     border-radius: 0 0 50px 50px;
@@ -216,7 +216,7 @@ html body {
 #divTitre {
     display: grid;
     place-items: center;
-    width: 80%; /* 80% of the page width */
+    width: fit-content; /* Fit content width */
     max-width: 1200px; /* Maximum width of the title section */
     margin: 0; /* Center the title section */
     color: rgb(90, 14, 189);
@@ -239,7 +239,6 @@ html body {
     display: flex;
     flex-direction: column;
     align-items: center;
-    padding-right: 40;
 }
 
 #Login {
@@ -294,6 +293,7 @@ html body {
     background-color: rgb(138, 67, 0);
     color: rgb(116, 0, 0);
     padding: 20px;
+    margin-right: 4%;
     font-family: 'Cinzel', serif;
 }
 
