@@ -1,6 +1,7 @@
 <?php
 
 
+// To determine if a user has access to a page and/or is displayed, we will check the following:
 $authorisation = array(
     'Homepage' => 'all',
     'Map' => 'all',
@@ -20,6 +21,9 @@ $authorisation = array(
 
 );
 
+
+// To determine if the page is displayed normally or as the branch of another one, we will check the following:
+// Other uses can be added later
 $type = array(
     'Homepage' => 'common',
     'Map' => 'common',
