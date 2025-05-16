@@ -102,11 +102,11 @@ services:
       PMA_HOST: db
 
 ## Dockerfile
-'''dockerfile
-# Utiliser l'image PHP avec Apache
+
+### Utiliser l'image PHP avec Apache
 FROM php:8.2-apache
 
-# Installer les extensions nécessaires
+### Installer les extensions nécessaires
 RUN apt-get update && apt-get install -y \
     libzip-dev \
     unzip \
@@ -118,34 +118,34 @@ RUN apt-get update && apt-get install -y \
     && docker-php-ext-configure gd --with-freetype --with-jpeg --with-webp \
     && docker-php-ext-install gd
 
-# Copier le contenu du répertoire html dans le répertoire /var/www/html du conteneur
+### Copier le contenu du répertoire html dans le répertoire /var/www/html du conteneur
 COPY ./html /var/www/html
 
-# Activer les modules Apache nécessaires (si nécessaire)
+### Activer les modules Apache nécessaires (si nécessaire)
 RUN a2enmod rewrite
 
-# Copier le fichier cacert.pem dans le conteneur
+### Copier le fichier cacert.pem dans le conteneur
 COPY ./cacert.pem /etc/ssl/certs/cacert.pem
 
-# Configurer PHP pour utiliser le fichier cacert.pem
+### Configurer PHP pour utiliser le fichier cacert.pem
 RUN echo "curl.cainfo = /etc/ssl/certs/cacert.pem" >> /usr/local/etc/php/conf.d/curl-ca.ini
 RUN echo "openssl.cafile = /etc/ssl/certs/cacert.pem" >> /usr/local/etc/php/conf.d/openssl-ca.ini
 
-# Copier le fichier composer.json et installer les dépendances
+### Copier le fichier composer.json et installer les dépendances
 COPY composer.json /var/www/html/composer.json
 
-# Définir le répertoire de travail
+### Définir le répertoire de travail
 WORKDIR /var/www/html
 
-# Installer Composer
+### Installer Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
-# Installer les dépendances PHP
+### Installer les dépendances PHP
 RUN composer install
 
-# Commande par défaut
+### Commande par défaut
 CMD ["apache2-foreground"]
-'''
+
 
 ## php.ini (optionel)
 Permet de limiter la taille des images téléchargées. a changer au besoin mais il faudra aussi changer les commentaires dans les pages en "_add.php".
