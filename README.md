@@ -106,7 +106,7 @@ services:
 ### Utiliser l'image PHP avec Apache
 FROM php:8.2-apache
 
-### Installer les extensions nécessaires
+### #Installer les extensions nécessaires
 RUN apt-get update && apt-get install -y \
     libzip-dev \
     unzip \
