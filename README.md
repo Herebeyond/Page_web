@@ -46,3 +46,124 @@
    * Il est possible de supprimer la sélection en cliquant sur le boutton "Delete [race/specie/character]"
    * Pour enregistrer les modifications, cliquer sur le boutton "Submit"
    * Les pages des races et personnages ont une catégorie "correspondence" qui permet de dire à quel espèce et race ils correspondent respectivement
+   * si l'utilisateur est connecté, un engrenage s'affichera à coté de son pseudonyme. cliquer dessus redirigera vers la page des paramètre utilisateur.
+* Si vous souhaitez ajouter ou supprimer une page, il est impératif de supprimer son nom dans le script "authorisation.php" qui apparaitra dans les array $authorisation et $type
+
+
+# Arborescence
+* Web - racine du git, en plus des dossier il y a le fichier de connection à la BDD et un .gitignore
+   * BDD (dossier vide, à supprimer)
+   * images - là où sont téléchargées et stockés toutes les images utilisées sur le site
+      * map - images spécifiques à la page "Map.php"
+      * small_icon - petites images utilisées pour les icons
+      * small_img - images de petites tailles utilisés pour les utilitaires
+      * unused - images qui ne servent pas mais je je souhaite garder temporairement pour une potentielle utilisation futur
+   * login - les pages permettant de se connecter, s'enregistrer, se déconnecter et la connection à la base de données
+   * pages - là où se trouve toutes les pages du site 
+      * blueprints - stockage des morceaux de codes utilisés sur pratiquement toutes les pages du site, évitant ainsi une redondance
+      * scripts - les scripts étant parfois appelés, également là où se trouve le fichier functions.php
+   * style - là où se trouve mes pages de style .css
+   * texte - là où sont stockés les textes de grande tailles visuellement, mais tous de même légé en poids.
+
+
+
+# Sous Docker
+## Docker-compose.yml
+* Voici le Docker-compose.yml que j'utilise :
+
+services:
+  web:
+    build: .    # Utiliser le Dockerfile dans le répertoire courant
+    ports:
+      - "80:80"
+    depends_on:
+      - db
+    volumes:
+      - ./html:/var/www/html  # Map the html directory to /var/www/html in the container
+      - ./php.ini:/usr/local/etc/php/php.ini # Montez le fichier php.ini personnalisé
+
+  db:
+    image: mysql:latest
+    environment:
+      MYSQL_ROOT_PASSWORD: root_password
+      MYSQL_DATABASE: univers
+    volumes:
+      - ./mysql_data:/var/lib/mysql
+    ports:
+      - "3306:3306"  # Expose le port MySQL sur ton hôte
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    ports:
+      - "8080:80"
+    depends_on:
+      - db
+    environment:
+      PMA_HOST: db
+
+## Dockerfile
+'''dockerfile
+# Utiliser l'image PHP avec Apache
+FROM php:8.2-apache
+
+# Installer les extensions nécessaires
+RUN apt-get update && apt-get install -y \
+    libzip-dev \
+    unzip \
+    libpng-dev \
+    libjpeg-dev \
+    libwebp-dev \
+    libfreetype6-dev \
+    && docker-php-ext-install pdo pdo_mysql zip \
+    && docker-php-ext-configure gd --with-freetype --with-jpeg --with-webp \
+    && docker-php-ext-install gd
+
+# Copier le contenu du répertoire html dans le répertoire /var/www/html du conteneur
+COPY ./html /var/www/html
+
+# Activer les modules Apache nécessaires (si nécessaire)
+RUN a2enmod rewrite
+
+# Copier le fichier cacert.pem dans le conteneur
+COPY ./cacert.pem /etc/ssl/certs/cacert.pem
+
+# Configurer PHP pour utiliser le fichier cacert.pem
+RUN echo "curl.cainfo = /etc/ssl/certs/cacert.pem" >> /usr/local/etc/php/conf.d/curl-ca.ini
+RUN echo "openssl.cafile = /etc/ssl/certs/cacert.pem" >> /usr/local/etc/php/conf.d/openssl-ca.ini
+
+# Copier le fichier composer.json et installer les dépendances
+COPY composer.json /var/www/html/composer.json
+
+# Définir le répertoire de travail
+WORKDIR /var/www/html
+
+# Installer Composer
+COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+
+# Installer les dépendances PHP
+RUN composer install
+
+# Commande par défaut
+CMD ["apache2-foreground"]
+'''
+
+## php.ini (optionel)
+Permet de limiter la taille des images téléchargées. a changer au besoin mais il faudra aussi changer les commentaires dans les pages en "_add.php".
+
+upload_max_filesize = 5M
+post_max_size = 10M
+
+
+## Précisions
+* L'arborescence entre mon docker est la racine de mon git est comme tel:
+
+* Docker - container
+   * .gitignore
+   * docker-compose.yml
+   * Dockerfile
+   * php.ini
+   * html
+      * test
+         * Web - racine du git
+
+* De cete manière, le lien pour accéder au site est http://localhost/test/Web/pages/Homepage.php

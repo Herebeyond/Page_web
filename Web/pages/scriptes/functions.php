@@ -19,6 +19,29 @@ function sanitize_output($data) {
     return htmlspecialchars($data, ENT_QUOTES, 'UTF-8');
 }
 
+function updateUserProfile($userId, $username, $email, $password) {
+    global $pdo;
+
+    // Sanitize input (already done before, but double check)
+    $username = trim($username);
+    $email = trim($email);
+
+    // Prepare SQL and parameters
+    if (!empty($password)) {
+        // If password is provided, hash it and update all fields
+        $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
+        $sql = "UPDATE users SET username = ?, email = ?, password = ? WHERE id = ?";
+        $params = [$username, $email, $hashedPassword, $userId];
+    } else {
+        // If password is empty, update only username and email
+        $sql = "UPDATE users SET username = ?, email = ? WHERE id = ?";
+        $params = [$username, $email, $userId];
+    }
+
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute($params);
+}
+
 
 
 

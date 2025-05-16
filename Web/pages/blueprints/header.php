@@ -160,7 +160,7 @@
         // ADMIN VERIFICATION
         if (isset($_SESSION['user'])) {
             // Retrieve the username from the database
-            $stmt = $pdo->prepare("SELECT admin FROM users WHERE id = ?");
+            $stmt = $pdo->prepare("SELECT * FROM users WHERE id = ?");
             $stmt->execute([$_SESSION['user']]);
             $user = $stmt->fetch();
             
@@ -206,21 +206,18 @@
         require_once './scriptes/authorisation.php'; // Include the authorisation script to check user permissions
 
         if (isset($_SESSION['user'])) { // If the user is logged in, display their name
-            // Retrieve the username and icon from the database
-            $stmt = $pdo->prepare("SELECT username, icon FROM users WHERE id = ?");
-            $stmt->execute([$_SESSION['user']]);
-            $user = $stmt->fetch();
 
+            // Username and icon already retrieved in the admin verification part
             if ($user['icon'] == null) { // If the user has no icon, set a default icon
                 $user['icon'] = "small_img/default_user_icon.png";
             }
 
 
             echo '<div id="Login">'; // Div for the user icon and name   
-            echo '  <img id="iconUser" src="../images/' . sanitize_output($user['icon']) . '">'; // Display the user icon
+            echo '  <img id="iconUser" src="../images/small_icon/' . sanitize_output($user['icon']) . '">'; // Display the user icon
 
             echo '  <div id="LoginCo">'; // Div for the username and logout link
-            echo "      <span>Welcome<br>" . sanitize_output($user['username']) . "!</span>"; // Display the username
+            echo "      <span>Welcome<br>" . sanitize_output($user['username']) . '!<a href="./User_profil.php"><img id="user_parameters" src="../images/small_img/roue-dentee.png"></a></span>'; // Display the username
             echo '      <a href="../login/logout.php">Disconnect</a>'; // Logout link
             echo '  </div>';
             echo '</div>';
