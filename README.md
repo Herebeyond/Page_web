@@ -71,39 +71,39 @@
 ## Docker-compose.yml
 * Voici le Docker-compose.yml que j'utilise :
 
-services:
-  web:
-    build: .    # Utiliser le Dockerfile dans le répertoire courant
-    ports:
-      - "80:80"
-    depends_on:
-      - db
-    volumes:
-      - ./html:/var/www/html  # Map the html directory to /var/www/html in the container
-      - ./php.ini:/usr/local/etc/php/php.ini # Montez le fichier php.ini personnalisé
+* services:
+  * web:
+    * build: .    # Utiliser le Dockerfile dans le répertoire courant
+    * ports:
+       - "80:80"
+    * depends_on:
+       - db
+    * volumes:
+       - ./html:/var/www/html  # Map the html directory to /var/www/html in the container
+       - ./php.ini:/usr/local/etc/php/php.ini # Montez le fichier php.ini personnalisé
 
-  db:
-    image: mysql:latest
-    environment:
-      MYSQL_ROOT_PASSWORD: root_password
-      MYSQL_DATABASE: univers
-    volumes:
-      - ./mysql_data:/var/lib/mysql
-    ports:
-      - "3306:3306"  # Expose le port MySQL sur ton hôte
+  * db:
+    * image: mysql:latest
+    * environment:
+      * MYSQL_ROOT_PASSWORD: root_password
+      * MYSQL_DATABASE: univers
+    * volumes:
+       - ./mysql_data:/var/lib/mysql
+    * ports:
+       - "3306:3306"  # Expose le port MySQL sur ton hôte
 
-  phpmyadmin:
-    image: phpmyadmin/phpmyadmin
-    ports:
+  * phpmyadmin:
+    * image: phpmyadmin/phpmyadmin
+    * ports:
       - "8080:80"
-    depends_on:
+    * depends_on:
       - db
-    environment:
-      PMA_HOST: db
+    * environment:
+      * PMA_HOST: db
 
 ## Dockerfile
 
-### Utiliser l'image PHP avec Apache
+### #Utiliser l'image PHP avec Apache
 FROM php:8.2-apache
 
 ### #Installer les extensions nécessaires
@@ -118,44 +118,44 @@ RUN apt-get update && apt-get install -y \
     && docker-php-ext-configure gd --with-freetype --with-jpeg --with-webp \
     && docker-php-ext-install gd
 
-### Copier le contenu du répertoire html dans le répertoire /var/www/html du conteneur
+### #Copier le contenu du répertoire html dans le répertoire /var/www/html du conteneur
 COPY ./html /var/www/html
 
-### Activer les modules Apache nécessaires (si nécessaire)
+### #Activer les modules Apache nécessaires (si nécessaire)
 RUN a2enmod rewrite
 
-### Copier le fichier cacert.pem dans le conteneur
+### #Copier le fichier cacert.pem dans le conteneur
 COPY ./cacert.pem /etc/ssl/certs/cacert.pem
 
-### Configurer PHP pour utiliser le fichier cacert.pem
+### #Configurer PHP pour utiliser le fichier cacert.pem
 RUN echo "curl.cainfo = /etc/ssl/certs/cacert.pem" >> /usr/local/etc/php/conf.d/curl-ca.ini
 RUN echo "openssl.cafile = /etc/ssl/certs/cacert.pem" >> /usr/local/etc/php/conf.d/openssl-ca.ini
 
-### Copier le fichier composer.json et installer les dépendances
+### #Copier le fichier composer.json et installer les dépendances
 COPY composer.json /var/www/html/composer.json
 
-### Définir le répertoire de travail
+### #Définir le répertoire de travail
 WORKDIR /var/www/html
 
-### Installer Composer
+### #Installer Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
-### Installer les dépendances PHP
+### #Installer les dépendances PHP
 RUN composer install
 
-### Commande par défaut
+### #Commande par défaut
 CMD ["apache2-foreground"]
 
 
 ## php.ini (optionel)
 Permet de limiter la taille des images téléchargées. a changer au besoin mais il faudra aussi changer les commentaires dans les pages en "_add.php".
 
-upload_max_filesize = 5M
-post_max_size = 10M
+* upload_max_filesize = 5M
+* post_max_size = 10M
 
 
 ## Précisions
-* L'arborescence entre mon docker est la racine de mon git est comme tel:
+* L'arborescence entre mon docker et la racine de mon git est comme tel:
 
 * Docker - container
    * .gitignore
