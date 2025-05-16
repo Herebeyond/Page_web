@@ -41,11 +41,16 @@ $current_page = htmlspecialchars(pathinfo(basename($_SERVER['PHP_SELF']), PATHIN
 
 /// BLOCKED USER VERIFICATION
 if (isset($_SESSION['user'])) {
-    // Retrieve the username from the database
+    // Retrieve the user from the database
     $stmt = $pdo->prepare("SELECT * FROM users WHERE id = ?");
     $stmt->execute([$_SESSION['user']]);
     $user = $stmt->fetch();
-    
+
+    // Fetch user roles
+    $stmt = $pdo->prepare("SELECT r.name FROM user_roles ur JOIN roles r ON ur.role_id = r.id WHERE ur.user_id = ?");
+    $stmt->execute([$user['id']]);
+    $user_roles = $stmt->fetchAll(PDO::FETCH_COLUMN);
+
     // check if the user is blocked or not
     if ($user['blocked'] != "" || $user['blocked'] != null) {
         // User is blocked
@@ -76,7 +81,7 @@ if (is_dir($dir)) { // if the directory exists
 
 /// Block the page if the user is not authorised to access it
 // Check if the user is admin or not
-if (isset($_SESSION['user']) && $user['admin'] == 1) {
+if (isset($_SESSION['user']) && in_array('admin', $user_roles)) {
     // User is admin
 } elseif (!isset($_SESSION['user'])) { // If the user is not logged in
     // User is not logged in
@@ -90,7 +95,7 @@ if (isset($_SESSION['user']) && $user['admin'] == 1) {
             exit();
         }
     }
-} elseif (isset($_SESSION['user']) && ($user["admin"] == null || $user["admin"] == '')) { // If the user is not an admin
+} elseif (isset($_SESSION['user']) && !in_array('admin', $user_roles)) { // If the user is not an admin
     // User is not admin
     // Loop through the array until the current page is found
     foreach ($pages as $page) {
@@ -102,7 +107,7 @@ if (isset($_SESSION['user']) && $user['admin'] == 1) {
         }
     }
 } else {
-    echo "Error in the admin column<br>";
+    echo "Error in the roles check<br>";
 }
 
 ?>

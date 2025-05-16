@@ -41,3 +41,10 @@ body { /* Body of the page */
     align-items: center;
     justify-content: center;
 }
+
+.error {
+    color: red;
+    font-size: 20px;
+    font-weight: bold;
+    margin-top: 10px;
+}

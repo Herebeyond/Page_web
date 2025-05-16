@@ -54,14 +54,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // Save the user, their password, and email in the database
         $stmt = $pdo->prepare("INSERT INTO users (username, password, email) VALUES (?, ?, ?)");
         $stmt->execute([$username, $hashedPassword, $email]);
+        $userId = $pdo->lastInsertId();
+
+        // Get the role_id for "user"
+        $stmt = $pdo->prepare("SELECT id FROM roles WHERE name = 'user'");
+        $stmt->execute();
+        $roleId = $stmt->fetchColumn();
+
+        // Insert into user_roles
+        $stmt = $pdo->prepare("INSERT INTO user_roles (user_id, role_id) VALUES (?, ?)");
+        $stmt->execute([$userId, $roleId]);
 
         // Redirect to the login page
         header('Location: login.php');
         exit;
-    } else {
-        for ($i = 0; $i < count($errors); $i++) {
-            echo "<span class=error>" . htmlspecialchars($errors[$i]) . "</span><br>";
-        }
     }
 }
 ?>
@@ -75,13 +81,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     </head>
     <body id="bodyLogin">
         <div id="globalLogin">
-            <?php
-            if (isset($_SESSION['error'])) {
-                echo '<p style="color:red;">' . htmlspecialchars($_SESSION['error']) . '</p>';
-                unset($_SESSION['error']);
-            }
-            ?>
-            
             <form method="POST" action="register.php" id="formLogin">
                 <h2> Register </h2>
                 <label for="Identification">Identification</label>
@@ -91,6 +90,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <label for="email">Email</label>
                 <input type="email" id="email" name="email" value="<?php echo isset($_POST['email']) ? htmlspecialchars($_POST['email']) : ''; ?>" required><br>
                 <button type="submit">Register</button><br>
+                <?php
+                for ($i = 0; $i < count($errors); $i++) {
+                    echo "<span class=error>" . htmlspecialchars($errors[$i]) . "</span><br>";
+                }
+                ?>
                 <span><a href="login.php">Already registered ? Sign In</a>  ||  <a href="../pages/Homepage.php">Homepage</a></span>
             </form><br>
         </div>

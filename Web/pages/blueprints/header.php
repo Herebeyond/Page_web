@@ -1,6 +1,3 @@
-
-
-
 <div id=header>
     <img id=icon src='../images/Eye.jpg'> <!-- Display the header icon -->
     <div id=divTitre>
@@ -159,13 +156,10 @@
 
         // ADMIN VERIFICATION
         if (isset($_SESSION['user'])) {
-            // Retrieve the username from the database
-            $stmt = $pdo->prepare("SELECT * FROM users WHERE id = ?");
-            $stmt->execute([$_SESSION['user']]);
-            $user = $stmt->fetch();
-            
-            // Check if the user is an admin
-            if (($user['admin']) == 1 ) { 
+            // $user and $user_roles are already set in page_init.php
+
+            // Check if the user is an admin using roles
+            if (in_array('admin', $user_roles)) { 
                 echo '
                     <ul class=menu>
                         <li class=menu-item>
@@ -192,9 +186,6 @@
                         </li>
                     </ul>';
 
-            } elseif (($user["admin"]) == null) {
-            } else {
-                echo "error in the admin column<br>";
             }
         }
             
@@ -209,7 +200,7 @@
 
             // Username and icon already retrieved in the admin verification part
             if ($user['icon'] == null) { // If the user has no icon, set a default icon
-                $user['icon'] = "small_img/default_user_icon.png";
+                $user['icon'] = "default_user_icon.png";
             }
 
 

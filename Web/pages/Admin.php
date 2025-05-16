@@ -32,6 +32,8 @@ require_once "./blueprints/gl_ap_start.php"; // includes the start of the genera
 </div>
 
 <script>
+
+    // Function to fetch user in real-time in a search bar
     function searchUser(query) {
         const suggestionsDiv = document.getElementById('userSuggestions');
         suggestionsDiv.innerHTML = ''; // Clear previous suggestions

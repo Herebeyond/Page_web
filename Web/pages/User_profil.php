@@ -3,6 +3,14 @@ require_once "./blueprints/page_init.php"; // includes the page initialization f
 
 
 
+// Check if the user is logged in
+if (!isset($_SESSION['user'])) {
+    header('Location: ../login/login.php');
+    exit;
+}
+
+
+
 // Initialize variables for form fields
 $username = '';
 $password = '';
@@ -178,48 +186,65 @@ require_once "./blueprints/gl_ap_start.php";
 
     <!-- Personnal user profil -->
     <!-- The user informations have already been fetched in header.php in the admin verification part -->
-    <form method="POST" action="User_profil.php" onsubmit="return validateForm()" enctype="multipart/form-data">
-        <label for="icon">Icon (size limite <?php echo $maxDim . " x " . $maxDim ?> px): </label>
-        <br><br>
-        <?php
-        // Display the current icon if it exists
-        if (!empty($user['icon'])) {
-            echo '<img src="../images/small_icon/' . htmlspecialchars($user['icon']) . '" alt="User Icon" style="width: 100px; height: 100px;"><br>';
-            echo $user['icon'];
-        } else {
-            echo 'No icon selected';
-        }
-        ?>
-        <br><br>
-        <input type="file" id="icon_parameters" name="icon" accept="image/*">
-        <br><br>
-        <label for="username">Username</label>
-        <input type="text" id="username" name="username" placeholder="<?php echo sanitize_output($user['username']); ?>">
-        <br><br>
-        <label for="email">Email</label>
-        <input type="email" id="email" name="email" placeholder="<?php echo sanitize_output($user['email']); ?>">
-        <br><br>
-        <label for="password">Password</label>
-        <input type="password" id="password" name="password" placeholder="Enter new password">
-        <br><br>
-        <label for="confirm_password">Confirm Password</label>
-        <input type="password" id="confirm_password" name="confirm_password" placeholder="Confirm new password">
-        <br><br>
-        <button type="submit">Update</button>
-        <br><br>
-        <?php
-        // Display errors
-        for ($i = 0; $i < count($errors); $i++) {
-            echo "<span class=error style='color:red;'>" . htmlspecialchars($errors[$i]) . "</span><br>";
-        }
-        // Display success message
-        if (isset($_SESSION['success'])) {
-            echo "<span class=success style='color:green;'>" . htmlspecialchars($_SESSION['success']) . "</span><br>";
-            unset($_SESSION['success']);
-        }
-        ?>
-        
-    </form>
+    <div id="userParameters">
+        <form method="POST" action="User_profil.php" onsubmit="return validateForm()" enctype="multipart/form-data">
+            <label for="icon">Icon (size limite <?php echo $maxDim . " x " . $maxDim ?> px): </label>
+            <br><br>
+            <?php
+            // Display the current icon if it exists
+            if (!empty($user['icon'])) {
+                echo '<img src="../images/small_icon/' . htmlspecialchars($user['icon']) . '" alt="User Icon" style="width: 100px; height: 100px;"><br>';
+                echo $user['icon'];
+            } else {
+                echo 'No icon selected';
+            }
+            ?>
+            <br><br>
+            <input type="file" id="icon_parameters" name="icon" accept="image/*">
+            <br><br>
+            <label for="username">Username</label>
+            <input type="text" id="username" name="username" placeholder="<?php echo sanitize_output($user['username']); ?>">
+            <br><br>
+            <label for="email">Email</label>
+            <input type="email" id="email" name="email" placeholder="<?php echo sanitize_output($user['email']); ?>">
+            <br><br>
+            <label for="password">Password</label>
+            <input type="password" id="password" name="password" placeholder="Enter new password">
+            <br><br>
+            <label for="confirm_password">Confirm Password</label>
+            <input type="password" id="confirm_password" name="confirm_password" placeholder="Confirm new password">
+            <br><br>
+            <button type="submit">Update</button>
+            <br><br>
+            <?php
+            // Display errors
+            for ($i = 0; $i < count($errors); $i++) {
+                echo "<span class=error style='color:red;'>" . htmlspecialchars($errors[$i]) . "</span><br>";
+            }
+            // Display success message
+            if (isset($_SESSION['success'])) {
+                echo "<span class=success style='color:green;'>" . htmlspecialchars($_SESSION['success']) . "</span><br>";
+                unset($_SESSION['success']);
+            }
+            ?>
+            
+        </form>
+    </div>
+    <div id="userRoles">
+        <h2>Roles</h2>
+        <p>Here are the roles you have:</p>
+        <ul>
+            <?php
+            // Fetch and display user roles
+            $stmt = $pdo->prepare("SELECT r.name FROM roles r JOIN user_roles ur ON r.id = ur.role_id WHERE ur.user_id = ?");
+            $stmt->execute([$user['id']]);
+            $roles = $stmt->fetchAll(PDO::FETCH_COLUMN);
+            foreach ($roles as $role) {
+                echo "<li>" . htmlspecialchars($role) . "</li>";
+            }
+            ?>
+        </ul>
+    </div>
 
 
 

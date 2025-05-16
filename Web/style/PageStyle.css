@@ -255,6 +255,20 @@ html body {
     border-radius: 100px 100px 100px 100px;
 }
 
+.error {
+    color: red;
+    font-size: 20px;
+    font-weight: bold;
+    margin-top: 10px;
+}
+
+#userRoles {
+    /* Fixe the div to the right of its parent */
+    position: absolute;
+    right: 80px;
+    top: 80px;
+}
+
 #LoginCo {
     display: flex;
     font-size: 25px;
