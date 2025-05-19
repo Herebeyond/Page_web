@@ -14,6 +14,11 @@ if (isset($_GET['user'])) { // Check if the 'user' parameter is provided
         $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
         if ($user) {
+            // Fetch all roles for the user
+            $stmt = $pdo->prepare("SELECT r.name FROM roles r JOIN user_roles ur ON r.id = ur.role_id WHERE ur.user_id = ?");
+            $stmt->execute([$user['id']]);
+            $roles = $stmt->fetchAll(PDO::FETCH_COLUMN);
+
             // Return user information as JSON
             echo json_encode([
                 'success' => true,
@@ -21,7 +26,7 @@ if (isset($_GET['user'])) { // Check if the 'user' parameter is provided
                 'icon' => $user['icon'],
                 'username' => $user['username'],
                 'blocked' => $user['blocked'],
-                'admin' => $user['admin'],
+                'roles' => $roles,
                 'email' => $user['email'],
                 'created_at' => $user['created_at'],
                 'last_updated_at' => $user['last_updated_at'],

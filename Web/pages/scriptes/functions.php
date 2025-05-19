@@ -184,17 +184,26 @@ function updateUserProfile($userId, $username, $email, $password) {
                 .then(data => {
                     if (data.success) { // If the backend indicates success
                         // Build the HTML for the user information
-                        let iconHtml = data.icon ? `<p>Icon link: ${escapeHtml(data.icon)}</p><p>Icon: <img id="imgEdit" src="../images/${escapeHtml(data.icon)}" alt="User Icon"></p>` : "<p>Doesn't have an icon</p>";
+                        let iconHtml = data.icon ? `<p>Icon link: ${escapeHtml(data.icon)}</p><p>Icon: <img id="imgEdit" src="../images/small_icon/${escapeHtml(data.icon)}" alt="User Icon"></p>` : "<p>Doesn't have an icon</p>";
                         let idHtml = data.id ? `<p>ID: ${data.id}</p>` : '<p>Error with the ID data</p>';
                         let usernameHtml = data.username ? `<p>Username: ${escapeHtml(data.username)}</p>` : '<p>Error with the Username data</p>';
-                        let adminHtml = data.admin ? `<p>Is Admin</p>` : "<p>Isn't Admin</p>";
+                        // Display all roles as a list, similar to User_profil.php
+                        let rolesHtml = "<br><div><h3>Roles :</h3><ul>";
+                        if (Array.isArray(data.roles) && data.roles.length > 0) {
+                            data.roles.forEach(function(role) {
+                                rolesHtml += `<li>${escapeHtml(role)}</li>`;
+                            });
+                        } else {
+                            rolesHtml += "<li>Doesn't have any role</li>";
+                        }
+                        rolesHtml += "</ul></div>";
                         let emailHtml = data.email ? `<p>Email: ${escapeHtml(data.email)}</p>` : "<p>Doesn't have an email</p>";
                         let createdAtHtml = data.created_at ? `<p>&emsp;Created at: ${escapeHtml(data.created_at)}</p>` : '<p>Error with the Created_at data</p>';
                         let lastUpdatedAtHtml = data.last_updated_at ? `<p>&emsp;Last updated at: ${escapeHtml(data.last_updated_at)}</p>` : '<p>Error with the Last_updated_at data</p>';
                         let blockedHtml = data.blocked ? `<p>Is Blocked</p><p>&emsp;The User was Blocked at : ${escapeHtml(data.blocked)}</p>` : "<p>Isn't Blocked</p>";
 
                         // Display the user information in the userInfo div
-                        document.getElementById('userInfo').innerHTML = idHtml + usernameHtml + iconHtml + emailHtml + createdAtHtml + lastUpdatedAtHtml + blockedHtml + adminHtml;
+                        document.getElementById('userInfo').innerHTML = idHtml + usernameHtml + iconHtml + emailHtml + createdAtHtml + lastUpdatedAtHtml + blockedHtml + rolesHtml;
                     } else {
                         console.warn("Backend error message:", data.message); // Log the error message from the backend
                         document.getElementById('userInfo').innerHTML = '<p style="color:red;">' + escapeHtml(data.message) + '</p>';

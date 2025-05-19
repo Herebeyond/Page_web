@@ -70,10 +70,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($stmt->fetch()) {
             array_push($errors, "This username is already taken.");
         }
-        if (strlen($username) < 3 || strlen($username) > 15) { // Check if the username is between 3 and 15 characters
+        // Check username length
+        if (strlen($username) < 3 || strlen($username) > 15) { 
             array_push($errors, "The username must contain between 3 and 15 characters.");
         }
-        if (!preg_match('/^[a-zA-Z0-9_@]+$/u', $username)) { // Check if the username contains only letters, numbers, underscores, and @
+        // Check username format
+        if (!preg_match('/^[a-zA-Z0-9_@]+$/u', $username)) { 
             array_push($errors, "The username can only contain letters, numbers, underscores, and @.");
         }
     }
@@ -96,15 +98,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($imageInfo === false) {
             array_push($errors, "Uploaded file is not a valid image.");
         } else {
-            // Check allowed image formats
+            // Check allowed image formats (MIME types)
             $allowedFormats = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
             if (!in_array($imageInfo['mime'], $allowedFormats)) {
                 array_push($errors, "Image format not allowed. Allowed formats: jpg, jpeg, png, gif, webp.");
             } else {
                 $width = $imageInfo[0];
                 $height = $imageInfo[1];
+                // Check image dimensions
                 if ($width > $maxDim || $height > $maxDim) {
-                    array_push($errors, "Image dimensions must be at most 300x300 pixels. Please upload a smaller image.");
+                    array_push($errors, "Image dimensions must be at most " . $maxDim . "x" . $maxDim . " pixels. Please upload a smaller image.");
                 } else {
                     // Save with unique name (keep original extension)
                     $iconExt = strtolower(pathinfo($iconOriginalName, PATHINFO_EXTENSION));
@@ -188,7 +191,7 @@ require_once "./blueprints/gl_ap_start.php";
     <!-- The user informations have already been fetched in header.php in the admin verification part -->
     <div id="userParameters">
         <form method="POST" action="User_profil.php" onsubmit="return validateForm()" enctype="multipart/form-data">
-            <label for="icon">Icon (size limite <?php echo $maxDim . " x " . $maxDim ?> px): </label>
+            <label for="icon">Icon (size limite <?php echo $maxDim . "x" . $maxDim ?> px): </label>
             <br><br>
             <?php
             // Display the current icon if it exists
