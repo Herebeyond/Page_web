@@ -1,8 +1,8 @@
 <div id=header>
     <img id=icon src='../images/Eye.jpg'> <!-- Display the header icon -->
     <div id=divTitre>
-        <span class=Title>Les Chroniques de la Faille</span>
-        <span class=Title>Les mondes oubliés</span>
+        <span class=Title>The Rift Chronicles</span>
+        <span class=Title>The Forgotten Worlds</span>
 
     </div>
 
@@ -220,7 +220,7 @@
         ?>
     </div>
     <div id=Connect onclick=window.location.href="./Homepage.php">
-        <span> La Grande Librairie </span> <!-- Link to the home page -->
+        <span> The Great Library </span> <!-- Link to the home page -->
     </div>
 </div>
 <script>

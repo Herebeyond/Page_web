@@ -7,7 +7,7 @@ require_once "./scriptes/functions.php"; // includes the functions file
         <link rel="stylesheet" href= "<?php echo "../style/PageStyle.css?ver=" . time(); ?>"> <!-- creates a "new" CSS so that the site does not read its cache and rereads the CSS, thus applying the changes written in it -->
         <!-- echo time() generates a random number to generate a different "unique" version -->
         <title>
-            Home Page
+            The Great Library
         </title>
     </head>
     <body>
