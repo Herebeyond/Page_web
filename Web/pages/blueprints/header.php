@@ -174,7 +174,7 @@
                 foreach ($pages as $page) { // For each element in the $pages array, display a link to the corresponding page
                     if ($authorisation[$page] == 'admin') {
                         echo '
-                            <li>
+                            <li class="dropdownFirstLevel">
                                 <div class=liIntro onclick=window.location.href="./' . sanitize_output($page) . '.php">
                                     <span>' . sanitize_output($page) . '</span>
                                 </div>
@@ -205,9 +205,9 @@
 
 
             echo '<div id="Login">'; // Div for the user icon and name   
-            echo '  <img id="iconUser" src="../images/small_icon/' . sanitize_output($user['icon']) . '">'; // Display the user icon
 
             echo '  <div id="LoginCo">'; // Div for the username and logout link
+            echo '  <img id="iconUser" src="../images/small_icon/' . sanitize_output($user['icon']) . '">'; // Display the user icon
             echo "      <span>Welcome<br>" . sanitize_output($user['username']) . '!<a href="./User_profil.php"><img id="user_parameters" src="../images/small_img/roue-dentee.png"></a></span>'; // Display the username
             echo '      <a href="../login/logout.php">Disconnect</a>'; // Logout link
             echo '  </div>';

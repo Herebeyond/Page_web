@@ -48,6 +48,7 @@ html body {
     font-weight: bold; /* Bold text */
     position: relative; /* Ensure z-index works */
     z-index: 1000; /* Ensure nav is in the foreground */
+    display: flex;
 }
 
 .divLi:hover {
@@ -57,7 +58,9 @@ html body {
 
 .divLi {
     cursor: pointer;
-    padding-inline: 7px;
+    padding-inline: 8px;
+    padding-top: 5px;
+    padding-bottom: 5px;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -158,8 +161,8 @@ html body {
     list-style: none; /* Remove bullets */
     padding: 0;
     margin: 0;
-    display: flex;
-    height: fit-content;
+    height: fit-content; /* Height of the menu */
+    width: fit-content; /* Width of the menu */
 }
 
 #header { /* pour que le menu déroulant soit par dessus le reste et ne soit pas caché derrière texte principal */
@@ -248,10 +251,9 @@ html body {
 }
 
 #iconUser {
-    width: 50px;
-    height: 50px;
-    margin-left: 10px;
-    margin-right: 10px;
+    width: 70px;
+    height: 70px;
+    margin-inline: 10px;
     border-radius: 100px 100px 100px 100px;
 }
 
@@ -305,14 +307,14 @@ html body {
 #Connect {
     cursor: pointer;
     width: 250px;
-    height: 20px;
+    height: fit-content;
     text-align: center;
     font-weight: bold;
     font-size: 22px;
     border-radius: 20px 20px 20px 20px;
     background-color: rgb(138, 67, 0);
     color: rgb(116, 0, 0);
-    padding: 20px;
+    padding: 10px;
     margin-right: 4%;
     font-family: 'Cinzel', serif;
 }
@@ -345,12 +347,6 @@ html body {
 #leftHeaderText {
     width: 100%;
     display: flex;
-}
-
-#nav {
-    display: flex;
-    position: relative; /* Ensure z-index works */
-    z-index: 1000; /* Ensure nav is in the foreground */
 }
 
 #leftHeaderText div {
@@ -653,6 +649,55 @@ html body {
     color: #87cefa;
 }
 
+.homepageList {
+    list-style: none;
+    margin: 8px 0;
+    padding: 0;
+    font-size: 1.2rem;
+    font-family: 'Cinzel', serif;
+    font-weight: bold;
+    transition: background-color 0.2s;
+}
+
+.homepageList a {
+    color: #1e90ff;
+    text-decoration: none;
+    padding: 6px 14px;
+    border-radius: 6px;
+    display: inline-block;
+    transition: background-color 0.2s, color 0.2s;
+}
+
+.homepageList a:hover {
+    background-color: #a1abff;
+    color: #090842;
+}
+
+.homepageLetterGroup {
+    list-style: none;
+    margin: 2px 0 10px 0; /* Reduce top margin for less space after .firstLetter */
+    padding: 0 0 0 18px;   /* Slight indent for list items */
+}
+
+.homepageLetterGroup .homepageList {
+    margin: 2px 0;         /* Reduce vertical space between items */
+    padding: 0;
+}
+
+.firstLetter {
+    display: inline-block;
+    font-size: 1.5rem;
+    font-family: 'Cinzel', serif;
+    font-weight: bold;
+    color: #a1abff;
+    margin-top: 8px;      /* Reduce top margin */
+    margin-bottom: 0px;   /* Remove bottom margin for tight grouping */
+    margin-right: 12px;
+    margin-left: 0;
+    letter-spacing: 2px;
+    text-shadow: 1px 1px 2px #09084233;
+}
+
 .species-list {
     display: flex;
     flex-wrap: wrap;
@@ -750,14 +795,6 @@ html body {
 .character-item:hover span {
     color: #ffffff;
 }
-
-
-
-
-
-
-
-
 
 /* Styles for pagination */
 #pagination {

@@ -23,18 +23,21 @@ require_once "./blueprints/gl_ap_start.php";
 
     /// ADMIN VERIFICATION
     if (isset($_SESSION['user'])) {
-        // Retrieve the username from the database
-        $stmt = $pdo->prepare("SELECT admin FROM users WHERE id = ?");
+        // Retrieve the user role from the database
+        $stmt = $pdo->prepare("SELECT r.id as role_id, r.name as role_name FROM users u 
+                              LEFT JOIN user_roles ur ON u.id = ur.user_id 
+                              LEFT JOIN roles r ON ur.role_id = r.id 
+                              WHERE u.id = ?");
         $stmt->execute([$_SESSION['user']]);
         $user = $stmt->fetch();
         
         // check if the user is admin or not
-        if (($user['admin']) == 1 ) { 
+        if ($user && $user['role_id'] == 1) { 
             // User is admin
-        } elseif (($user["admin"]) == null || ($user["admin"]) == '') {
-            // User is not admin
+        } elseif (!$user || $user['role_id'] == null || $user['role_id'] == '') {
+            // User is not admin or has no role
         } else {
-            echo "Error in the admin column<br>";
+            // User has another role (moderator, editor, user)
         }
     }
 
@@ -43,7 +46,7 @@ require_once "./blueprints/gl_ap_start.php";
 
     /// in case the first page is for a page that the user shouldn't have access to like hidden or admin pages
     // if the user is (logged in and is admin or the page is public) and the type of the page is Dimensions
-    if (((isset($_SESSION['user']) && ($authorisation[$pages[0]] == 'admin' && ($user['admin']) == 1)) || $authorisation[$pages[0]] == 'all') && $type[$pages[0]] == 'Dimensions') {
+    if (((isset($_SESSION['user']) && ($authorisation[$pages[0]] == 'admin' && $user && $user['role_id'] == 1)) || $authorisation[$pages[0]] == 'all') && $type[$pages[0]] == 'Dimensions') {
         $frstLetter = mb_substr($pages[0], 0, 1); // get the first letter of the first element in the $pages array
         echo "<span>$frstLetter</span>"; // display the first letter
         // Start of the unordered list here otherwise it creates an unsightly space
@@ -54,7 +57,7 @@ require_once "./blueprints/gl_ap_start.php";
     foreach ($pages as $page) { // for each element in the $pages array, display a link to the corresponding page
         
         // if the user is (logged in and is admin or the page is public) and the type of the page is Dimensions
-        if (((isset($_SESSION['user']) && ($authorisation[$page] == 'admin' && ($user['admin']) == 1)) || $authorisation[$page] == 'all') && $type[$page] == 'Dimensions') {
+        if (((isset($_SESSION['user']) && ($authorisation[$page] == 'admin' && $user && $user['role_id'] == 1)) || $authorisation[$page] == 'all') && $type[$page] == 'Dimensions') {
             // if the first letter of the element is different from the first letter of the first element in the $pages array, close the list and open a new one
             // this allows grouping elements by first letter
             if(mb_substr($page, 0, 1) != $frstLetter) { 

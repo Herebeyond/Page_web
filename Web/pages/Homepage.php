@@ -31,9 +31,9 @@ require_once "./blueprints/gl_ap_start.php"; // includes the start of the genera
     // in case the first page is for a page that the user shouldn't have access to like hidden or admin pages
     if ((isset($_SESSION['user']) && ($authorisation[$pages[0]] == 'admin' && in_array('admin', $user_roles))) || ($authorisation[$pages[0]] == 'all' && $type[$pages[0]] == 'common')) { // if the user is logged in and is admin or if the first page is public and of common type
         $frstLetter = mb_substr($pages[0], 0, 1); // get the first letter of the first element in the $pages array
-        echo "<span>" . $frstLetter . "</span>"; // display the first letter
+        echo "<span class='firstLetter'>" . $frstLetter . "</span>"; // display the first letter
         // Start of the unordered list here otherwise it creates an unsightly space
-        echo "<ul>"; 
+        echo "<ul class='homepageLetterGroup'>"; 
     } 
 
     // Loop through the array and display the elements in the list
@@ -45,10 +45,10 @@ require_once "./blueprints/gl_ap_start.php"; // includes the start of the genera
             if (mb_substr($page, 0, 1) != $frstLetter) { 
                 echo "</ul>";
                 $frstLetter = mb_substr($page, 0, 1);
-                echo "<span>" . sanitize_output($frstLetter) . "</span>";
-                echo "<ul>";
+                echo "<span class='firstLetter'>" . sanitize_output($frstLetter) . "</span>";
+                echo "<ul class='homepageLetterGroup'>";
             }
-            echo "<li><a href='./" . sanitize_output($page) . ".php'>" . sanitize_output($page) . "</a></li>"; // link to the corresponding page in the $pages array
+            echo "<li class='homepageList'><a href='./" . sanitize_output($page) . ".php'>" . sanitize_output($page) . "</a></li>"; // link to the corresponding page in the $pages array
         }
     }
 

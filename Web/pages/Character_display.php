@@ -2,9 +2,12 @@
 require_once "./blueprints/page_init.php"; // includes the page initialization file
 require_once "./blueprints/gl_ap_start.php"; // includes the start of the general page file
 
-// Retrieve the username from the database to check if the user is an admin
+// Retrieve the user role from the database to check if the user is an admin
 if (isset($_SESSION['user'])) {
-    $stmt = $pdo->prepare("SELECT admin FROM users WHERE id = ?");
+    $stmt = $pdo->prepare("SELECT r.id as role_id, r.name as role_name FROM users u 
+                          LEFT JOIN user_roles ur ON u.id = ur.user_id 
+                          LEFT JOIN roles r ON ur.role_id = r.id 
+                          WHERE u.id = ?");
     $stmt->execute([$_SESSION['user']]);
     $user = $stmt->fetch();
 } else {
@@ -133,7 +136,7 @@ if (isset($_GET['race'])) {
                                 <p>" . nl2br(sanitize_output($character['content_character'] ?? '')) . "</p>
                             </div>";
                             // If the user is logged and is an admin, display the edit button
-                            if (isset($_SESSION['user']) && $user['admin'] == 1) {
+                            if (isset($_SESSION['user']) && $user && $user['role_id'] == 1) {
                                 $divsSelec .= "
                                     <div class='editButton'>
                                         <a href='Character_add.php?character_id=" . $character['id_character'] . "'>Edit</a>

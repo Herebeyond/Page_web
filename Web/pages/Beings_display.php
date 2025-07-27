@@ -3,8 +3,11 @@ require_once "./blueprints/page_init.php"; // includes the page initialization f
 require_once "./blueprints/gl_ap_start.php"; // includes the start of the general page file
 
 if (isset($_SESSION['user'])) {
-    // Retrieve the username from the database to check if the user is an admin
-    $stmt = $pdo->prepare("SELECT admin FROM users WHERE id = ?");
+    // Retrieve the user role from the database to check if the user is an admin
+    $stmt = $pdo->prepare("SELECT r.id as role_id, r.name as role_name FROM users u 
+                          LEFT JOIN user_roles ur ON u.id = ur.user_id 
+                          LEFT JOIN roles r ON ur.role_id = r.id 
+                          WHERE u.id = ?");
     $stmt->execute([$_SESSION['user']]);
     $user = $stmt->fetch();
 } else {
@@ -106,7 +109,7 @@ if (isset($_GET['specie'])) {
             }
 
             // If the user is logged and is an admin, display the edit button
-            if (isset($_SESSION['user']) && $user['admin'] == 1) { // if the user is logged and is an admin
+            if (isset($_SESSION['user']) && $user && $user['role_id'] == 1) { // if the user is logged and is an admin (role_id = 1)
                 echo "<div class='editButton'>
                         <a href='Specie_add.php?specie_id=" . sanitize_output($rowR['id_specie']) . "'>Edit</a>
                     </div>";
@@ -186,7 +189,7 @@ if (isset($_GET['specie'])) {
                                 <p>" . nl2br(sanitize_output($rowF['content_race'] ?? '')) . "</p>
                             </div>";
                             // If the user is logged and is an admin, display the edit button
-                            if (isset($_SESSION['user']) && $user['admin'] == 1) {
+                            if (isset($_SESSION['user']) && $user && $user['role_id'] == 1) {
                                 $divsSelec .= "
                                     <div class='editButton'>
                                         <a href='Race_add.php?race_id=" . $rowF['id_race'] . "'>Edit</a>
