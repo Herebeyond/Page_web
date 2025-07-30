@@ -9,7 +9,7 @@
 // So far, there is no need to hide a page for admin users
 $authorisation = array(
     'Homepage' => 'all',
-    'Map' => 'all',
+    'Map_view' => 'all',
     'Species' => 'all',
     'Specie_add' => 'admin',
     'Races' => 'all',
@@ -35,7 +35,7 @@ $authorisation = array(
 // Other uses can be added later
 $type = array(
     'Homepage' => 'common',
-    'Map' => 'common',
+    'Map_view' => 'common',
     'Species' => 'common',
     'Specie_add' => 'common',
     'Races' => 'common',

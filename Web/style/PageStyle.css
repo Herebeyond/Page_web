@@ -874,8 +874,8 @@ html body {
     position: absolute;
     top: 0;
     left: 0;
-    width: 400px;
-    height: 400px;
+    width: 100%;
+    height: 100%;
     background-color: rgba(0, 0, 0, 0.1);
     border: 2px solid #222088;
     cursor: crosshair;
@@ -884,9 +884,8 @@ html body {
 
 #interactive-map-image {
     display: block;
-    width: 400px;
-    height: 400px;
-    object-fit: cover;
+    max-width: 100%;
+    height: auto;
     z-index: 1;
 }
 
@@ -937,9 +936,10 @@ html body {
     position: absolute;
     top: 100%;
     left: 50%;
-    border: 5px solid transparent;
-    border-top-color: rgba(0, 0, 0, 0.9);
-    transform: translateX(-50%);
+    margin-left: -5px;
+    border-width: 5px;
+    border-style: solid;
+    border-color: rgba(0, 0, 0, 0.9) transparent transparent transparent;
 }
 
 /* Admin controls panel */
@@ -1001,4 +1001,255 @@ html body {
 
 .map-admin-button:hover {
     background-color: #a1abff;
+}
+/* Point of Interest Styles */
+.map-point-of-interest {
+    position: absolute;
+    width: 12px;
+    height: 12px;
+    background: #ff4444;
+    border: 2px solid #ffffff;
+    border-radius: 50%;
+    cursor: pointer;
+    transform: translate(-50%, -50%);
+    z-index: 100;
+}
+
+.map-point-of-interest:hover {
+    background: #ff6666;
+    transform: translate(-50%, -50%) scale(1.2);
+}
+
+.map-poi-tooltip {
+    position: absolute;
+    background: rgba(0, 0, 0, 0.9);
+    color: white;
+    padding: 8px;
+    border-radius: 5px;
+    border: 1px solid #d4af37;
+    font-size: 12px;
+    white-space: nowrap;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    margin-bottom: 8px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s;
+    z-index: 200;
+}
+
+.map-poi-tooltip.show {
+    opacity: 1;
+}
+
+.map-poi-tooltip::after {
+    content: '';
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    margin-left: -5px;
+    border-width: 5px;
+    border-style: solid;
+    border-color: #d4af37 transparent transparent transparent;
+}
+
+/* User Map View Styles */
+.map-view-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.map-view-title {
+    text-align: center;
+    color: #d4af37;
+    margin-bottom: 20px;
+    font-size: 2.2em;
+}
+
+.map-view-description {
+    text-align: center;
+    color: #cccccc;
+    font-size: 1.1em;
+    line-height: 1.6;
+    margin-bottom: 30px;
+    max-width: 800px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.map-point-readonly {
+    transition: all 0.3s ease;
+}
+
+.map-point-readonly.active {
+    background: #ff6666 !important;
+    transform: translate(-50%, -50%) scale(1.3) !important;
+    box-shadow: 0 0 15px rgba(255, 68, 68, 0.6);
+}
+
+#map-legend {
+    background: rgba(0, 0, 0, 0.8);
+    padding: 20px;
+    border-radius: 10px;
+    margin-top: 20px;
+    border: 2px solid #d4af37;
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+#map-legend h3 {
+    color: #d4af37;
+    margin-bottom: 15px;
+    text-align: center;
+}
+
+#map-legend ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+#map-legend li {
+    color: #cccccc;
+    margin-bottom: 8px;
+    padding-left: 10px;
+}
+
+#map-legend strong {
+    color: #ffffff;
+}
+
+/* Enhanced tooltip for user view */
+.map-view-container .map-poi-tooltip {
+    position: absolute;
+    background: rgba(0, 0, 0, 0.95);
+    border: 2px solid #d4af37;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+    color: white;
+    padding: 8px 12px;
+    border-radius: 5px;
+    font-size: 12px;
+    min-width: 200px;
+    max-width: 300px;
+    white-space: normal;
+    word-wrap: break-word;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    margin-bottom: 8px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s;
+    z-index: 200;
+}
+
+.map-view-container .map-poi-tooltip.show {
+    opacity: 1;
+}
+
+.map-view-container .map-poi-tooltip::after {
+    content: '';
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    margin-left: -5px;
+    border-width: 5px;
+    border-style: solid;
+    border-color: #d4af37 transparent transparent transparent;
+}
+
+.map-view-container .map-poi-tooltip strong {
+    color: #d4af37;
+    font-size: 14px;
+}
+
+.map-view-container .map-poi-tooltip em {
+    color: #f4cf47;
+    font-style: normal;
+    font-weight: bold;
+}
+
+/* Notification Banner Styles */
+.notification-banner {
+    background: linear-gradient(135deg, rgba(212, 175, 55, 0.9), rgba(244, 207, 71, 0.9));
+    border: 2px solid #d4af37;
+    border-radius: 8px;
+    margin: 20px auto;
+    width: fit-content;
+    max-width: 1200px;
+    padding: 20px;
+    position: relative;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    color: #000;
+}
+
+.admin-banner {
+    background: linear-gradient(135deg, rgba(255, 68, 68, 0.9), rgba(255, 102, 102, 0.9));
+    border-color: #ff4444;
+    color: #fff;
+}
+
+.welcome-banner {
+    background: linear-gradient(135deg, rgba(68, 136, 255, 0.9), rgba(102, 153, 255, 0.9));
+    border-color: #4488ff;
+    color: #fff;
+}
+
+.notification-content {
+    margin-right: 40px;
+}
+
+.notification-content h3 {
+    margin: 0 0 15px 0;
+    font-size: 1.3em;
+}
+
+.notification-content p {
+    margin: 8px 0;
+    line-height: 1.5;
+}
+
+.notification-content ul {
+    margin: 10px 0;
+    padding-left: 20px;
+}
+
+.notification-content li {
+    margin: 5px 0;
+    line-height: 1.4;
+}
+
+.notification-close {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    background: rgba(0, 0, 0, 0.2);
+    border: none;
+    border-radius: 50%;
+    width: 30px;
+    height: 30px;
+    font-size: 18px;
+    font-weight: bold;
+    color: inherit;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+}
+
+.notification-close:hover {
+    background: rgba(0, 0, 0, 0.4);
+    transform: scale(1.1);
+}
+
+.admin-banner .notification-close:hover {
+    background: rgba(255, 255, 255, 0.3);
+}
+
+.welcome-banner .notification-close:hover {
+    background: rgba(255, 255, 255, 0.3);
 }

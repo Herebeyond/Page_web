@@ -1,5 +1,12 @@
 <?php
 require_once "./blueprints/page_init.php"; // includes the page initialization file
+
+// Check if user is admin before allowing access
+if (!isset($_SESSION['is_admin']) || !$_SESSION['is_admin']) {
+    header('Location: Map_view.php'); // Redirect to user map instead
+    exit();
+}
+
 require_once "./blueprints/gl_ap_start.php"; // includes the start of the general page file
 ?>
 
@@ -12,6 +19,23 @@ require_once "./blueprints/gl_ap_start.php"; // includes the start of the genera
 </head>
 
 <body class="content-page">
+    <!-- Admin Instructions Banner -->
+    <div id="admin-instructions" class="notification-banner admin-banner">
+        <div class="notification-content">
+            <h3>🔧 Administrator Interactive Map</h3>
+            <p><strong>Instructions:</strong></p>
+            <ul>
+                <li>Click "Add Mode" to activate point addition</li>
+                <li>Click on the map to add a point of interest</li>
+                <li>Hover over points to see their information</li>
+                <li>Double-click points to delete them</li>
+                <li>Press Escape to deactivate add mode</li>
+                <li><strong>Important:</strong> Use "Save to Database" to make changes permanent and visible to all users</li>
+            </ul>
+        </div>
+        <button class="notification-close" onclick="closeNotification('admin-instructions')">&times;</button>
+    </div>
+    
     <div id="mainText">
         <div class="map-admin-container">
             <h1 class="map-admin-title">🔧 Administration - Interactive Map of Forgotten Worlds</h1>
@@ -76,14 +100,18 @@ require_once "./blueprints/gl_ap_start.php"; // includes the start of the genera
             const x = e.clientX - rect.left;
             const y = e.clientY - rect.top;
             
+            // Convert pixel coordinates to percentages
+            const xPercent = (x / rect.width) * 100;
+            const yPercent = (y / rect.height) * 100;
+            
             const name = document.getElementById('poi-name').value || `Point ${pointCounter + 1}`;
             const description = document.getElementById('poi-description').value || 'No description';
             const type = document.getElementById('poi-type').value || 'Location';
             
             const point = {
                 id: pointCounter++,
-                x: x,
-                y: y,
+                x: xPercent,
+                y: yPercent,
                 name: name,
                 description: description,
                 type: type
@@ -102,8 +130,8 @@ require_once "./blueprints/gl_ap_start.php"; // includes the start of the genera
         function createPointElement(point) {
             const pointElement = document.createElement('div');
             pointElement.className = 'map-point-of-interest';
-            pointElement.style.left = point.x + 'px';
-            pointElement.style.top = point.y + 'px';
+            pointElement.style.left = point.x + '%';
+            pointElement.style.top = point.y + '%';
             pointElement.dataset.pointId = point.id;
             
             // Create tooltip
@@ -132,7 +160,7 @@ require_once "./blueprints/gl_ap_start.php"; // includes the start of the genera
             });
             
             pointElement.appendChild(tooltip);
-            mapContainer.appendChild(pointElement);
+            mapOverlay.appendChild(pointElement);
         }
         
         // Remove point
@@ -262,13 +290,17 @@ require_once "./blueprints/gl_ap_start.php"; // includes the start of the genera
             }
         });
         
+        // Close notification function
+        function closeNotification(id) {
+            const notification = document.getElementById(id);
+            if (notification) {
+                notification.style.display = 'none';
+            }
+        }
+        
         // Load existing points on page load
         window.addEventListener('load', function() {
             loadPointsFromDB();
-            
-            setTimeout(() => {
-                alert(`Welcome to the administrative interactive map!\n\nInstructions:\n- Click "Add Mode" to activate point addition\n- Click on the map to add a point of interest\n- Hover over a point to see its information\n- Double-click on a point to delete it\n- Press Escape to deactivate add mode\n\nADMIN: Use "Save to Database" to make changes permanent and visible to all users.`);
-            }, 1000);
         });
     </script>
 </body>
