@@ -2,7 +2,18 @@
 require_once "./blueprints/page_init.php"; // includes the page initialization file
 require_once "./blueprints/gl_ap_start.php"; // includes the start of the general page file
 ?>
-
+<div id=englobe>
+<div class=leftText> <!-- Left div -->
+    <div id=leftHeaderText>
+        <?php
+            for($i=0; $i<4; $i++) {
+                echo "<div><img src=../images/Icon.png></div>";
+            }?> <!-- creates 4 identical images as decoration for the left text -->
+    </div>
+    <?php // creates a span and writes the content of the forgotten_worlds.txt file inside
+        echo '<span>' . nl2br(sanitize_output(file_get_contents("../texte/forgotten_worlds.txt"))) . '</span>';
+    ?>
+</div>
 <div id="mainText"> <!-- Right div -->
 
     <button id="Return" onclick="window.history.back()">Return</button><br>

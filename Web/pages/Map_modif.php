@@ -1,0 +1,275 @@
+<?php
+require_once "./blueprints/page_init.php"; // includes the page initialization file
+require_once "./blueprints/gl_ap_start.php"; // includes the start of the general page file
+?>
+
+<!DOCTYPE html>
+<html>
+<head>
+    <?php $chemin_absolu = 'http://localhost/test/Web/';?>
+    <link rel="stylesheet" href="<?php echo $chemin_absolu . "style/PageStyle.css?ver=" . time(); ?>">
+    <title>Interactive Map - Forgotten Worlds</title>
+</head>
+
+<body class="content-page">
+    <div id="mainText">
+        <div class="map-admin-container">
+            <h1 class="map-admin-title">🔧 Administration - Interactive Map of Forgotten Worlds</h1>
+            
+            <div id="map-admin-controls">
+                <h3>Add Point of Interest</h3>
+                <div class="map-control-group">
+                    <label for="poi-name">Location Name:</label>
+                    <input type="text" id="poi-name" placeholder="Ex: Elven Citadel">
+                </div>
+                <div class="map-control-group">
+                    <label for="poi-description">Description:</label>
+                    <input type="text" id="poi-description" placeholder="Ex: Ancient elven fortress">
+                </div>
+                <div class="map-control-group">
+                    <label for="poi-type">Type:</label>
+                    <input type="text" id="poi-type" placeholder="Ex: City, Dungeon, Temple">
+                </div>
+                <button class="map-admin-button" onclick="toggleAddMode()">Add Mode: <span id="mode-status">Inactive</span></button>
+                <button class="map-admin-button" onclick="saveAllPoints()">Save to Database</button>
+                <button class="map-admin-button" onclick="loadPointsFromDB()">Load from Database</button>
+                <button class="map-admin-button" onclick="clearAllPoints()">Clear all points (Local)</button>
+            </div>
+            
+            <div id="interactive-map-container">
+                <img id="interactive-map-image" src="../images/map/map_monde.png" alt="World Map">
+                <div id="interactive-map-overlay"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let addMode = false;
+        let points = [];
+        let pointCounter = 0;
+        
+        const mapOverlay = document.getElementById('interactive-map-overlay');
+        const mapContainer = document.getElementById('interactive-map-container');
+        
+        // Toggle add mode
+        function toggleAddMode() {
+            addMode = !addMode;
+            const statusSpan = document.getElementById('mode-status');
+            const overlay = document.getElementById('interactive-map-overlay');
+            
+            if (addMode) {
+                statusSpan.textContent = 'Active';
+                statusSpan.style.color = '#00aa00';
+                overlay.style.backgroundColor = 'rgba(0, 170, 0, 0.1)';
+            } else {
+                statusSpan.textContent = 'Inactive';
+                statusSpan.style.color = '#aa0000';
+                overlay.style.backgroundColor = 'rgba(0, 0, 0, 0.1)';
+            }
+        }
+        
+        // Add point of interest
+        mapOverlay.addEventListener('click', function(e) {
+            if (!addMode) return;
+            
+            const rect = mapOverlay.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            
+            const name = document.getElementById('poi-name').value || `Point ${pointCounter + 1}`;
+            const description = document.getElementById('poi-description').value || 'No description';
+            const type = document.getElementById('poi-type').value || 'Location';
+            
+            const point = {
+                id: pointCounter++,
+                x: x,
+                y: y,
+                name: name,
+                description: description,
+                type: type
+            };
+            
+            points.push(point);
+            createPointElement(point);
+            
+            // Clear inputs
+            document.getElementById('poi-name').value = '';
+            document.getElementById('poi-description').value = '';
+            document.getElementById('poi-type').value = '';
+        });
+        
+        // Create point element
+        function createPointElement(point) {
+            const pointElement = document.createElement('div');
+            pointElement.className = 'map-point-of-interest';
+            pointElement.style.left = point.x + 'px';
+            pointElement.style.top = point.y + 'px';
+            pointElement.dataset.pointId = point.id;
+            
+            // Create tooltip
+            const tooltip = document.createElement('div');
+            tooltip.className = 'map-poi-tooltip';
+            tooltip.innerHTML = `
+                <strong>${point.name}</strong><br>
+                Type: ${point.type}<br>
+                ${point.description}
+            `;
+            
+            // Add hover events
+            pointElement.addEventListener('mouseenter', function() {
+                tooltip.classList.add('show');
+            });
+            
+            pointElement.addEventListener('mouseleave', function() {
+                tooltip.classList.remove('show');
+            });
+            
+            // Add click to remove
+            pointElement.addEventListener('dblclick', function() {
+                if (confirm(`Delete the point "${point.name}"?`)) {
+                    removePoint(point.id);
+                }
+            });
+            
+            pointElement.appendChild(tooltip);
+            mapContainer.appendChild(pointElement);
+        }
+        
+        // Remove point
+        function removePoint(pointId) {
+            const point = points.find(p => p.id === pointId);
+            if (!point) return;
+            
+            // If point has database_id, remove from database too
+            if (point.database_id) {
+                fetch('./scriptes/map_save_points.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        action: 'delete_point',
+                        database_id: point.database_id
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (!data.success) {
+                        alert('Error during database deletion: ' + data.message);
+                    }
+                });
+            }
+            
+            // Remove from local array and DOM
+            points = points.filter(p => p.id !== pointId);
+            const pointElement = document.querySelector(`[data-point-id="${pointId}"]`);
+            if (pointElement) {
+                pointElement.remove();
+            }
+        }
+        
+        // Clear all points
+        function clearAllPoints() {
+            if (points.length === 0) return;
+            
+            if (confirm('Are you sure you want to delete all points?')) {
+                points = [];
+                pointCounter = 0;
+                const pointElements = document.querySelectorAll('.map-point-of-interest');
+                pointElements.forEach(element => element.remove());
+            }
+        }
+        
+        // Save all points to database
+        function saveAllPoints() {
+            if (points.length === 0) {
+                alert('No points to save');
+                return;
+            }
+            
+            if (confirm('Save all points to database?')) {
+                fetch('./scriptes/map_save_points.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        action: 'save_points',
+                        points: points,
+                        map_id: 1
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('Points saved successfully!');
+                        loadPointsFromDB();
+                    } else {
+                        alert('Error during save: ' + data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Connection error during save');
+                });
+            }
+        }
+        
+        // Load points from database
+        function loadPointsFromDB() {
+            fetch('./scriptes/map_save_points.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    action: 'load_points',
+                    map_id: 1
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Clear current points
+                    clearAllPoints();
+                    
+                    // Load points from database
+                    points = data.points || [];
+                    points.forEach(point => {
+                        createPointElement(point);
+                        if (point.id >= pointCounter) {
+                            pointCounter = point.id + 1;
+                        }
+                    });
+                    
+                    console.log(`${points.length} points loaded from database`);
+                } else {
+                    console.log('No points in database: ' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Connection error:', error);
+                console.log('Unable to load points from database. Page working in local mode.');
+            });
+        }
+        
+        // Add keyboard shortcuts
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                if (addMode) {
+                    toggleAddMode();
+                }
+            }
+        });
+        
+        // Load existing points on page load
+        window.addEventListener('load', function() {
+            loadPointsFromDB();
+            
+            setTimeout(() => {
+                alert(`Welcome to the administrative interactive map!\n\nInstructions:\n- Click "Add Mode" to activate point addition\n- Click on the map to add a point of interest\n- Hover over a point to see its information\n- Double-click on a point to delete it\n- Press Escape to deactivate add mode\n\nADMIN: Use "Save to Database" to make changes permanent and visible to all users.`);
+            }, 1000);
+        });
+    </script>
+</body>
+</html>

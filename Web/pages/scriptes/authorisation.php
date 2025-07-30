@@ -24,7 +24,7 @@ $authorisation = array(
     'Beings' => 'all',
     'Admin' => 'admin',
     'User_profil' => 'hidden',
-
+    'Map_modif' => 'admin'
 );
 
 
@@ -50,6 +50,7 @@ $type = array(
     'Beings' => 'common',
     'Admin' => 'common',
     'User_profil' => 'common',
+    'Map_modif' => 'common'
 
 );
 

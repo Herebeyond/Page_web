@@ -206,7 +206,7 @@ html body {
 
 #global { /* Background image */
     height: fit-content; /* Total page height */
-    min-height: 100%;
+    min-height: 100vh; /* Ensure minimum full viewport height */
     width: 100%;
     background-image: url('../images/wallpaper.jpg'); /* Background image */
     background-size: 100vh; /* Cover entire page */
@@ -214,6 +214,8 @@ html body {
     background-size: cover; /* Cover entire surface */
     background-attachment: fixed; /* Fixed during scroll */
     background-repeat: no-repeat; /* No repeat */
+    padding-bottom: 50px; /* Account for mainText bottom margin */
+    box-sizing: border-box; /* Include padding in height calculation */
 }
 
 #divTitre {
@@ -377,7 +379,9 @@ html body {
     margin-inline: 2%; /* Margin between elements */
     padding: 20px;
     color: white;
+    background-color: rgba(0, 0, 0, 0.9); /* Black background for homepage */
     border-radius: 8px 8px 8px 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Add shadow for consistency */
     height: fit-content;
     position: relative; /* Ensure z-index works */
     z-index: 1; /* Ensure them to be below dropdown */
@@ -623,19 +627,20 @@ html body {
     background-color: #a1abff; /* Change color on hover */
 }
 
-/* Styles for mainText and its contents in Beings.php */
-#mainText {
-    margin: 50px;
+/* Styles for mainText and its contents in content pages (non-homepage) */
+.content-page #mainText {
+    margin: 50px auto; /* Center horizontally */
     padding: 20px;
     border-radius: 10px;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     background-color: rgb(0, 0, 0, 0.9);
-    max-width: 1200px;
+    max-width: 1400px; /* Wider than before */
+    width: calc(100% - 100px); /* Responsive width with margins */
     font-family: 'Roboto', sans-serif;
     color: #ffffff;
 }
 
-#mainText #Return {
+.content-page #mainText #Return {
     display: inline-block;
     margin-bottom: 20px;
     color: #1e90ff;
@@ -645,7 +650,7 @@ html body {
     transition: color 0.3s;
 }
 
-#mainText #Return:hover {
+.content-page #mainText #Return:hover {
     color: #87cefa;
 }
 
@@ -839,4 +844,161 @@ html body {
 #pagination a:first-child:hover,
 #pagination a:last-child:hover {
     transform: scale(1.2);
+}
+
+/* ========================================
+   INTERACTIVE MAP STYLES
+   ======================================== */
+
+/* Map container and layout */
+.map-admin-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.map-admin-title {
+    text-align: center;
+    color: #222088;
+    font-family: 'Cinzel', serif;
+    margin-bottom: 30px;
+}
+
+#interactive-map-container {
+    position: relative;
+    display: inline-block;
+    margin: 20px;
+}
+
+#interactive-map-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 400px;
+    height: 400px;
+    background-color: rgba(0, 0, 0, 0.1);
+    border: 2px solid #222088;
+    cursor: crosshair;
+    z-index: 2;
+}
+
+#interactive-map-image {
+    display: block;
+    width: 400px;
+    height: 400px;
+    object-fit: cover;
+    z-index: 1;
+}
+
+/* Point of interest styles */
+.map-point-of-interest {
+    position: absolute;
+    width: 12px;
+    height: 12px;
+    background-color: #ff4444;
+    border: 2px solid #ffffff;
+    border-radius: 50%;
+    cursor: pointer;
+    z-index: 3;
+    transform: translate(-50%, -50%);
+    transition: all 0.2s ease;
+}
+
+.map-point-of-interest:hover {
+    width: 16px;
+    height: 16px;
+    background-color: #ff6666;
+    box-shadow: 0 0 10px rgba(255, 68, 68, 0.5);
+}
+
+/* Tooltip styles */
+.map-poi-tooltip {
+    position: absolute;
+    background-color: rgba(0, 0, 0, 0.9);
+    color: white;
+    padding: 8px 12px;
+    border-radius: 4px;
+    font-size: 12px;
+    pointer-events: none;
+    z-index: 4;
+    white-space: nowrap;
+    transform: translate(-50%, -100%);
+    margin-top: -10px;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+
+.map-poi-tooltip.show {
+    opacity: 1;
+}
+
+.map-poi-tooltip::after {
+    content: '';
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    border: 5px solid transparent;
+    border-top-color: rgba(0, 0, 0, 0.9);
+    transform: translateX(-50%);
+}
+
+/* Admin controls panel */
+#map-admin-controls {
+    margin: 20px;
+    padding: 15px;
+    background-color: #fff5f5;
+    border-radius: 8px;
+    border: 2px solid #ff9999;
+    box-shadow: 0 2px 4px rgba(255, 0, 0, 0.1);
+}
+
+#map-admin-controls::before {
+    content: "⚠️ ADMINISTRATOR ZONE";
+    display: block;
+    background-color: #ff4444;
+    color: white;
+    padding: 5px 10px;
+    margin: -15px -15px 15px -15px;
+    border-radius: 6px 6px 0 0;
+    font-weight: bold;
+    text-align: center;
+}
+
+#map-admin-controls h3 {
+    margin-top: 0;
+    color: #222088;
+    font-family: 'Cinzel', serif;
+}
+
+/* Form controls */
+.map-control-group {
+    margin-bottom: 10px;
+}
+
+.map-control-group label {
+    display: inline-block;
+    width: 120px;
+    font-weight: bold;
+}
+
+.map-control-group input {
+    padding: 5px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    width: 200px;
+}
+
+/* Map-specific buttons */
+.map-admin-button {
+    background-color: #222088;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    margin: 5px;
+}
+
+.map-admin-button:hover {
+    background-color: #a1abff;
 }
