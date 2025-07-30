@@ -65,6 +65,49 @@ docker-compose up -d
 - Notification banners: `.notification-banner` with close functionality
 - CSS versioning: `?ver=" . time()` to bust cache
 
+### Help System Integration Pattern
+Smart positioning help icons that remain contextual to content while maintaining visibility during scroll:
+
+**HTML Structure** (inside `#mainText` element):
+```html
+<div class="map-help-container" id="help-container-id">
+    <div class="map-help-icon [admin-help-icon]" id="help-trigger-id">
+        <span>?</span>
+    </div>
+    <div class="map-help-tooltip [admin-help-tooltip]" id="help-content-id">
+        <div class="notification-content">
+            <h3>📍 Title</h3>
+            <ul><li>Instructions...</li></ul>
+        </div>
+        <button class="tooltip-close" onclick="hideHelp()">&times;</button>
+    </div>
+</div>
+```
+
+**CSS Classes**:
+- `.map-help-container` (absolute positioning relative to #mainText)
+- `.map-help-container.fixed` (fixed positioning at screen top when scrolled)
+- Color variants: blue gradient for users, red `.admin-help-icon` for admin
+
+**JavaScript Handler**:
+```javascript
+function handleHelpContainerPosition() {
+    const helpContainer = document.getElementById('help-container-id');
+    const mainText = document.getElementById('mainText');
+    if (!helpContainer || !mainText) return;
+    
+    const mainTextRect = mainText.getBoundingClientRect();
+    if (mainTextRect.top < 0) {
+        helpContainer.className = 'map-help-container fixed';
+    } else {
+        helpContainer.className = 'map-help-container';
+    }
+}
+// Add: window.addEventListener('scroll', handleHelpContainerPosition);
+```
+
+**Implementation Examples**: `Map_view.php` (user blue), `Map_modif.php` (admin red)
+
 ### Form Handling
 - Fetch existing data with dedicated endpoints
 - "Fetch Info" buttons populate forms for editing

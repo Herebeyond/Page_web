@@ -3,26 +3,22 @@ require_once "./blueprints/page_init.php"; // includes the page initialization f
 require_once "./blueprints/gl_ap_start.php"; // includes the start of the general page file
 ?>
 
-<!DOCTYPE html>
-<html>
-<head>
-    <?php $chemin_absolu = 'http://localhost/test/Web/';?>
-    <link rel="stylesheet" href="<?php echo $chemin_absolu . "style/PageStyle.css?ver=" . time(); ?>">
-    <title>Interactive Map - Forgotten Worlds</title>
-</head>
-
-<body class="content-page">
-    <!-- Welcome Instructions Banner -->
-    <div id="welcome-instructions" class="notification-banner welcome-banner">
-        <div class="notification-content">
-            <h3>🗺️ Welcome to the Interactive Map of the Forgotten Worlds!</h3>
-            <p>Explore the vast lands and discover locations, cities, dungeons, and other important places in this mystical realm.</p>
-            <p><strong>How to explore:</strong> Hover over the red points to discover information about each location.</p>
-        </div>
-        <button class="notification-close" onclick="closeNotification('welcome-instructions')">&times;</button>
-    </div>
-    
     <div id="mainText">
+        <!-- Help Icon with Tooltip -->
+        <div class="map-help-container" id="map-help-container">
+            <div class="map-help-icon" id="map-help-trigger" title="Click for help">
+                <span>?</span>
+            </div>
+            <div class="map-help-tooltip" id="map-help-content">
+                <div class="notification-content">
+                    <h3>🗺️ Welcome to the Interactive Map of the Forgotten Worlds!</h3>
+                    <p id="dynamic-welcome-text">Explore the vast lands and discover locations, cities, dungeons, and other important places in this mystical realm.</p>
+                    <p><strong>How to explore:</strong> Hover over the red points to discover information about each location.</p>
+                </div>
+                <button class="tooltip-close" onclick="hideHelp()">&times;</button>
+            </div>
+        </div>
+        
         <div class="map-view-container">
             <h1 class="map-view-title">🗺️ Interactive Map of the Forgotten Worlds</h1>
             <p class="map-view-description">
@@ -45,7 +41,7 @@ require_once "./blueprints/gl_ap_start.php"; // includes the start of the genera
                     <li>📍 <strong>Locations:</strong> Other points of interest</li>
                 </ul>
                 
-                <?php if (isset($_SESSION['is_admin']) && $_SESSION['is_admin']): ?>
+                <?php if (isset($_SESSION['user']) && isset($user_roles) && in_array('admin', $user_roles)): ?>
                 <div style="margin-top: 20px; padding-top: 15px; border-top: 1px solid #444;">
                     <p style="color: #888; font-size: 0.9em; margin-bottom: 10px;"><em>Administrator Tools:</em></p>
                     <a href="Map_modif.php" style="
@@ -142,31 +138,77 @@ require_once "./blueprints/gl_ap_start.php"; // includes the start of the genera
         
         // Update welcome banner with point information
         function updateWelcomeBanner(pointCount) {
-            const banner = document.getElementById('welcome-instructions');
-            const content = banner.querySelector('.notification-content');
+            const dynamicText = document.getElementById('dynamic-welcome-text');
             
             if (pointCount > 0) {
-                content.innerHTML = `
-                    <h3>🗺️ Welcome to the Interactive Map of the Forgotten Worlds!</h3>
-                    <p>📍 <strong>${pointCount} locations</strong> are available to explore.</p>
-                    <p><strong>How to explore:</strong> Hover over the red points to discover information about each location. Enjoy your exploration!</p>
-                `;
+                dynamicText.innerHTML = `📍 <strong>${pointCount} locations</strong> are available to explore. Enjoy your exploration!`;
             } else if (pointCount === 0) {
-                content.innerHTML = `
-                    <h3>🗺️ Welcome to the Interactive Map of the Forgotten Worlds!</h3>
-                    <p>📍 No locations are currently available on this map.</p>
-                    <p>Check back later as new places are discovered and added to the world!</p>
-                `;
+                dynamicText.innerHTML = `📍 No locations are currently available on this map. Check back later as new places are discovered and added to the world!`;
             } else {
-                content.innerHTML = `
-                    <h3>🗺️ Welcome to the Interactive Map!</h3>
-                    <p>⚠️ Unable to connect to the server to load locations.</p>
-                    <p>The map is still viewable, but location data may not be available.</p>
-                `;
+                dynamicText.innerHTML = `⚠️ Unable to connect to the server to load locations. The map is still viewable, but location data may not be available.`;
             }
         }
         
-        // Close notification function
+        // Help system functionality
+        let helpTimeout;
+        const helpTrigger = document.getElementById('map-help-trigger');
+        const helpContent = document.getElementById('map-help-content');
+        const helpContainer = document.getElementById('map-help-container');
+        const mainText = document.getElementById('mainText');
+        
+        // Handle scroll positioning for help container
+        function handleHelpContainerPosition() {
+            const mainTextRect = mainText.getBoundingClientRect();
+            const scrollY = window.pageYOffset;
+            
+            // If mainText top is below the viewport top, switch to fixed positioning
+            if (mainTextRect.top <= 20) {
+                helpContainer.classList.add('fixed');
+            } else {
+                helpContainer.classList.remove('fixed');
+            }
+        }
+        
+        // Add scroll listener
+        window.addEventListener('scroll', handleHelpContainerPosition);
+        window.addEventListener('resize', handleHelpContainerPosition);
+        
+        // Initial position check
+        window.addEventListener('load', function() {
+            handleHelpContainerPosition();
+            loadPointsFromDB();
+        });
+        
+        // Show help on hover (with delay) or click
+        helpTrigger.addEventListener('mouseenter', function() {
+            helpTimeout = setTimeout(() => {
+                helpContent.classList.add('show');
+            }, 800); // 800ms delay
+        });
+        
+        helpTrigger.addEventListener('mouseleave', function() {
+            clearTimeout(helpTimeout);
+            // Don't hide immediately on mouse leave, let user interact with tooltip
+        });
+        
+        helpTrigger.addEventListener('click', function(e) {
+            e.stopPropagation();
+            clearTimeout(helpTimeout);
+            helpContent.classList.toggle('show');
+        });
+        
+        // Hide help when clicking outside
+        document.addEventListener('click', function(e) {
+            if (!helpContent.contains(e.target) && !helpTrigger.contains(e.target)) {
+                helpContent.classList.remove('show');
+            }
+        });
+        
+        function hideHelp() {
+            helpContent.classList.remove('show');
+        }
+        
+        // Close notification function (legacy)
         function closeNotification(id) {
             const notification = document.getElementById(id);
             if (notification) {
@@ -180,11 +222,8 @@ require_once "./blueprints/gl_ap_start.php"; // includes the start of the genera
             const isOverPoint = e.target.classList.contains('map-point-of-interest');
             mapOverlay.style.cursor = isOverPoint ? 'pointer' : 'default';
         });
-        
-        // Load existing points on page load
-        window.addEventListener('load', function() {
-            loadPointsFromDB();
-        });
     </script>
-</body>
-</html>
+
+<?php
+require_once "./blueprints/gl_ap_end.php"; // includes the end of the general page file
+?>

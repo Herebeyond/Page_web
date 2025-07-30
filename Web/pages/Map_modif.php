@@ -1,42 +1,32 @@
 <?php
 require_once "./blueprints/page_init.php"; // includes the page initialization file
-
-// Check if user is admin before allowing access
-if (!isset($_SESSION['is_admin']) || !$_SESSION['is_admin']) {
-    header('Location: Map_view.php'); // Redirect to user map instead
-    exit();
-}
-
 require_once "./blueprints/gl_ap_start.php"; // includes the start of the general page file
 ?>
 
-<!DOCTYPE html>
-<html>
-<head>
-    <?php $chemin_absolu = 'http://localhost/test/Web/';?>
-    <link rel="stylesheet" href="<?php echo $chemin_absolu . "style/PageStyle.css?ver=" . time(); ?>">
-    <title>Interactive Map - Forgotten Worlds</title>
-</head>
-
-<body class="content-page">
-    <!-- Admin Instructions Banner -->
-    <div id="admin-instructions" class="notification-banner admin-banner">
-        <div class="notification-content">
-            <h3>🔧 Administrator Interactive Map</h3>
-            <p><strong>Instructions:</strong></p>
-            <ul>
-                <li>Click "Add Mode" to activate point addition</li>
-                <li>Click on the map to add a point of interest</li>
-                <li>Hover over points to see their information</li>
-                <li>Double-click points to delete them</li>
-                <li>Press Escape to deactivate add mode</li>
-                <li><strong>Important:</strong> Use "Save to Database" to make changes permanent and visible to all users</li>
-            </ul>
-        </div>
-        <button class="notification-close" onclick="closeNotification('admin-instructions')">&times;</button>
-    </div>
     
     <div id="mainText">
+        <!-- Admin Help Icon with Tooltip -->
+        <div class="map-help-container" id="admin-help-container">
+            <div class="map-help-icon admin-help-icon" id="admin-help-trigger" title="Click for instructions">
+                <span>?</span>
+            </div>
+            <div class="map-help-tooltip admin-help-tooltip" id="admin-help-content">
+                <div class="notification-content">
+                    <h3>🔧 Administrator Interactive Map</h3>
+                    <p><strong>Instructions:</strong></p>
+                    <ul>
+                        <li>Click "Add Mode" to activate point addition</li>
+                        <li>Click on the map to add a point of interest</li>
+                        <li>Hover over points to see their information</li>
+                        <li>Double-click points to delete them</li>
+                        <li>Press Escape to deactivate add mode</li>
+                        <li><strong>Important:</strong> Use "Save to Database" to make changes permanent and visible to all users</li>
+                    </ul>
+                </div>
+                <button class="tooltip-close" onclick="hideAdminHelp()">&times;</button>
+            </div>
+        </div>
+        
         <div class="map-admin-container">
             <h1 class="map-admin-title">🔧 Administration - Interactive Map of Forgotten Worlds</h1>
             
@@ -298,10 +288,68 @@ require_once "./blueprints/gl_ap_start.php"; // includes the start of the genera
             }
         }
         
+        // Admin help system functionality
+        let adminHelpTimeout;
+        const adminHelpTrigger = document.getElementById('admin-help-trigger');
+        const adminHelpContent = document.getElementById('admin-help-content');
+        
+        // Handle help container positioning based on scroll
+        function handleHelpContainerPosition() {
+            const helpContainer = document.getElementById('admin-help-container');
+            const mainText = document.getElementById('mainText');
+            
+            if (!helpContainer || !mainText) return;
+            
+            const mainTextRect = mainText.getBoundingClientRect();
+            const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+            
+            // If mainText's top is below viewport (user scrolled past it)
+            if (mainTextRect.top < 0) {
+                helpContainer.className = 'map-help-container fixed';
+            } else {
+                helpContainer.className = 'map-help-container';
+            }
+        }
+        
+        // Add scroll event listener for help positioning
+        window.addEventListener('scroll', handleHelpContainerPosition);
+        
+        // Show help on hover (with delay) or click
+        adminHelpTrigger.addEventListener('mouseenter', function() {
+            adminHelpTimeout = setTimeout(() => {
+                adminHelpContent.classList.add('show');
+            }, 800); // 800ms delay
+        });
+        
+        adminHelpTrigger.addEventListener('mouseleave', function() {
+            clearTimeout(adminHelpTimeout);
+        });
+        
+        adminHelpTrigger.addEventListener('click', function(e) {
+            e.stopPropagation();
+            clearTimeout(adminHelpTimeout);
+            adminHelpContent.classList.toggle('show');
+        });
+        
+        // Hide help when clicking outside
+        document.addEventListener('click', function(e) {
+            if (!adminHelpContent.contains(e.target) && !adminHelpTrigger.contains(e.target)) {
+                adminHelpContent.classList.remove('show');
+            }
+        });
+        
+        function hideAdminHelp() {
+            adminHelpContent.classList.remove('show');
+        }
+        
         // Load existing points on page load
         window.addEventListener('load', function() {
             loadPointsFromDB();
+            // Initial positioning check after page load
+            handleHelpContainerPosition();
         });
     </script>
-</body>
-</html>
+
+<?php
+require_once "./blueprints/gl_ap_end.php"; // includes the end of the general page file
+?>
