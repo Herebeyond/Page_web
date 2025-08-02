@@ -64,8 +64,43 @@ require_once "./blueprints/gl_ap_start.php"; // includes the start of the genera
 
     <script>
         let points = [];
+        let pointTypes = [];
         
         const mapOverlay = document.getElementById('interactive-map-overlay');
+        
+        // Get color for point type
+        function getColorForType(typeName) {
+            const type = pointTypes.find(t => t.name_IPT === typeName);
+            const color = type ? type.color_IPT || '#ff4444' : '#ff4444';
+            return color;
+        }
+        
+        // Load point types from database
+        function loadPointTypes() {
+            return fetch('./scriptes/map_save_points.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    action: 'load_types'
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    pointTypes = data.types || [];
+                    return true;
+                } else {
+                    console.log('No types found: ' + data.message);
+                    return false;
+                }
+            })
+            .catch(error => {
+                console.error('Error loading types:', error);
+                return false;
+            });
+        }
         
         // Create point element (read-only version)
         function createPointElement(point) {
@@ -75,13 +110,18 @@ require_once "./blueprints/gl_ap_start.php"; // includes the start of the genera
             pointElement.style.top = point.y + '%';
             pointElement.dataset.pointId = point.id;
             
+            // Set point color based on type
+            const pointColor = getColorForType(point.type);
+            pointElement.style.backgroundColor = pointColor;
+            pointElement.style.borderColor = '#ffffff';
+            
             // Create tooltip
             const tooltip = document.createElement('div');
             tooltip.className = 'map-poi-tooltip';
             tooltip.innerHTML = `
                 <strong>${point.name}</strong><br>
-                <em>${point.type}</em><br>
-                ${point.description}
+                Type: ${point.type}<br>
+                <p style="max-width: 200px; margin: 5px 0 0 0; word-wrap: break-word; overflow-wrap: break-word; white-space: normal; line-height: 1.3;">${point.description}</p>
             `;
             
             // Add hover events
@@ -93,6 +133,12 @@ require_once "./blueprints/gl_ap_start.php"; // includes the start of the genera
             pointElement.addEventListener('mouseleave', function() {
                 tooltip.classList.remove('show');
                 pointElement.classList.remove('active');
+            });
+            
+            // Add click event to redirect to detail page
+            pointElement.addEventListener('click', function(e) {
+                e.stopPropagation();
+                window.location.href = `place_detail.php?id=${point.id}`;
             });
             
             pointElement.appendChild(tooltip);
@@ -107,16 +153,27 @@ require_once "./blueprints/gl_ap_start.php"; // includes the start of the genera
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
-                    action: 'load_points',
+                    action: 'loadPoints',
                     map_id: 1
                 })
             })
             .then(response => response.json())
             .then(data => {
-                if (data.success) {
+                if (data.success && data.points) {
+                    // Clear existing points
+                    points = [];
+                    
                     // Load points from database
-                    points = data.points || [];
-                    points.forEach(point => {
+                    data.points.forEach(dbPoint => {
+                        const point = {
+                            id: dbPoint.id_IP,
+                            name: dbPoint.name_IP,
+                            description: dbPoint.description_IP,
+                            type: dbPoint.type_IP,
+                            x: parseFloat(dbPoint.x_IP),
+                            y: parseFloat(dbPoint.y_IP)
+                        };
+                        points.push(point);
                         createPointElement(point);
                     });
                     
@@ -176,7 +233,10 @@ require_once "./blueprints/gl_ap_start.php"; // includes the start of the genera
         // Initial position check
         window.addEventListener('load', function() {
             handleHelpContainerPosition();
-            loadPointsFromDB();
+            // Load point types first, then load points
+            loadPointTypes().then(function(typesLoaded) {
+                loadPointsFromDB(); // Load points after types are loaded
+            });
         });
         
         // Show help on hover (with delay) or click

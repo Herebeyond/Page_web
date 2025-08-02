@@ -61,6 +61,9 @@ switch ($action) {
     case 'update_type_color':
         updateTypeColor($pdo, $input);
         break;
+    case 'check_duplicate_name':
+        checkDuplicateName($pdo, $input);
+        break;
     default:
         echo json_encode(['success' => false, 'message' => 'Unrecognized action']);
 }
@@ -452,6 +455,45 @@ function updateTypeColor($pdo, $input) {
             echo json_encode(['success' => true, 'message' => 'Type color updated successfully']);
         } else {
             echo json_encode(['success' => false, 'message' => 'Type not found']);
+        }
+    } catch (PDOException $e) {
+        echo json_encode(['success' => false, 'message' => 'Database error: ' . $e->getMessage()]);
+    }
+}
+
+function checkDuplicateName($pdo, $input) {
+    try {
+        $name = $input['name'] ?? '';
+        $excludeId = $input['exclude_id'] ?? null; // For updates, exclude current point
+        
+        if (empty($name)) {
+            echo json_encode(['success' => false, 'message' => 'Name is required']);
+            return;
+        }
+        
+        // Check for case-insensitive duplicate
+        if ($excludeId) {
+            $stmt = $pdo->prepare("SELECT id_IP, name_IP FROM interest_points WHERE LOWER(name_IP) = LOWER(?) AND id_IP != ?");
+            $stmt->execute([$name, $excludeId]);
+        } else {
+            $stmt = $pdo->prepare("SELECT id_IP, name_IP FROM interest_points WHERE LOWER(name_IP) = LOWER(?)");
+            $stmt->execute([$name]);
+        }
+        
+        $duplicate = $stmt->fetch(PDO::FETCH_ASSOC);
+        
+        if ($duplicate) {
+            echo json_encode([
+                'success' => true,
+                'is_duplicate' => true,
+                'existing_name' => $duplicate['name_IP'],
+                'existing_id' => $duplicate['id_IP']
+            ]);
+        } else {
+            echo json_encode([
+                'success' => true,
+                'is_duplicate' => false
+            ]);
         }
     } catch (PDOException $e) {
         echo json_encode(['success' => false, 'message' => 'Database error: ' . $e->getMessage()]);

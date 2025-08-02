@@ -24,7 +24,9 @@ $authorisation = array(
     'Beings' => 'all',
     'Admin' => 'admin',
     'User_profil' => 'hidden',
-    'Map_modif' => 'admin'
+    'Map_modif' => 'admin',
+    'place_detail' => 'all',
+    'places_manager' => 'admin'
 );
 
 
@@ -50,8 +52,9 @@ $type = array(
     'Beings' => 'common',
     'Admin' => 'common',
     'User_profil' => 'common',
-    'Map_modif' => 'common'
-
+    'Map_modif' => 'common',
+    'place_detail' => 'common',
+    'places_manager' => 'common'
 );
 
 ?>

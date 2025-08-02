@@ -45,7 +45,8 @@ require_once "./blueprints/gl_ap_start.php"; // includes the start of the genera
                         </div>
                         <div class="map-control-group">
                             <label for="poi-description">Description:</label>
-                            <input type="text" id="poi-description" placeholder="Ex: Ancient elven fortress">
+                            <textarea id="poi-description" placeholder="Ex: Ancient elven fortress built on the highest peak of the mountains, protected by ancient magic and elven warriors..." 
+                                     style="min-height: 80px; resize: vertical; width: 100%; font-family: inherit; padding: 8px; border: 1px solid #d4af37; border-radius: 4px; background: rgba(0, 0, 0, 0.7); color: #f4cf47;"></textarea>
                         </div>
                         <div class="map-control-group">
                             <label for="poi-type">Type:</label>
@@ -66,7 +67,7 @@ require_once "./blueprints/gl_ap_start.php"; // includes the start of the genera
                             <input type="text" id="new-type-name" placeholder="Ex: Ancient Ruins">
                         </div>
                         <div class="map-control-group">
-                            <label for="new-type-color">Color (hex):</label>
+                            <label for="new-type-color">Color :</label>
                             <input type="color" id="new-type-color" value="#ff4444">
                         </div>
                         <button class="map-admin-button" onclick="addNewType()">Add Type</button>
@@ -102,7 +103,8 @@ require_once "./blueprints/gl_ap_start.php"; // includes the start of the genera
                 </div>
                 <div class="point-edit-form-group">
                     <label for="edit-poi-description">Description:</label>
-                    <textarea id="edit-poi-description" placeholder="Ex: Ancient elven fortress built on the highest peak..."></textarea>
+                    <textarea id="edit-poi-description" placeholder="Ex: Ancient elven fortress built on the highest peak of the mountains, protected by ancient magic and elven warriors..."
+                             style="min-height: 120px; resize: vertical; width: 100%; font-family: inherit; padding: 8px; border: 1px solid #d4af37; border-radius: 4px; background: rgba(0, 0, 0, 0.7); color: #f4cf47; line-height: 1.4;"></textarea>
                 </div>
                 <div class="point-edit-form-group">
                     <label for="edit-poi-type">Type:</label>
@@ -123,6 +125,7 @@ require_once "./blueprints/gl_ap_start.php"; // includes the start of the genera
         let addMode = false;
         let points = [];
         let pointCounter = 0;
+        let hasUnsavedChanges = false; // Track if there are unsaved changes
         
         const mapOverlay = document.getElementById('interactive-map-overlay');
         const mapContainer = document.getElementById('interactive-map-container');
@@ -137,17 +140,21 @@ require_once "./blueprints/gl_ap_start.php"; // includes the start of the genera
                 statusSpan.textContent = 'Active';
                 statusSpan.style.color = '#00aa00';
                 overlay.style.backgroundColor = 'rgba(0, 170, 0, 0.1)';
+                overlay.style.cursor = 'crosshair';
             } else {
                 statusSpan.textContent = 'Inactive';
                 statusSpan.style.color = '#aa0000';
                 overlay.style.backgroundColor = 'rgba(0, 0, 0, 0.1)';
+                overlay.style.cursor = 'default';
             }
         }
         
         // Initialize status color on page load
         function initializeStatusColor() {
             const statusSpan = document.getElementById('mode-status');
+            const overlay = document.getElementById('interactive-map-overlay');
             statusSpan.style.color = '#aa0000'; // Red for inactive
+            overlay.style.cursor = 'default'; // Default cursor for inactive mode
         }
         
         // Add point of interest
@@ -173,25 +180,48 @@ require_once "./blueprints/gl_ap_start.php"; // includes the start of the genera
                 return;
             }
             
-            const point = {
-                id: pointCounter++,
-                x: xPercent,
-                y: yPercent,
-                name: name,
-                description: description,
-                type: type
-            };
-            
-            points.push(point);
-            createPointElement(point);
-            
-            // Clear inputs
-            document.getElementById('poi-name').value = '';
-            document.getElementById('poi-description').value = '';
-            document.getElementById('poi-type').selectedIndex = 0;
-            
-            showTemporaryMessage('✅ Point added successfully!', 'success');
+            // Check for duplicate names first
+            checkDuplicateAndCreatePoint(name, description, type, xPercent, yPercent);
         });
+        
+        // Function to mark changes as unsaved
+        function markAsUnsaved() {
+            hasUnsavedChanges = true;
+            updateSaveButtonStatus();
+        }
+        
+        // Function to mark changes as saved
+        function markAsSaved() {
+            hasUnsavedChanges = false;
+            updateSaveButtonStatus();
+        }
+        
+        // Update save button visual status
+        function updateSaveButtonStatus() {
+            const saveButton = document.querySelector('button[onclick="saveAllPoints()"]');
+            if (saveButton) {
+                if (hasUnsavedChanges) {
+                    saveButton.style.background = '#ff6600';
+                    saveButton.style.animation = 'pulse 2s infinite';
+                    saveButton.innerHTML = '💾 Save to Database *';
+                } else {
+                    saveButton.style.background = '';
+                    saveButton.style.animation = '';
+                    saveButton.innerHTML = '💾 Save to Database';
+                }
+            }
+        }
+        
+        // Add CSS for pulse animation
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes pulse {
+                0% { box-shadow: 0 0 0 0 rgba(255, 102, 0, 0.7); }
+                70% { box-shadow: 0 0 0 10px rgba(255, 102, 0, 0); }
+                100% { box-shadow: 0 0 0 0 rgba(255, 102, 0, 0); }
+            }
+        `;
+        document.head.appendChild(style);
         
         // Type Management Functions
         let pointTypes = [];
@@ -613,10 +643,14 @@ require_once "./blueprints/gl_ap_start.php"; // includes the start of the genera
                         showTemporaryMessage('❌ Error during database deletion: ' + data.message, 'error');
                     } else {
                         showTemporaryMessage('✅ Point deleted from database', 'success');
+                        // Ask about folder deletion
+                        askAboutFolderDeletion(point.name);
                     }
                 });
             } else {
                 showTemporaryMessage('✅ Local point deleted', 'success');
+                // Ask about folder deletion for local points too
+                askAboutFolderDeletion(point.name);
             }
             
             // Remove from local array and DOM
@@ -624,6 +658,50 @@ require_once "./blueprints/gl_ap_start.php"; // includes the start of the genera
             const pointElement = document.querySelector(`[data-point-id="${pointId}"]`);
             if (pointElement) {
                 pointElement.remove();
+            }
+            
+            // Mark as unsaved if it was a local change
+            if (!point.database_id) {
+                markAsUnsaved();
+            }
+        }
+        
+        // Ask if user wants to delete the associated folder
+        function askAboutFolderDeletion(pointName) {
+            const deleteFolder = confirm(`Do you also want to delete the folder for "${pointName}"?\n\nWarning: This will permanently delete all images and files in the folder!\n\nClick OK to delete the folder, or Cancel to keep it.`);
+            
+            if (deleteFolder) {
+                // Create slug from point name
+                const slug = pointName.toLowerCase()
+                                    .trim()
+                                    .replace(/[^a-z0-9\-]/g, '-')
+                                    .replace(/-+/g, '-')
+                                    .replace(/^-|-$/g, '');
+                
+                fetch('./scriptes/folder_manager.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        action: 'delete_place_folder',
+                        slug: slug
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        showTemporaryMessage('✅ Folder deleted successfully!', 'success');
+                    } else {
+                        showTemporaryMessage('❌ Error deleting folder: ' + data.message, 'error');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error deleting folder:', error);
+                    showTemporaryMessage('❌ Error deleting folder', 'error');
+                });
+            } else {
+                showTemporaryMessage('ℹ️ Folder preserved. You can manage it in Places Manager.', 'info');
             }
         }
         
@@ -648,6 +726,9 @@ require_once "./blueprints/gl_ap_start.php"; // includes the start of the genera
                 // Keep only database points
                 points = points.filter(p => p.database_id);
                 
+                // Mark as unsaved since we cleared local points
+                markAsUnsaved();
+                
                 showTemporaryMessage('✅ Local points cleared successfully!', 'success');
             }
         }
@@ -659,40 +740,99 @@ require_once "./blueprints/gl_ap_start.php"; // includes the start of the genera
                 return;
             }
             
-            if (confirm('Save all points to database?')) {
-                fetch('./scriptes/map_save_points.php', {
+            if (confirm('Save all points to database? This will also create folders for new points.')) {
+                // First, create folders for points that don't have database_id (new points)
+                const newPoints = points.filter(p => !p.database_id);
+                
+                if (newPoints.length > 0) {
+                    createFoldersForNewPoints(newPoints).then(() => {
+                        savePointsToDatabase();
+                    });
+                } else {
+                    savePointsToDatabase();
+                }
+            }
+        }
+        
+        // Create folders for new points before saving
+        function createFoldersForNewPoints(newPoints) {
+            const folderPromises = newPoints.map(point => {
+                return fetch('./scriptes/folder_manager.php', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                     },
                     body: JSON.stringify({
-                        action: 'savePoints',
-                        points: points,
-                        map_id: 1
+                        action: 'create_place_folder',
+                        name: point.name
                     })
                 })
                 .then(response => response.json())
                 .then(data => {
                     if (data.success) {
-                        // Update points with database IDs if provided
-                        if (data.saved_points) {
-                            data.saved_points.forEach(savedPoint => {
-                                const localPoint = points.find(p => p.id === savedPoint.local_id);
-                                if (localPoint) {
-                                    localPoint.database_id = savedPoint.database_id;
-                                }
-                            });
-                        }
-                        showTemporaryMessage('✅ Points saved successfully!', 'success');
+                        console.log(`Folder created for ${point.name}: ${data.folder_path}`);
                     } else {
-                        showTemporaryMessage('❌ Error during save: ' + data.message, 'error');
+                        console.warn(`Failed to create folder for ${point.name}: ${data.message}`);
                     }
+                    return data;
                 })
                 .catch(error => {
-                    console.error('Error:', error);
-                    showTemporaryMessage('❌ Connection error during save', 'error');
+                    console.error(`Error creating folder for ${point.name}:`, error);
+                    return { success: false, message: error.message };
                 });
-            }
+            });
+            
+            return Promise.all(folderPromises).then(results => {
+                const successCount = results.filter(r => r.success).length;
+                const failCount = results.length - successCount;
+                
+                if (successCount > 0) {
+                    showTemporaryMessage(`✅ Created ${successCount} folder(s)`, 'success');
+                }
+                if (failCount > 0) {
+                    showTemporaryMessage(`⚠️ Failed to create ${failCount} folder(s)`, 'error');
+                }
+            });
+        }
+        
+        // Save points to database (called after folder creation)
+        function savePointsToDatabase() {
+            fetch('./scriptes/map_save_points.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    action: 'savePoints',
+                    points: points,
+                    map_id: 1
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Update points with database IDs if provided
+                    if (data.saved_points) {
+                        data.saved_points.forEach(savedPoint => {
+                            const localPoint = points.find(p => p.id === savedPoint.local_id);
+                            if (localPoint) {
+                                localPoint.database_id = savedPoint.database_id;
+                            }
+                        });
+                    }
+                    
+                    // Mark as saved
+                    markAsSaved();
+                    
+                    showTemporaryMessage('✅ Points saved successfully!', 'success');
+                } else {
+                    showTemporaryMessage('❌ Error during save: ' + data.message, 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showTemporaryMessage('❌ Connection error during save', 'error');
+            });
         }
         
         // Show temporary message function
@@ -827,6 +967,9 @@ require_once "./blueprints/gl_ap_start.php"; // includes the start of the genera
                 
                 // Update the point element on the map
                 updatePointElement(points[pointIndex]);
+                
+                // Mark as unsaved
+                markAsUnsaved();
                 
                 // If point has database_id, update in database
                 if (points[pointIndex].database_id) {
@@ -990,6 +1133,145 @@ require_once "./blueprints/gl_ap_start.php"; // includes the start of the genera
             adminHelpContent.classList.remove('show');
         }
         
+        // Check for duplicate names and create point locally
+        function checkDuplicateAndCreatePoint(name, description, type, xPercent, yPercent) {
+            // First check for duplicate point names
+            fetch('./scriptes/map_save_points.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    action: 'check_duplicate_name',
+                    name: name
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success && data.is_duplicate) {
+                    showTemporaryMessage(`⚠️ A point named "${data.existing_name}" already exists!`, 'error');
+                    return;
+                }
+                
+                // No duplicate, create point locally (no folder creation)
+                createPointLocallyOnly(name, description, type, xPercent, yPercent);
+            })
+            .catch(error => {
+                console.error('Error checking duplicate:', error);
+                showTemporaryMessage('❌ Error checking for duplicates', 'error');
+            });
+        }
+        
+        // Create point locally only (no folder operations)
+        function createPointLocallyOnly(name, description, type, xPercent, yPercent) {
+            const point = {
+                id: generateUniqueId(), // Use the proper unique ID function
+                x: xPercent,
+                y: yPercent,
+                name: name,
+                description: description,
+                type: type
+            };
+            
+            points.push(point);
+            createPointElement(point);
+            
+            // Clear inputs
+            document.getElementById('poi-name').value = '';
+            document.getElementById('poi-description').value = '';
+            document.getElementById('poi-type').selectedIndex = 0;
+            
+            // Mark as unsaved
+            markAsUnsaved();
+            
+                        showTemporaryMessage('✅ Point added locally! Use "Save to Database" to make it permanent.', 'success');
+        }
+        
+        // Remove point
+        function removePoint(pointId) {
+            const point = points.find(p => p.id === pointId);
+            if (!point) return;
+            
+            // If point has database_id, remove from database too
+            if (point.database_id) {
+                fetch('./scriptes/map_save_points.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        action: 'delete_point',
+                        database_id: point.database_id
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (!data.success) {
+                        showTemporaryMessage('❌ Error during database deletion: ' + data.message, 'error');
+                    } else {
+                        showTemporaryMessage('✅ Point deleted from database', 'success');
+                        // Ask about folder deletion
+                        askAboutFolderDeletion(point.name);
+                    }
+                });
+            } else {
+                showTemporaryMessage('✅ Local point deleted', 'success');
+                // Ask about folder deletion for local points too
+                askAboutFolderDeletion(point.name);
+            }
+            
+            // Remove from local array and DOM
+            points = points.filter(p => p.id !== pointId);
+            const pointElement = document.querySelector(`[data-point-id="${pointId}"]`);
+            if (pointElement) {
+                pointElement.remove();
+            }
+            
+            // Mark as unsaved if it was a local change
+            if (!point.database_id) {
+                markAsUnsaved();
+            }
+        }
+        
+        // Ask if user wants to delete the associated folder
+        function askAboutFolderDeletion(pointName) {
+            const deleteFolder = confirm(`Do you also want to delete the folder for "${pointName}"?\n\nWarning: This will permanently delete all images and files in the folder!\n\nClick OK to delete the folder, or Cancel to keep it.`);
+            
+            if (deleteFolder) {
+                // Create slug from point name
+                const slug = pointName.toLowerCase()
+                                    .trim()
+                                    .replace(/[^a-z0-9\-]/g, '-')
+                                    .replace(/-+/g, '-')
+                                    .replace(/^-|-$/g, '');
+                
+                fetch('./scriptes/folder_manager.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        action: 'delete_place_folder',
+                        slug: slug
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        showTemporaryMessage('✅ Folder deleted successfully!', 'success');
+                    } else {
+                        showTemporaryMessage('❌ Error deleting folder: ' + data.message, 'error');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error deleting folder:', error);
+                    showTemporaryMessage('❌ Error deleting folder', 'error');
+                });
+            } else {
+                showTemporaryMessage('ℹ️ Folder preserved. You can manage it in Places Manager.', 'info');
+            }
+        }
+        
         // Load existing points on page load
         window.addEventListener('load', function() {
             // Load point types first, then load existing points
@@ -1001,6 +1283,37 @@ require_once "./blueprints/gl_ap_start.php"; // includes the start of the genera
             handleHelpContainerPosition();
             // Initialize status color
             initializeStatusColor();
+        });
+        
+        // Warn user about unsaved changes when leaving the page
+        window.addEventListener('beforeunload', function(e) {
+            if (hasUnsavedChanges) {
+                const message = 'You have unsaved changes. Are you sure you want to leave without saving?';
+                e.preventDefault();
+                e.returnValue = message;
+                return message;
+            }
+        });
+        
+        // Handle internal navigation (clicking links on the page)
+        document.addEventListener('click', function(e) {
+            // Check if the clicked element is a link that would navigate away
+            const link = e.target.closest('a[href]');
+            if (link && hasUnsavedChanges) {
+                const href = link.getAttribute('href');
+                // Only show warning for links that navigate away from current page
+                if (href && !href.startsWith('#') && !href.startsWith('javascript:')) {
+                    e.preventDefault();
+                    
+                    const userChoice = confirm('You have unsaved changes. Are you sure you want to leave without saving?\n\nClick OK to leave without saving, or Cancel to stay on this page.');
+                    
+                    if (userChoice) {
+                        // User chose to leave, navigate to the link
+                        window.location.href = href;
+                    }
+                    // If user cancels, do nothing (stay on page)
+                }
+            }
         });
     </script>
 
