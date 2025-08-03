@@ -50,6 +50,9 @@ if (isset($_SESSION['user'])) {
     $stmt = $pdo->prepare("SELECT r.name FROM user_roles ur JOIN roles r ON ur.role_id = r.id WHERE ur.user_id = ?");
     $stmt->execute([$user['id']]);
     $user_roles = $stmt->fetchAll(PDO::FETCH_COLUMN);
+    
+    // Store user roles in session for AJAX calls
+    $_SESSION['user_roles'] = $user_roles;
 
     // check if the user is blocked or not
     if ($user['blocked'] != "" || $user['blocked'] != null) {

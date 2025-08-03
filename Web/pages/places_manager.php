@@ -204,6 +204,12 @@ require_once "./blueprints/gl_ap_start.php"; // includes the start of the genera
                                 style="background: #4CAF50; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer;">
                             📂 View
                         </button>
+                        ${isLinked ? `
+                        <button onclick="goToPlaceDetail('${linkedPoint.id_IP}')" 
+                                style="background: #2196F3; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer;">
+                            🗺️ Place Detail
+                        </button>
+                        ` : ''}
                         ${!isLinked ? `
                         <button onclick="deleteFolderPrompt('${folder.slug}')" 
                                 style="background: #ff4444; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer;">
@@ -278,6 +284,12 @@ require_once "./blueprints/gl_ap_start.php"; // includes the start of the genera
                     <p><strong>Name:</strong> ${linkedPoint.name_IP}</p>
                     <p><strong>Type:</strong> ${linkedPoint.type_IP}</p>
                     <p><strong>Description:</strong> ${linkedPoint.description_IP}</p>
+                    <div style="margin-top: 15px;">
+                        <button onclick="goToPlaceDetail('${linkedPoint.id_IP}')" 
+                                style="background: #2196F3; color: white; border: none; padding: 10px 16px; border-radius: 4px; cursor: pointer; font-size: 14px;">
+                            🗺️ View Place Detail Page
+                        </button>
+                    </div>
                 </div>
             `;
         } else {
@@ -302,6 +314,11 @@ require_once "./blueprints/gl_ap_start.php"; // includes the start of the genera
     function closeFolderModal() {
         document.getElementById('folder-modal').style.display = 'none';
         currentFolderSlug = null;
+    }
+    
+    // Navigate to place detail page
+    function goToPlaceDetail(pointId) {
+        window.location.href = `place_detail.php?id=${pointId}`;
     }
     
     // Delete folder prompt
