@@ -115,19 +115,117 @@ require_once "./blueprints/gl_ap_start.php"; // includes the start of the genera
             pointElement.style.backgroundColor = pointColor;
             pointElement.style.borderColor = '#ffffff';
             
+            // Create slug for image path
+            const slug = point.name.toLowerCase()
+                .trim()
+                .replace(/[^a-z0-9\-]/g, '-')
+                .replace(/-+/g, '-')
+                .replace(/^-+|-+$/g, '');
+            
             // Create tooltip
             const tooltip = document.createElement('div');
             tooltip.className = 'map-poi-tooltip';
             tooltip.innerHTML = `
                 <strong>${point.name}</strong><br>
+                <div id="tooltip-image-${point.id}" style="margin: 8px 0; text-align: center; min-height: 20px;">
+                    <div style="color: #888; font-size: 12px;">Loading image...</div>
+                </div>
                 Type: ${point.type}<br>
                 <p style="max-width: 200px; margin: 5px 0 0 0; word-wrap: break-word; overflow-wrap: break-word; white-space: normal; line-height: 1.3;">${point.description}</p>
             `;
+            
+            // Function to load main image
+            function loadMainImageForTooltip() {
+                const imageContainer = document.getElementById(`tooltip-image-${point.id}`);
+                const possibleExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
+                let imageFound = false;
+                
+                async function checkImage(extension) {
+                    try {
+                        const imagePath = `../images/places/${slug}/main.${extension}`;
+                        const response = await fetch(imagePath);
+                        if (response.ok) {
+                            imageContainer.innerHTML = `
+                                <img src="${imagePath}" 
+                                     alt="Image of ${point.name}" 
+                                     style="max-width: 180px; max-height: 120px; border-radius: 4px; box-shadow: 0 2px 4px rgba(0,0,0,0.3); object-fit: cover;">
+                            `;
+                            return true;
+                        }
+                    } catch (error) {
+                        return false;
+                    }
+                    return false;
+                }
+                
+                // Try each extension
+                (async () => {
+                    for (const ext of possibleExtensions) {
+                        if (await checkImage(ext)) {
+                            imageFound = true;
+                            break;
+                        }
+                    }
+                    
+                    if (!imageFound) {
+                        imageContainer.innerHTML = `
+                            <div style="padding: 15px; background: rgba(0,0,0,0.1); border-radius: 4px; color: #666; font-size: 11px; border: 1px dashed #999;">
+                                📷 No image available
+                            </div>
+                        `;
+                    }
+                })();
+            }
+            
+            // Function to position tooltip within viewport
+            function positionTooltip() {
+                const rect = pointElement.getBoundingClientRect();
+                const tooltipRect = tooltip.getBoundingClientRect();
+                const viewportHeight = window.innerHeight;
+                const viewportWidth = window.innerWidth;
+                
+                // Reset positioning classes
+                tooltip.classList.remove('tooltip-above', 'tooltip-below', 'tooltip-left', 'tooltip-right');
+                
+                // Calculate positions
+                const spaceAbove = rect.top;
+                const spaceBelow = viewportHeight - rect.bottom;
+                const spaceLeft = rect.left;
+                const spaceRight = viewportWidth - rect.right;
+                
+                // Determine best vertical position
+                if (spaceAbove >= tooltipRect.height + 10) {
+                    // Enough space above, position above (default)
+                    tooltip.classList.add('tooltip-above');
+                } else if (spaceBelow >= tooltipRect.height + 10) {
+                    // Not enough space above, position below
+                    tooltip.classList.add('tooltip-below');
+                } else {
+                    // Not enough space above or below, choose the side with more space
+                    if (spaceAbove > spaceBelow) {
+                        tooltip.classList.add('tooltip-above');
+                    } else {
+                        tooltip.classList.add('tooltip-below');
+                    }
+                }
+                
+                // Check horizontal bounds
+                const tooltipLeft = rect.left + rect.width / 2 - tooltipRect.width / 2;
+                if (tooltipLeft < 10) {
+                    tooltip.classList.add('tooltip-right');
+                } else if (tooltipLeft + tooltipRect.width > viewportWidth - 10) {
+                    tooltip.classList.add('tooltip-left');
+                }
+            }
             
             // Add hover events
             pointElement.addEventListener('mouseenter', function() {
                 tooltip.classList.add('show');
                 pointElement.classList.add('active');
+                // Load image when tooltip is shown
+                loadMainImageForTooltip();
+                // Position tooltip after a short delay to ensure dimensions are calculated
+                setTimeout(positionTooltip, 50);
             });
             
             pointElement.addEventListener('mouseleave', function() {

@@ -562,7 +562,7 @@ require_once "./blueprints/gl_ap_start.php"; // includes the start of the genera
             closeEditModal('other-names');
             showMessage('✅ Other names updated successfully!', 'success');
         } catch (error) {
-            showMessage('❌ Error updating other names', 'error');
+            showMessage('❌ Error updating other names: ' + error.message, 'error');
         }
     }
     

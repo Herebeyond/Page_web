@@ -1430,6 +1430,36 @@ html body {
     font-weight: bold;
 }
 
+/* Dynamic positioning for tooltips */
+.map-view-container .map-poi-tooltip.tooltip-below {
+    bottom: auto;
+    top: 100%;
+    margin-bottom: 0;
+    margin-top: 8px;
+}
+
+.map-view-container .map-poi-tooltip.tooltip-below::after {
+    top: auto;
+    bottom: 100%;
+    border-color: transparent transparent #d4af37 transparent;
+}
+
+.map-view-container .map-poi-tooltip.tooltip-left {
+    left: auto;
+    right: 0;
+    transform: translateX(0);
+}
+
+.map-view-container .map-poi-tooltip.tooltip-right {
+    left: 0;
+    transform: translateX(0);
+}
+
+.map-view-container .map-poi-tooltip.tooltip-left::after,
+.map-view-container .map-poi-tooltip.tooltip-right::after {
+    left: 20px;
+}
+
 /* Enhanced tooltip for admin view (same as user view) */
 .map-admin-container .map-poi-tooltip {
     position: absolute;
@@ -1478,6 +1508,36 @@ html body {
     color: #f4cf47;
     font-style: normal;
     font-weight: bold;
+}
+
+/* Dynamic positioning for admin tooltips */
+.map-admin-container .map-poi-tooltip.tooltip-below {
+    bottom: auto;
+    top: 100%;
+    margin-bottom: 0;
+    margin-top: 8px;
+}
+
+.map-admin-container .map-poi-tooltip.tooltip-below::after {
+    top: auto;
+    bottom: 100%;
+    border-color: transparent transparent #d4af37 transparent;
+}
+
+.map-admin-container .map-poi-tooltip.tooltip-left {
+    left: auto;
+    right: 0;
+    transform: translateX(0);
+}
+
+.map-admin-container .map-poi-tooltip.tooltip-right {
+    left: 0;
+    transform: translateX(0);
+}
+
+.map-admin-container .map-poi-tooltip.tooltip-left::after,
+.map-admin-container .map-poi-tooltip.tooltip-right::after {
+    left: 20px;
 }
 
 /* Notification Banner Styles */
