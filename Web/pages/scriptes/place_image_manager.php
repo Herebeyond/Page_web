@@ -2,19 +2,18 @@
 session_start();
 require_once '../../login/db.php';
 
-// Check if user is admin
-if (!isset($_SESSION['user']) || !isset($_SESSION['user_roles']) || !in_array('admin', $_SESSION['user_roles'])) {
-    http_response_code(403);
-    echo json_encode(['success' => false, 'message' => 'Access denied']);
-    exit;
-}
-
 header('Content-Type: application/json');
 
 // Handle different request types
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    // Handle file uploads
+    // Handle file uploads (admin only)
     if (isset($_FILES['image'])) {
+        // Check if user is admin for uploads
+        if (!isset($_SESSION['user']) || !isset($_SESSION['user_roles']) || !in_array('admin', $_SESSION['user_roles'])) {
+            http_response_code(403);
+            echo json_encode(['success' => false, 'message' => 'Access denied - Admin required for uploads']);
+            exit;
+        }
         handleImageUpload();
     } else {
         // Handle JSON requests
@@ -22,11 +21,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if (isset($input['action'])) {
             switch ($input['action']) {
                 case 'list_images':
+                    // Allow anyone to list images (no admin check needed)
                     listImages($input['slug']);
                     break;
                 default:
-                    echo json_encode(['success' => false, 'message' => 'Unknown action']);
+                    // Other actions require admin access
+                    if (!isset($_SESSION['user']) || !isset($_SESSION['user_roles']) || !in_array('admin', $_SESSION['user_roles'])) {
+                        http_response_code(403);
+                        echo json_encode(['success' => false, 'message' => 'Access denied - Admin required']);
+                        exit;
+                    }
+                        echo json_encode(['success' => false, 'message' => 'Unknown action']);
             }
+        } else {
+            echo json_encode(['success' => false, 'message' => 'Invalid request format']);
         }
     }
 } else {
