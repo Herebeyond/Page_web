@@ -8,15 +8,20 @@ if (!isset($_SESSION['user']) || !isset($user_roles) || !in_array('admin', $user
     exit;
 }
 
-// Get the JSON input
-$input = json_decode(file_get_contents('php://input'), true);
+header('Content-Type: application/json');
+
+// Parse JSON input using shared secure function
+$input = parseSecureJsonInput();
+if ($input === false) {
+    echo json_encode(['success' => false, 'message' => 'Invalid JSON input']);
+    exit;
+}
+
 $action = $input['action'] ?? '';
 
 // Base path for places folders
-$basePath = realpath('../../images') . DIRECTORY_SEPARATOR . 'places' . DIRECTORY_SEPARATOR;
-
-// Debug: Check if the base path is valid
-if (!$basePath || $basePath === false) {
+$basePath = realpath('../../images/places');
+if ($basePath === false) {
     echo json_encode(['success' => false, 'message' => 'Could not resolve images directory path']);
     exit;
 }
@@ -24,22 +29,23 @@ if (!$basePath || $basePath === false) {
 // Ensure places directory exists
 if (!is_dir($basePath)) {
     if (!mkdir($basePath, 0755, true)) {
-        echo json_encode(['success' => false, 'message' => 'Failed to create places directory at: ' . $basePath]);
+        echo json_encode(['success' => false, 'message' => 'Failed to create places directory']);
         exit;
     }
 }
 
 function createPlaceSlug($name) {
-    // Convert to lowercase, replace spaces and special chars with hyphens
-    $slug = strtolower(trim($name));
-    $slug = preg_replace('/[^a-z0-9\-]/', '-', $slug);
-    $slug = preg_replace('/-+/', '-', $slug); // Remove multiple consecutive hyphens
-    $slug = trim($slug, '-'); // Remove leading/trailing hyphens
-    return $slug;
+    // Use shared secure slug creation function
+    return createSecureSlug($name);
 }
 
 function createPlaceFolders($basePath, $slug) {
-    $placePath = $basePath . $slug;
+    // Construct safe path using shared function
+    $placePath = constructSafePlacePath($slug, $basePath);
+    if ($placePath === false) {
+        return false;
+    }
+    
     $folders = [
         $placePath,
         $placePath . DIRECTORY_SEPARATOR . 'gallery',
@@ -57,25 +63,43 @@ function createPlaceFolders($basePath, $slug) {
 }
 
 function checkFolderExists($basePath, $slug) {
-    return is_dir($basePath . $slug);
+    $safePath = constructSafePlacePath($slug, $basePath);
+    if ($safePath === false) {
+        return false;
+    }
+    return is_dir($safePath);
 }
 
 function deletePlaceFolder($basePath, $slug) {
-    $placePath = $basePath . $slug;
+    $placePath = constructSafePlacePath($slug, $basePath);
+    if ($placePath === false) {
+        return false;
+    }
+    
     if (!is_dir($placePath)) {
         return true; // Already doesn't exist
     }
     
-    // Recursively delete folder and contents
+    // Recursively delete folder and contents with safe directory traversal
     function deleteDirectory($dir) {
         if (!is_dir($dir)) return false;
         
-        $files = array_diff(scandir($dir), array('.', '..'));
-        foreach ($files as $file) {
-            $path = $dir . DIRECTORY_SEPARATOR . $file;
-            is_dir($path) ? deleteDirectory($path) : unlink($path);
+        try {
+            $iterator = new RecursiveDirectoryIterator($dir, RecursiveDirectoryIterator::SKIP_DOTS);
+            $files = new RecursiveIteratorIterator($iterator, RecursiveIteratorIterator::CHILD_FIRST);
+            
+            foreach ($files as $file) {
+                if ($file->isDir()) {
+                    rmdir($file->getRealPath());
+                } else {
+                    unlink($file->getRealPath());
+                }
+            }
+            return rmdir($dir);
+        } catch (Exception $e) {
+            error_log('Error deleting directory: ' . $e->getMessage());
+            return false;
         }
-        return rmdir($dir);
     }
     
     return deleteDirectory($placePath);
@@ -87,20 +111,42 @@ function getAllPlaceFolders($basePath) {
         return $folders;
     }
     
-    $items = scandir($basePath);
-    foreach ($items as $item) {
-        if ($item === '.' || $item === '..') continue;
-        
-        $itemPath = $basePath . $item;
-        if (is_dir($itemPath)) {
+    try {
+        $iterator = new DirectoryIterator($basePath);
+        foreach ($iterator as $fileInfo) {
+            if ($fileInfo->isDot() || !$fileInfo->isDir()) {
+                continue;
+            }
+            
+            $itemName = $fileInfo->getFilename();
+            
+            // Validate the folder name for security
+            if (validateAndSanitizeSlug($itemName) === false) {
+                continue; // Skip potentially dangerous folder names
+            }
+            
+            $itemPath = $fileInfo->getRealPath();
+            
+            // Verify the path is within our base directory
+            if (strpos($itemPath, $basePath) !== 0) {
+                continue; // Skip paths outside our base directory
+            }
+            
+            $galleryPath = $itemPath . DIRECTORY_SEPARATOR . 'gallery';
+            $hasImages = is_dir($galleryPath) && count(glob($galleryPath . DIRECTORY_SEPARATOR . '*')) > 0;
+            
             $folders[] = [
-                'slug' => $item,
-                'name' => ucwords(str_replace('-', ' ', $item)),
-                'path' => $itemPath,
-                'has_images' => count(glob($itemPath . DIRECTORY_SEPARATOR . 'gallery' . DIRECTORY_SEPARATOR . '*')) > 0
+                'slug' => $itemName,
+                'name' => ucwords(str_replace('-', ' ', $itemName)),
+                'path' => 'images/places/' . $itemName, // Relative path for web access
+                'has_images' => $hasImages
             ];
         }
+    } catch (Exception $e) {
+        error_log('Error reading directories: ' . $e->getMessage());
+        return [];
     }
+    
     return $folders;
 }
 
@@ -114,17 +160,22 @@ switch ($action) {
         
         try {
             $slug = createPlaceSlug($name);
+            if ($slug === false) {
+                echo json_encode(['success' => false, 'message' => 'Invalid place name provided']);
+                break;
+            }
+            
             $exists = checkFolderExists($basePath, $slug);
             
             echo json_encode([
                 'success' => true,
                 'exists' => $exists,
                 'slug' => $slug,
-                'folder_path' => 'images/places/' . $slug,
-                'debug_base_path' => $basePath // Remove this after debugging
+                'folder_path' => 'images/places/' . $slug
             ]);
         } catch (Exception $e) {
-            echo json_encode(['success' => false, 'message' => 'Error checking folder: ' . $e->getMessage()]);
+            error_log('Error checking folder: ' . $e->getMessage());
+            echo json_encode(['success' => false, 'message' => 'Error checking folder']);
         }
         break;
         
@@ -135,18 +186,33 @@ switch ($action) {
             break;
         }
         
-        $slug = createPlaceSlug($name);
-        $success = createPlaceFolders($basePath, $slug);
-        
-        if ($success) {
-            echo json_encode([
-                'success' => true,
-                'message' => 'Folder structure created successfully',
-                'slug' => $slug,
-                'folder_path' => 'images/places/' . $slug
-            ]);
-        } else {
-            echo json_encode(['success' => false, 'message' => 'Failed to create folder structure']);
+        try {
+            $slug = createPlaceSlug($name);
+            if ($slug === false) {
+                echo json_encode(['success' => false, 'message' => 'Invalid place name provided']);
+                break;
+            }
+            
+            if (checkFolderExists($basePath, $slug)) {
+                echo json_encode(['success' => false, 'message' => 'Place already exists']);
+                break;
+            }
+            
+            $success = createPlaceFolders($basePath, $slug);
+            
+            if ($success) {
+                echo json_encode([
+                    'success' => true,
+                    'message' => 'Folder structure created successfully',
+                    'slug' => $slug,
+                    'folder_path' => 'images/places/' . $slug
+                ]);
+            } else {
+                echo json_encode(['success' => false, 'message' => 'Failed to create folder structure']);
+            }
+        } catch (Exception $e) {
+            error_log('Error creating place folder: ' . $e->getMessage());
+            echo json_encode(['success' => false, 'message' => 'Error creating place folder']);
         }
         break;
         
@@ -157,12 +223,23 @@ switch ($action) {
             break;
         }
         
-        $success = deletePlaceFolder($basePath, $slug);
-        
-        if ($success) {
-            echo json_encode(['success' => true, 'message' => 'Folder deleted successfully']);
-        } else {
-            echo json_encode(['success' => false, 'message' => 'Failed to delete folder']);
+        try {
+            $validatedSlug = validateAndSanitizeSlug($slug);
+            if ($validatedSlug === false) {
+                echo json_encode(['success' => false, 'message' => 'Invalid place identifier provided']);
+                break;
+            }
+            
+            $success = deletePlaceFolder($basePath, $validatedSlug);
+            
+            if ($success) {
+                echo json_encode(['success' => true, 'message' => 'Folder deleted successfully']);
+            } else {
+                echo json_encode(['success' => false, 'message' => 'Failed to delete folder']);
+            }
+        } catch (Exception $e) {
+            error_log('Error deleting place folder: ' . $e->getMessage());
+            echo json_encode(['success' => false, 'message' => 'Error deleting place folder']);
         }
         break;
         

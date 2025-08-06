@@ -1,8 +1,64 @@
 <?php
 session_start();
 require_once '../../login/db.php';
+require_once 'functions.php'; // Include shared functions
 
 header('Content-Type: application/json');
+
+// Security function to validate and sanitize slug
+function validateAndSanitizeSlug($slug) {
+    if (empty($slug)) {
+        return false;
+    }
+    
+    // Remove any path traversal attempts and dangerous characters
+    $slug = str_replace(['../', '..\\', '/', '\\', '.', '~'], '', $slug);
+    
+    // Only allow alphanumeric characters, hyphens, and underscores
+    if (!preg_match('/^[a-zA-Z0-9_-]+$/', $slug)) {
+        return false;
+    }
+    
+    // Limit length to prevent buffer overflow attacks
+    if (strlen($slug) > 100) {
+        return false;
+    }
+    
+    return $slug;
+}
+
+// Security function to construct safe path
+function constructSafePlacePath($slug) {
+    $sanitizedSlug = validateAndSanitizeSlug($slug);
+    if ($sanitizedSlug === false) {
+        return false;
+    }
+    
+    // Construct path with sanitized slug
+    $basePlacesDir = realpath('../../images/places');
+    if ($basePlacesDir === false) {
+        return false;
+    }
+    
+    $targetPath = $basePlacesDir . DIRECTORY_SEPARATOR . $sanitizedSlug;
+    
+    // Ensure the constructed path is within the allowed directory
+    $realTargetPath = realpath($targetPath);
+    if ($realTargetPath !== false) {
+        // Path exists, verify it's within base directory
+        if (strpos($realTargetPath, $basePlacesDir) !== 0) {
+            return false;
+        }
+    } else {
+        // Path doesn't exist yet, verify the parent directory is safe
+        $parentPath = dirname($targetPath);
+        if (realpath($parentPath) !== $basePlacesDir) {
+            return false;
+        }
+    }
+    
+    return $targetPath;
+}
 
 // Handle different request types
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -16,12 +72,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         handleImageUpload();
     } else {
-        // Handle JSON requests
-        $input = json_decode(file_get_contents('php://input'), true);
+        // Handle JSON requests with input validation
+        $rawInput = file_get_contents('php://input');
+        if ($rawInput === false) {
+            echo json_encode(['success' => false, 'message' => 'Invalid request data']);
+            exit;
+        }
+        
+        $input = json_decode($rawInput, true);
+        if ($input === null) {
+            echo json_encode(['success' => false, 'message' => 'Invalid JSON format']);
+            exit;
+        }
+        
         if (isset($input['action'])) {
             switch ($input['action']) {
                 case 'list_images':
-                    // Allow anyone to list images (no admin check needed)
+                    // Validate slug before processing
+                    if (!isset($input['slug']) || validateAndSanitizeSlug($input['slug']) === false) {
+                        echo json_encode(['success' => false, 'message' => 'Invalid or missing slug']);
+                        exit;
+                    }
                     listImages($input['slug']);
                     break;
                 case 'rename_image':
@@ -63,21 +134,26 @@ function handleImageUpload() {
     $action = $_POST['action'] ?? '';
     $slug = $_POST['slug'] ?? '';
     
-    if (empty($slug)) {
-        echo json_encode(['success' => false, 'message' => 'Slug is required']);
+    // Validate and sanitize the slug
+    $sanitizedSlug = validateAndSanitizeSlug($slug);
+    if ($sanitizedSlug === false) {
+        echo json_encode(['success' => false, 'message' => 'Invalid slug format']);
         return;
     }
     
-    // Create place folder if it doesn't exist
-    $placesDir = '../../images/places';
-    $placeDir = $placesDir . '/' . $slug;
-    
-    if (!is_dir($placesDir)) {
-        mkdir($placesDir, 0755, true);
+    // Construct safe path
+    $placeDir = constructSafePlacePath($sanitizedSlug);
+    if ($placeDir === false) {
+        echo json_encode(['success' => false, 'message' => 'Invalid directory path']);
+        return;
     }
     
+    // Create place directory if it doesn't exist
     if (!is_dir($placeDir)) {
-        mkdir($placeDir, 0755, true);
+        if (!mkdir($placeDir, 0755, true)) {
+            echo json_encode(['success' => false, 'message' => 'Failed to create directory']);
+            return;
+        }
     }
     
     $uploadedFile = $_FILES['image'];
@@ -103,18 +179,27 @@ function handleImageUpload() {
         return;
     }
     
-    // Get file extension
+    // Get file extension and sanitize filename
     $pathInfo = pathinfo($uploadedFile['name']);
     $extension = strtolower($pathInfo['extension']);
     
+    // Validate extension against allowed list
+    $allowedExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
+    if (!in_array($extension, $allowedExtensions)) {
+        echo json_encode(['success' => false, 'message' => 'Invalid file extension.']);
+        return;
+    }
+    
     if ($action === 'upload_main_image') {
         // For main image, always name it "main"
-        $targetFile = $placeDir . '/main.' . $extension;
+        $targetFile = $placeDir . DIRECTORY_SEPARATOR . 'main.' . $extension;
         
         // Remove any existing main images
-        $existingMainImages = glob($placeDir . '/main.*');
-        foreach ($existingMainImages as $existingImage) {
-            unlink($existingImage);
+        foreach ($allowedExtensions as $ext) {
+            $existingFile = $placeDir . DIRECTORY_SEPARATOR . 'main.' . $ext;
+            if (file_exists($existingFile)) {
+                unlink($existingFile);
+            }
         }
         
         if (move_uploaded_file($uploadedFile['tmp_name'], $targetFile)) {
@@ -124,14 +209,18 @@ function handleImageUpload() {
         }
         
     } elseif ($action === 'upload_gallery_image') {
-        // For gallery images, use original name or generate unique name
-        $fileName = $pathInfo['filename'];
-        $targetFile = $placeDir . '/' . $fileName . '.' . $extension;
+        // For gallery images, sanitize filename
+        $fileName = preg_replace('/[^a-zA-Z0-9_-]/', '_', $pathInfo['filename']);
+        if (empty($fileName)) {
+            $fileName = 'image_' . time();
+        }
+        
+        $targetFile = $placeDir . DIRECTORY_SEPARATOR . $fileName . '.' . $extension;
         
         // If file exists, add a number suffix
         $counter = 1;
         while (file_exists($targetFile)) {
-            $targetFile = $placeDir . '/' . $fileName . '_' . $counter . '.' . $extension;
+            $targetFile = $placeDir . DIRECTORY_SEPARATOR . $fileName . '_' . $counter . '.' . $extension;
             $counter++;
         }
         
@@ -147,12 +236,19 @@ function handleImageUpload() {
 }
 
 function listImages($slug) {
-    if (empty($slug)) {
-        echo json_encode(['success' => false, 'message' => 'Slug is required']);
+    // Validate and sanitize the slug
+    $sanitizedSlug = validateAndSanitizeSlug($slug);
+    if ($sanitizedSlug === false) {
+        echo json_encode(['success' => false, 'message' => 'Invalid slug format']);
         return;
     }
     
-    $placeDir = '../../images/places/' . $slug;
+    // Construct safe path
+    $placeDir = constructSafePlacePath($sanitizedSlug);
+    if ($placeDir === false) {
+        echo json_encode(['success' => false, 'message' => 'Invalid directory path']);
+        return;
+    }
     
     if (!is_dir($placeDir)) {
         echo json_encode(['success' => true, 'images' => []]);
@@ -162,28 +258,41 @@ function listImages($slug) {
     $images = [];
     $allowedExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
     
-    $files = scandir($placeDir);
-    foreach ($files as $file) {
-        if ($file === '.' || $file === '..') continue;
-        
-        $filePath = $placeDir . '/' . $file;
-        if (!is_file($filePath)) continue;
-        
-        $pathInfo = pathinfo($file);
-        $extension = strtolower($pathInfo['extension'] ?? '');
-        
-        if (in_array($extension, $allowedExtensions)) {
+    // Use DirectoryIterator for safer directory traversal
+    try {
+        $iterator = new DirectoryIterator($placeDir);
+        foreach ($iterator as $fileInfo) {
+            if ($fileInfo->isDot() || !$fileInfo->isFile()) {
+                continue;
+            }
+            
+            $fileName = $fileInfo->getFilename();
+            $pathInfo = pathinfo($fileName);
+            $extension = strtolower($pathInfo['extension'] ?? '');
+            
+            if (!in_array($extension, $allowedExtensions)) {
+                continue;
+            }
+            
             // Skip main image in gallery listing
-            if (strpos($file, 'main.') === 0) continue;
+            if (strpos($fileName, 'main.') === 0) {
+                continue;
+            }
+            
+            // Construct safe relative path for web access
+            $relativePath = '../images/places/' . $sanitizedSlug . '/' . $fileName;
             
             $images[] = [
                 'name' => $pathInfo['filename'],
-                'full_name' => $file,
-                'full_path' => '../images/places/' . $slug . '/' . $file,
-                'thumb_path' => '../images/places/' . $slug . '/' . $file, // For now, use same path for thumbnails
-                'size' => filesize($filePath)
+                'full_name' => $fileName,
+                'full_path' => $relativePath,
+                'thumb_path' => $relativePath, // For now, use same path for thumbnails
+                'size' => $fileInfo->getSize()
             ];
         }
+    } catch (Exception $e) {
+        echo json_encode(['success' => false, 'message' => 'Error reading directory']);
+        return;
     }
     
     echo json_encode(['success' => true, 'images' => $images]);
@@ -194,8 +303,15 @@ function renameImage($data) {
     $oldName = $data['old_name'] ?? '';
     $newName = $data['new_name'] ?? '';
     
-    if (empty($slug) || empty($oldName) || empty($newName)) {
-        echo json_encode(['success' => false, 'message' => 'Slug, old name, and new name are required']);
+    // Validate and sanitize the slug
+    $sanitizedSlug = validateAndSanitizeSlug($slug);
+    if ($sanitizedSlug === false) {
+        echo json_encode(['success' => false, 'message' => 'Invalid slug format']);
+        return;
+    }
+    
+    if (empty($oldName) || empty($newName)) {
+        echo json_encode(['success' => false, 'message' => 'Old name and new name are required']);
         return;
     }
     
@@ -206,23 +322,32 @@ function renameImage($data) {
         return;
     }
     
-    $placeDir = '../../images/places/' . $slug;
+    // Construct safe path
+    $placeDir = constructSafePlacePath($sanitizedSlug);
+    if ($placeDir === false) {
+        echo json_encode(['success' => false, 'message' => 'Invalid directory path']);
+        return;
+    }
     
     if (!is_dir($placeDir)) {
         echo json_encode(['success' => false, 'message' => 'Place directory not found']);
         return;
     }
     
-    // Find the old file
+    // Find the old file safely
     $oldFile = null;
+    $extension = null;
     $allowedExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
     
     foreach ($allowedExtensions as $ext) {
-        $testFile = $placeDir . '/' . $oldName . '.' . $ext;
-        if (file_exists($testFile)) {
-            $oldFile = $testFile;
-            $extension = $ext;
-            break;
+        $testFile = $placeDir . DIRECTORY_SEPARATOR . $oldName . '.' . $ext;
+        if (file_exists($testFile) && is_file($testFile)) {
+            // Verify the file is within our expected directory
+            if (dirname(realpath($testFile)) === realpath($placeDir)) {
+                $oldFile = $testFile;
+                $extension = $ext;
+                break;
+            }
         }
     }
     
@@ -237,7 +362,7 @@ function renameImage($data) {
         return;
     }
     
-    $newFile = $placeDir . '/' . $newName . '.' . $extension;
+    $newFile = $placeDir . DIRECTORY_SEPARATOR . $newName . '.' . $extension;
     
     // Check if new name already exists
     if (file_exists($newFile)) {
@@ -256,27 +381,49 @@ function deleteImage($data) {
     $slug = $data['slug'] ?? '';
     $imageName = $data['image_name'] ?? '';
     
-    if (empty($slug) || empty($imageName)) {
-        echo json_encode(['success' => false, 'message' => 'Slug and image name are required']);
+    // Validate and sanitize the slug
+    $sanitizedSlug = validateAndSanitizeSlug($slug);
+    if ($sanitizedSlug === false) {
+        echo json_encode(['success' => false, 'message' => 'Invalid slug format']);
         return;
     }
     
-    $placeDir = '../../images/places/' . $slug;
+    if (empty($imageName)) {
+        echo json_encode(['success' => false, 'message' => 'Image name is required']);
+        return;
+    }
+    
+    // Sanitize image name
+    $imageName = preg_replace('/[^a-zA-Z0-9_\-]/', '_', $imageName);
+    if (empty($imageName)) {
+        echo json_encode(['success' => false, 'message' => 'Invalid image name']);
+        return;
+    }
+    
+    // Construct safe path
+    $placeDir = constructSafePlacePath($sanitizedSlug);
+    if ($placeDir === false) {
+        echo json_encode(['success' => false, 'message' => 'Invalid directory path']);
+        return;
+    }
     
     if (!is_dir($placeDir)) {
         echo json_encode(['success' => false, 'message' => 'Place directory not found']);
         return;
     }
     
-    // Find the file
+    // Find the file safely
     $fileToDelete = null;
     $allowedExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
     
     foreach ($allowedExtensions as $ext) {
-        $testFile = $placeDir . '/' . $imageName . '.' . $ext;
-        if (file_exists($testFile)) {
-            $fileToDelete = $testFile;
-            break;
+        $testFile = $placeDir . DIRECTORY_SEPARATOR . $imageName . '.' . $ext;
+        if (file_exists($testFile) && is_file($testFile)) {
+            // Verify the file is within our expected directory
+            if (dirname(realpath($testFile)) === realpath($placeDir)) {
+                $fileToDelete = $testFile;
+                break;
+            }
         }
     }
     

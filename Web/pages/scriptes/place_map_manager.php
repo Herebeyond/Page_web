@@ -4,16 +4,25 @@ error_reporting(E_ALL);
 ini_set('display_errors', 0); // Don't display errors in output
 session_start();
 
+// Include shared functions
+require_once 'functions.php';
+
 // Check authentication for admin actions
 $allowed_actions = ['get_map_data', 'load_map_points', 'load_types'];
 $admin_actions = ['save_points', 'delete_point', 'update_point', 'create_map', 'change_map_image'];
 
-$input = json_decode(file_get_contents('php://input'), true);
-$action = $input['action'] ?? '';
+// Parse JSON input using shared secure function
+$input = parseSecureJsonInput();
+if ($input === false) {
+    echo json_encode(['success' => false, 'message' => 'Invalid JSON input']);
+    exit;
+}
 
-// Check if JSON decoding failed
-if (json_last_error() !== JSON_ERROR_NONE) {
-    echo json_encode(['success' => false, 'message' => 'Invalid JSON input: ' . json_last_error_msg()]);
+$action = isset($input['action']) && is_string($input['action']) ? $input['action'] : '';
+
+// Validate action parameter
+if (empty($action)) {
+    echo json_encode(['success' => false, 'message' => 'Action parameter required']);
     exit;
 }
 
@@ -347,29 +356,43 @@ function changeMapImage($pdo, $input) {
             echo json_encode(['success' => false, 'message' => 'Place not found']);
             return;
         }
-        
         error_log("Found place: " . $place['name_IP']);
         
-        // Create slug
-        $slug = strtolower(trim($place['name_IP']));
-        $slug = preg_replace('/[^a-z0-9\-]/', '-', $slug);
-        $slug = preg_replace('/-+/', '-', $slug);
-        $slug = trim($slug, '-');
+        // Create secure slug using shared function
+        $slug = createSecureSlug($place['name_IP']);
+        if ($slug === false) {
+            error_log("Invalid place name for secure slug generation: " . $place['name_IP']);
+            echo json_encode(['success' => false, 'message' => 'Invalid place name']);
+            return;
+        }
         
-        error_log("Created slug: $slug");
+        error_log("Created secure slug: $slug");
         
-        // Create directories if they don't exist
-        $mapDir = "../../images/places/{$slug}/map";
+        // Set up secure base path
+        $baseImagesPath = realpath('../../images/places');
+        if ($baseImagesPath === false) {
+            error_log("Could not resolve base images path");
+            echo json_encode(['success' => false, 'message' => 'System configuration error']);
+            return;
+        }
+        
+        // Create secure map directory path
+        $mapDir = constructSafePlacePath($slug, $baseImagesPath) . DIRECTORY_SEPARATOR . 'map';
+        if ($mapDir === false) {
+            error_log("Failed to construct safe map directory path for slug: $slug");
+            echo json_encode(['success' => false, 'message' => 'Invalid place identifier']);
+            return;
+        }
+        
         error_log("Target directory: $mapDir");
         error_log("Current working directory: " . getcwd());
-        error_log("Absolute path would be: " . realpath($mapDir));
         
         if (!is_dir($mapDir)) {
             error_log("Directory does not exist, attempting to create: $mapDir");
             if (!mkdir($mapDir, 0755, true)) {
                 $lastError = error_get_last();
                 error_log("Failed to create directory: $mapDir. Error: " . print_r($lastError, true));
-                echo json_encode(['success' => false, 'message' => 'Failed to create directory: ' . ($lastError['message'] ?? 'Unknown error')]);
+                echo json_encode(['success' => false, 'message' => 'Failed to create directory']);
                 return;
             }
             error_log("Created directory: $mapDir");
@@ -377,10 +400,24 @@ function changeMapImage($pdo, $input) {
             error_log("Directory already exists: $mapDir");
         }
         
-        // Generate unique filename
+        // Validate and sanitize filename
         $fileExtension = pathinfo($fileName, PATHINFO_EXTENSION);
-        $newFileName = 'map_' . time() . '.' . $fileExtension;
-        $filePath = $mapDir . '/' . $newFileName;
+        if (!in_array(strtolower($fileExtension), ['jpg', 'jpeg', 'png', 'gif', 'webp'])) {
+            error_log("Invalid file extension: $fileExtension");
+            echo json_encode(['success' => false, 'message' => 'Invalid file type. Only images allowed.']);
+            return;
+        }
+        
+        $newFileName = 'map_' . time() . '.' . strtolower($fileExtension);
+        $filePath = $mapDir . DIRECTORY_SEPARATOR . $newFileName;
+        
+        // Final security check - ensure file path is within expected directory
+        $realFilePath = realpath(dirname($filePath)) . DIRECTORY_SEPARATOR . basename($filePath);
+        if (strpos($realFilePath, $baseImagesPath) !== 0) {
+            error_log("Security violation: File path outside allowed directory");
+            echo json_encode(['success' => false, 'message' => 'Security violation']);
+            return;
+        }
         
         error_log("Target file path: $filePath");
         

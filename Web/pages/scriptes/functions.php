@@ -1,6 +1,138 @@
 <?php
 
+// ============================================================================
+// SECURITY FUNCTIONS - Path Traversal Prevention
+// ============================================================================
 
+/**
+ * Validates and sanitizes a slug to prevent path traversal attacks
+ * 
+ * @param string $slug The slug to validate
+ * @return string|false Returns sanitized slug or false if invalid
+ */
+function validateAndSanitizeSlug($slug) {
+    if (empty($slug) || !is_string($slug)) {
+        return false;
+    }
+    
+    // Length validation to prevent buffer overflow attacks
+    if (strlen($slug) > 100) {
+        return false;
+    }
+    
+    // Remove any path traversal sequences and dangerous characters
+    $slug = str_replace(['../', '.\\', '..\\', './', '\\', '~'], '', $slug);
+    
+    // Only allow safe characters: letters, numbers, hyphens, underscores
+    if (!preg_match('/^[a-zA-Z0-9_-]+$/', $slug)) {
+        return false;
+    }
+    
+    return $slug;
+}
+
+/**
+ * Constructs a safe path within a base directory to prevent directory traversal
+ * 
+ * @param string $slug The validated slug
+ * @param string $baseDir The base directory path
+ * @return string|false Returns safe path or false if invalid
+ */
+function constructSafePlacePath($slug, $baseDir) {
+    $sanitizedSlug = validateAndSanitizeSlug($slug);
+    if ($sanitizedSlug === false) {
+        return false;
+    }
+    
+    $targetPath = $baseDir . DIRECTORY_SEPARATOR . $sanitizedSlug;
+    $realBaseDir = realpath($baseDir);
+    
+    if ($realBaseDir === false) {
+        return false;
+    }
+    
+    // Handle case where directory doesn't exist yet
+    if (is_dir($targetPath)) {
+        $realTargetPath = realpath($targetPath);
+        if ($realTargetPath === false || strpos($realTargetPath, $realBaseDir) !== 0) {
+            return false;
+        }
+    } else {
+        // For non-existent paths, verify parent directory is safe
+        $parentPath = dirname($targetPath);
+        if (realpath($parentPath) !== $realBaseDir) {
+            return false;
+        }
+    }
+    
+    return $targetPath;
+}
+
+/**
+ * Creates a secure slug from a name (for place names, etc.)
+ * 
+ * @param string $name The name to convert to slug
+ * @return string|false Returns secure slug or false if invalid
+ */
+function createSecureSlug($name) {
+    if (empty($name) || !is_string($name)) {
+        return false;
+    }
+    
+    // Convert to lowercase, replace spaces and special chars with hyphens
+    $slug = strtolower(trim($name));
+    $slug = preg_replace('/[^a-z0-9\-]/', '-', $slug);
+    $slug = preg_replace('/-+/', '-', $slug); // Remove multiple consecutive hyphens
+    $slug = trim($slug, '-'); // Remove leading/trailing hyphens
+    
+    // Additional validation for security
+    return validateAndSanitizeSlug($slug);
+}
+
+/**
+ * Validates file extension for safe file uploads
+ * 
+ * @param string $filename The filename to validate
+ * @param array $allowedExtensions Array of allowed extensions
+ * @return bool Returns true if extension is safe
+ */
+function validateFileExtension($filename, $allowedExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp']) {
+    $extension = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
+    return in_array($extension, $allowedExtensions);
+}
+
+/**
+ * Securely parses JSON input with error handling
+ * 
+ * @param string $jsonInput Raw JSON input
+ * @return array|false Returns parsed array or false on error
+ */
+function parseSecureJsonInput($jsonInput = null) {
+    if ($jsonInput === null) {
+        $jsonInput = file_get_contents('php://input');
+    }
+    
+    if ($jsonInput === false || empty($jsonInput)) {
+        return false;
+    }
+    
+    try {
+        $data = json_decode($jsonInput, true, 512, JSON_THROW_ON_ERROR);
+        
+        if (!is_array($data)) {
+            return false;
+        }
+        
+        return $data;
+    } catch (JsonException $e) {
+        error_log('JSON parsing error: ' . $e->getMessage());
+        return false;
+    }
+}
+
+// ============================================================================
+// EXISTING FUNCTIONS
+// ============================================================================
 
 function isImageLinkValid($url) {
     // Convert relative URL to absolute path

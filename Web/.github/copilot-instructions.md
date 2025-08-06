@@ -33,6 +33,28 @@ require_once "./blueprints/gl_ap_end.php";     // Footer, scroll-to-top, closing
 - Always use: `require_once '../../login/db.php';` for DB access
 - PDO with prepared statements standard
 
+### Shared Functions System
+- **CRITICAL**: All shared functions go in `pages/scriptes/functions.php`
+- This file is included in `gl_ap_start.php`, making functions globally available
+- **Never duplicate functions** across multiple files - use shared functions instead
+- When creating new utility functions, add them to `functions.php` with proper documentation
+
+#### Available Security Functions (Use These!):
+```php
+// Input validation and sanitization
+validateAndSanitizeSlug($slug);           // Returns safe slug or false
+createSecureSlug($name);                  // Creates slug from name
+constructSafePlacePath($slug, $baseDir); // Safe path construction
+validateFileExtension($filename, $allowed); // File type validation
+parseSecureJsonInput($jsonInput);        // Secure JSON parsing
+```
+
+#### Function Documentation Standards:
+- Use PHPDoc comments for all functions in `functions.php`
+- Include `@param` and `@return` annotations
+- Group related functions with section headers
+- Security functions must include vulnerability prevention notes
+
 ## Development Environment
 
 ### Docker Setup
@@ -137,12 +159,120 @@ function handleHelpContainerPosition() {
 - Role-based access control enforced at page level
 - XSS protection via proper escaping in output
 - File upload validation and unique naming
+- **Path traversal prevention**: Never construct file paths directly from user input
+- **Input validation**: Always validate and sanitize all user inputs before processing
+- **Directory confinement**: Ensure all file operations stay within intended directories
+
+## Security Guidelines (CRITICAL)
+
+### Path Traversal Prevention
+**NEVER construct file paths directly from user input**. Always validate and sanitize:
+
+```php
+// ❌ VULNERABLE - Direct concatenation
+$userPath = $_POST['path'];
+$filePath = '/var/www/uploads/' . $userPath;  // Can be exploited with ../../../etc/passwd
+
+// ✅ SECURE - Proper validation and sanitization
+function validateAndSanitizeSlug($slug) {
+    if (empty($slug)) return false;
+    
+    // Remove path traversal attempts
+    $slug = str_replace(['../', '..\\', '/', '\\', '.', '~'], '', $slug);
+    
+    // Only allow safe characters
+    if (!preg_match('/^[a-zA-Z0-9_-]+$/', $slug)) return false;
+    
+    // Limit length
+    if (strlen($slug) > 100) return false;
+    
+    return $slug;
+}
+
+function constructSafePath($userInput, $baseDir) {
+    $sanitized = validateAndSanitizeSlug($userInput);
+    if ($sanitized === false) return false;
+    
+    $basePath = realpath($baseDir);
+    if ($basePath === false) return false;
+    
+    $targetPath = $basePath . DIRECTORY_SEPARATOR . $sanitized;
+    
+    // Verify path stays within base directory
+    $realTargetPath = realpath($targetPath);
+    if ($realTargetPath !== false && strpos($realTargetPath, $basePath) !== 0) {
+        return false;
+    }
+    
+    return $targetPath;
+}
+```
+
+### Input Validation Rules
+1. **Validate ALL user inputs** before processing
+2. **Use whitelist validation** (allow only known good characters)
+3. **Sanitize file/folder names** to alphanumeric + underscore/hyphen only
+4. **Length limits** to prevent buffer overflow attacks
+5. **JSON input validation** with proper error handling
+
+### File Operation Security
+```php
+// ❌ VULNERABLE - Direct scandir with user input
+$files = scandir('/uploads/' . $_POST['folder']);
+
+// ✅ SECURE - Safe directory traversal
+try {
+    $safeDir = constructSafePath($_POST['folder'], '/uploads');
+    if ($safeDir === false) throw new Exception('Invalid path');
+    
+    $iterator = new DirectoryIterator($safeDir);
+    foreach ($iterator as $fileInfo) {
+        if ($fileInfo->isDot() || !$fileInfo->isFile()) continue;
+        // Process files safely
+    }
+} catch (Exception $e) {
+    error_log('Directory traversal attempt: ' . $_POST['folder']);
+    return false;
+}
+```
+
+### Required Security Patterns
+- **Path Construction**: Always use `constructSafePath()` pattern
+- **Input Sanitization**: Always use `validateAndSanitizeSlug()` pattern  
+- **Directory Operations**: Use `DirectoryIterator` instead of `scandir()`
+- **File Verification**: Verify `realpath()` stays within expected directories
+- **Error Handling**: Log security violations, return safe error messages
 
 ## Common Debugging
 - Check `authorisation.php` for page access issues
 - Verify blueprint includes for missing footer/header elements
 - Database connection issues: check `BDD.env` and Docker services
 - CSS not updating: cache busting with `?ver=` parameter working
+
+---
+
+## 🔄 IMPORTANT: Instructions Update Requirement
+
+**MANDATORY**: When implementing new programming patterns, architectural decisions, security measures, or development habits in this project, you **MUST** update this instructions file to include them.
+
+### Update Triggers:
+- ✅ New security patterns or functions added
+- ✅ New architectural patterns established  
+- ✅ New coding standards adopted
+- ✅ New shared utilities created
+- ✅ New debugging techniques discovered
+- ✅ New best practices implemented
+
+### Update Process:
+1. Add new patterns to relevant sections
+2. Include code examples where applicable
+3. Document why the pattern prevents issues
+4. Update function listings if new shared functions added
+5. Note in troubleshooting log if security-related
+
+**Remember**: This file serves as the single source of truth for project development standards. Keeping it updated ensures consistency across all future development work.
+
+---
 
 ## .md Files
 - create them in the folder Web/.github/

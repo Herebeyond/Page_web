@@ -21,60 +21,62 @@ require_once "./blueprints/gl_ap_start.php";
         }
     }
 
-    /// ADMIN VERIFICATION
-    if (isset($_SESSION['user'])) {
-        // Retrieve the user role from the database
-        $stmt = $pdo->prepare("SELECT r.id as role_id, r.name as role_name FROM users u 
-                              LEFT JOIN user_roles ur ON u.id = ur.user_id 
-                              LEFT JOIN roles r ON ur.role_id = r.id 
-                              WHERE u.id = ?");
-        $stmt->execute([$_SESSION['user']]);
-        $user = $stmt->fetch();
+    // Helper function to check if user has access to a page
+    function hasPageAccess($page, $authorisation, $user_roles) {
+        if (!isset($authorisation[$page])) return false;
         
-        // check if the user is admin or not
-        if ($user && $user['role_id'] == 1) { 
-            // User is admin
-        } elseif (!$user || $user['role_id'] == null || $user['role_id'] == '') {
-            // User is not admin or has no role
-        } else {
-            // User has another role (moderator, editor, user)
+        $auth_level = $authorisation[$page];
+        
+        if ($auth_level === 'all') {
+            return true;
+        } elseif ($auth_level === 'admin') {
+            return isset($_SESSION['user']) && in_array('admin', $user_roles);
+        } elseif ($auth_level === 'hidden') {
+            return true; // Hidden pages are accessible but not displayed in lists
+        }
+        
+        return false;
+    }
+
+    // Filter pages that are Dimensions type and user has access to
+    $dimension_pages = [];
+    foreach ($pages as $page) {
+        if (isset($type[$page]) && $type[$page] === 'Dimensions' && hasPageAccess($page, $authorisation, $user_roles)) {
+            $dimension_pages[] = $page;
         }
     }
 
-    sort($pages); // sort the array alphabetically
-    $frstLetter = ""; // initialize the $frstLetter variable
+    sort($dimension_pages); // sort the array alphabetically
 
-    /// in case the first page is for a page that the user shouldn't have access to like hidden or admin pages
-    // if the user is (logged in and is admin or the page is public) and the type of the page is Dimensions
-    if (((isset($_SESSION['user']) && ($authorisation[$pages[0]] == 'admin' && $user && $user['role_id'] == 1)) || $authorisation[$pages[0]] == 'all') && $type[$pages[0]] == 'Dimensions') {
-        $frstLetter = mb_substr($pages[0], 0, 1); // get the first letter of the first element in the $pages array
-        echo "<span>$frstLetter</span>"; // display the first letter
-        // Start of the unordered list here otherwise it creates an unsightly space
-        echo "<ul>"; 
-    } 
+    if (!empty($dimension_pages)) {
+        $current_letter = "";
+        $list_open = false;
 
-    // Loop through the array and display the elements in the list
-    foreach ($pages as $page) { // for each element in the $pages array, display a link to the corresponding page
-        
-        // if the user is (logged in and is admin or the page is public) and the type of the page is Dimensions
-        if (((isset($_SESSION['user']) && ($authorisation[$page] == 'admin' && $user && $user['role_id'] == 1)) || $authorisation[$page] == 'all') && $type[$page] == 'Dimensions') {
-            // if the first letter of the element is different from the first letter of the first element in the $pages array, close the list and open a new one
-            // this allows grouping elements by first letter
-            if(mb_substr($page, 0, 1) != $frstLetter) { 
-                echo "</ul>"; // even if the list isn't open, the closing tag won't cause any problem
-                $frstLetter = mb_substr($page, 0, 1);
-                echo "<span>$frstLetter</span>";
+        // Loop through the filtered pages and display them grouped by first letter
+        foreach ($dimension_pages as $page) {
+            $first_letter = mb_strtoupper(mb_substr($page, 0, 1));
+            
+            // If new letter group, close previous and start new one
+            if ($first_letter !== $current_letter) {
+                if ($list_open) {
+                    echo "</ul>";
+                }
+                echo "<span>" . htmlspecialchars($first_letter) . "</span>";
                 echo "<ul>";
+                $current_letter = $first_letter;
+                $list_open = true;
             }
-            echo "<li><a href='./" . sanitize_output($page) . ".php'>$page</a></li>"; // link to the corresponding page in the $pages array
-        
+            
+            echo "<li><a href='./" . sanitize_output($page) . ".php'>" . htmlspecialchars($page) . "</a></li>";
         }
         
+        // Close the final list if one was opened
+        if ($list_open) {
+            echo "</ul>";
+        }
+    } else {
+        echo "<p>No dimension pages available.</p>";
     }
-    
-
-    // End of the list
-    echo "</ul>";
     ?>
 
 </div>
