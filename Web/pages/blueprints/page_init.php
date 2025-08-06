@@ -1,4 +1,12 @@
 <?php
+/**
+ * Page Initialization Script
+ * Handles session management, database connection, user authentication, and authorization
+ * 
+ * @global PDO $pdo Database connection object (initialized from ../login/db.php)
+ * @global array $user Current user data
+ * @global array $user_roles Current user's roles
+ */
 
 
 // Start the session securely
@@ -41,10 +49,25 @@ $current_page = htmlspecialchars(pathinfo(basename($_SERVER['PHP_SELF']), PATHIN
 
 /// BLOCKED USER VERIFICATION
 if (isset($_SESSION['user'])) {
+    // Ensure database connection is available
+    if (!isset($pdo) || !$pdo) {
+        error_log("Database connection not available in page_init.php");
+        exit('Database connection error');
+    }
+    
     // Retrieve the user from the database
     $stmt = $pdo->prepare("SELECT * FROM users WHERE id = ?");
     $stmt->execute([$_SESSION['user']]);
     $user = $stmt->fetch();
+
+    // Check if user exists
+    if (!$user) {
+        // User doesn't exist in database, destroy session
+        session_unset();
+        session_destroy();
+        header('Location: ../login/login.php');
+        exit();
+    }
 
     // Fetch user roles
     $stmt = $pdo->prepare("SELECT r.name FROM user_roles ur JOIN roles r ON ur.role_id = r.id WHERE ur.user_id = ?");

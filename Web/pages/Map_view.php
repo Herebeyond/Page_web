@@ -27,7 +27,7 @@ require_once "./blueprints/gl_ap_start.php"; // includes the start of the genera
             </p>
             
             <div id="interactive-map-container">
-                <img id="interactive-map-image" src="../images/map/map_monde.png" alt="World Map">
+                <img id="interactive-map-image" src="../images/maps/map_monde.png" alt="World Map">
                 <div id="interactive-map-overlay"></div>
             </div>
             

@@ -16,13 +16,15 @@ require_once "./blueprints/gl_ap_start.php"; // includes the start of the genera
                     <p><strong>Instructions:</strong></p>
                     <ul>
                         <li>Click "Add Mode" to activate point addition</li>
+                        <li>Click "Move Mode" to activate point dragging</li>
                         <li>Select a type from the dropdown (manage types on the right)</li>
                         <li>Click on the map to add a point of interest</li>
                         <li>Hover over points to see their information</li>
-                        <li><strong>Click once on any point to edit its details</strong></li>
+                        <li><strong>Click once on any point to edit its details (when neither mode is active)</strong></li>
+                        <li><strong>In Move Mode: Drag points to reposition them</strong></li>
                         <li><strong>Point colors automatically match their type</strong></li>
-                        <li><strong>Tip:</strong> Deactivate "Add Mode" before clicking points to edit them</li>
-                        <li>Press Escape to deactivate add mode or close edit modal</li>
+                        <li><strong>Tip:</strong> Deactivate both modes before clicking points to edit them</li>
+                        <li>Press Escape to deactivate modes or close edit modal</li>
                         <li><strong>Type Management:</strong> Add/delete point types and click color circles to customize their colors</li>
                         <li><strong>Important:</strong> Use "Save to Database" to make changes permanent and visible to all users</li>
                     </ul>
@@ -55,6 +57,7 @@ require_once "./blueprints/gl_ap_start.php"; // includes the start of the genera
                             </select>
                         </div>
                         <button class="map-admin-button" onclick="toggleAddMode()">Add Mode: <span id="mode-status">Inactive</span></button>
+                        <button class="map-admin-button" onclick="toggleMoveMode()">Move Mode: <span id="move-status">Inactive</span></button>
                         <button class="map-admin-button" onclick="saveAllPoints()">Save to Database</button>
                         <button class="map-admin-button" onclick="clearAllPoints()">Clear all points (Local)</button>
                     </div>
@@ -83,7 +86,7 @@ require_once "./blueprints/gl_ap_start.php"; // includes the start of the genera
             </div>
             
             <div id="interactive-map-container">
-                <img id="interactive-map-image" src="../images/map/map_monde.png" alt="World Map">
+                <img id="interactive-map-image" src="../images/maps/map_monde.png" alt="World Map">
                 <div id="interactive-map-overlay"></div>
             </div>
         </div>
@@ -123,15 +126,23 @@ require_once "./blueprints/gl_ap_start.php"; // includes the start of the genera
 
     <script>
         let addMode = false;
+        let moveMode = false;
         let points = [];
         let pointCounter = 0;
         let hasUnsavedChanges = false; // Track if there are unsaved changes
+        let draggedPoint = null;
+        let dragOffset = { x: 0, y: 0 };
         
         const mapOverlay = document.getElementById('interactive-map-overlay');
         const mapContainer = document.getElementById('interactive-map-container');
         
         // Toggle add mode
         function toggleAddMode() {
+            // If move mode is active, deactivate it first
+            if (moveMode) {
+                toggleMoveMode();
+            }
+            
             addMode = !addMode;
             const statusSpan = document.getElementById('mode-status');
             const overlay = document.getElementById('interactive-map-overlay');
@@ -149,11 +160,43 @@ require_once "./blueprints/gl_ap_start.php"; // includes the start of the genera
             }
         }
         
+        // Toggle move mode
+        function toggleMoveMode() {
+            // If add mode is active, deactivate it first
+            if (addMode) {
+                toggleAddMode();
+            }
+            
+            moveMode = !moveMode;
+            const statusSpan = document.getElementById('move-status');
+            const overlay = document.getElementById('interactive-map-overlay');
+            
+            if (moveMode) {
+                statusSpan.textContent = 'Active';
+                statusSpan.style.color = '#9C27B0';
+                overlay.style.backgroundColor = 'rgba(156, 39, 176, 0.1)';
+                overlay.style.cursor = 'move';
+                
+                // Enable dragging for all points
+                enablePointDragging();
+            } else {
+                statusSpan.textContent = 'Inactive';
+                statusSpan.style.color = '#aa0000';
+                overlay.style.backgroundColor = 'rgba(0, 0, 0, 0.1)';
+                overlay.style.cursor = 'default';
+                
+                // Disable dragging
+                disablePointDragging();
+            }
+        }
+        
         // Initialize status color on page load
         function initializeStatusColor() {
             const statusSpan = document.getElementById('mode-status');
+            const moveStatusSpan = document.getElementById('move-status');
             const overlay = document.getElementById('interactive-map-overlay');
             statusSpan.style.color = '#aa0000'; // Red for inactive
+            moveStatusSpan.style.color = '#aa0000'; // Red for inactive
             overlay.style.cursor = 'default'; // Default cursor for inactive mode
         }
         
@@ -711,10 +754,16 @@ require_once "./blueprints/gl_ap_start.php"; // includes the start of the genera
             // Add click to edit (single click only)
             pointElement.addEventListener('click', function(e) {
                 e.stopPropagation(); // Prevent map click when clicking on point
-                if (!addMode) { // Only allow editing when not in add mode
+                if (!addMode && !moveMode) { // Only allow editing when not in add or move mode
                     openPointEditModal(point);
                 }
             });
+            
+            // Enable dragging if move mode is active
+            if (moveMode) {
+                pointElement.style.cursor = 'grab';
+                pointElement.addEventListener('mousedown', startDragging);
+            }
             
             pointElement.appendChild(tooltip);
             mapOverlay.appendChild(pointElement);
@@ -1003,6 +1052,87 @@ require_once "./blueprints/gl_ap_start.php"; // includes the start of the genera
             }, 3000);
         }
         
+        // Point dragging functions
+        
+        // Enable point dragging
+        function enablePointDragging() {
+            const pointElements = document.querySelectorAll('.map-point-of-interest');
+            pointElements.forEach(point => {
+                point.style.cursor = 'grab';
+                point.addEventListener('mousedown', startDragging);
+            });
+        }
+        
+        // Disable point dragging
+        function disablePointDragging() {
+            const pointElements = document.querySelectorAll('.map-point-of-interest');
+            pointElements.forEach(point => {
+                point.style.cursor = 'pointer';
+                point.removeEventListener('mousedown', startDragging);
+            });
+        }
+        
+        // Start dragging a point
+        function startDragging(e) {
+            if (!moveMode) return;
+            
+            e.preventDefault();
+            e.stopPropagation();
+            
+            draggedPoint = e.target;
+            draggedPoint.style.cursor = 'grabbing';
+            draggedPoint.style.zIndex = '1000';
+            
+            const rect = document.getElementById('interactive-map-overlay').getBoundingClientRect();
+            const pointRect = draggedPoint.getBoundingClientRect();
+            
+            dragOffset.x = e.clientX - pointRect.left - pointRect.width / 2;
+            dragOffset.y = e.clientY - pointRect.top - pointRect.height / 2;
+            
+            document.addEventListener('mousemove', dragPoint);
+            document.addEventListener('mouseup', stopDragging);
+        }
+        
+        // Drag point to new position
+        function dragPoint(e) {
+            if (!draggedPoint || !moveMode) return;
+            
+            const overlay = document.getElementById('interactive-map-overlay');
+            const rect = overlay.getBoundingClientRect();
+            
+            const x = e.clientX - rect.left - dragOffset.x;
+            const y = e.clientY - rect.top - dragOffset.y;
+            
+            // Convert to percentages
+            const xPercent = Math.max(0, Math.min(100, (x / rect.width) * 100));
+            const yPercent = Math.max(0, Math.min(100, (y / rect.height) * 100));
+            
+            // Update point position
+            draggedPoint.style.left = xPercent + '%';
+            draggedPoint.style.top = yPercent + '%';
+            
+            // Update point data
+            const pointId = draggedPoint.dataset.pointId;
+            const point = points.find(p => p.id === pointId);
+            if (point) {
+                point.x = xPercent;
+                point.y = yPercent;
+                markAsUnsaved();
+            }
+        }
+        
+        // Stop dragging
+        function stopDragging(e) {
+            if (draggedPoint) {
+                draggedPoint.style.cursor = 'grab';
+                draggedPoint.style.zIndex = '10';
+                draggedPoint = null;
+            }
+            
+            document.removeEventListener('mousemove', dragPoint);
+            document.removeEventListener('mouseup', stopDragging);
+        }
+        
         // Point Edit Modal Functions
         let currentEditingPoint = null;
         
@@ -1155,6 +1285,9 @@ require_once "./blueprints/gl_ap_start.php"; // includes the start of the genera
             if (e.key === 'Escape') {
                 if (addMode) {
                     toggleAddMode();
+                }
+                if (moveMode) {
+                    toggleMoveMode();
                 }
                 // Close edit modal if open
                 const modal = document.getElementById('point-edit-modal');

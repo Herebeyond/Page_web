@@ -11,7 +11,8 @@ if (!$placeId || !is_numeric($placeId)) {
 
 // Load place details from database
 try {
-    require_once '../login/db.php';
+    // Database connection is already included in page_init.php
+    // require_once '../login/db.php'; // REMOVED - already included
     
     $stmt = $pdo->prepare("
         SELECT ip.*, ipt.name_IPT as type_name, ipt.color_IPT as type_color 
@@ -99,6 +100,72 @@ require_once "./blueprints/gl_ap_start.php"; // includes the start of the genera
                         <div id="description-content" style="color: #f4cf47; line-height: 1.6;">
                             <?php echo nl2br(htmlspecialchars($place['description_IP'])); ?>
                         </div>
+                    </div>
+                </div>
+                
+                <!-- Place Map Section -->
+                <div class="place-map-section" style="margin-bottom: 40px;">
+                    <div style="background: rgba(0, 0, 0, 0.3); border-radius: 8px; padding: 25px; border: 1px solid rgba(212, 175, 55, 0.3);">
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 15px;">
+                            <h3 style="color: #d4af37; margin: 0;">🗺️ Place Map</h3>
+                            <?php if (isset($_SESSION['user']) && in_array('admin', $user_roles)): ?>
+                                <div style="display: flex; gap: 10px;">
+                                    <button class="edit-btn" onclick="changeMapImage()" style="background: #2196F3; color: white; border: none; padding: 6px 10px; border-radius: 4px; cursor: pointer; font-size: 0.9em;">
+                                        🖼️ Change Map
+                                    </button>
+                                    <button class="edit-btn" onclick="toggleMapEditMode()" id="map-edit-btn" style="background: #4CAF50; color: white; border: none; padding: 6px 10px; border-radius: 4px; cursor: pointer; font-size: 0.9em;">
+                                        ✏️ Add Points
+                                    </button>
+                                    <button class="edit-btn" onclick="toggleMapMoveMode()" id="map-move-btn" style="background: #9C27B0; color: white; border: none; padding: 6px 10px; border-radius: 4px; cursor: pointer; font-size: 0.9em;">
+                                        🔄 Move Points
+                                    </button>
+                                    <button class="edit-btn" onclick="saveMapPoints()" id="map-save-btn" style="background: #ff6600; color: white; border: none; padding: 6px 10px; border-radius: 4px; cursor: pointer; font-size: 0.9em; display: none;">
+                                        💾 Save Points
+                                    </button>
+                                </div>
+                            <?php endif; ?>
+                        </div>
+                        
+                        <!-- Map Container -->
+                        <div id="place-map-container" style="position: relative; width: 100%; background: #000; border-radius: 8px; overflow: hidden;">
+                            <img id="place-map-image" src="" alt="Place map" style="width: 100%; height: 400px; object-fit: contain; display: block;">
+                            <div id="place-map-overlay" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; cursor: default;"></div>
+                        </div>
+                        
+                        <!-- Map Controls (Admin only) -->
+                        <?php if (isset($_SESSION['user']) && in_array('admin', $user_roles)): ?>
+                        <div id="map-controls" style="margin-top: 15px; display: none;">
+                            <div style="background: rgba(0, 0, 0, 0.5); padding: 15px; border-radius: 5px; border: 1px solid #444;">
+                                <div style="display: grid; grid-template-columns: 1fr 1fr 150px auto; gap: 10px; align-items: end;">
+                                    <div>
+                                        <label style="color: #d4af37; font-size: 12px; display: block; margin-bottom: 5px;">Point Name</label>
+                                        <input type="text" id="map-poi-name" placeholder="Enter point name" style="width: 100%; padding: 8px; border: none; border-radius: 3px; background: #333; color: white;">
+                                    </div>
+                                    <div>
+                                        <label style="color: #d4af37; font-size: 12px; display: block; margin-bottom: 5px;">Description</label>
+                                        <input type="text" id="map-poi-description" placeholder="Enter description" style="width: 100%; padding: 8px; border: none; border-radius: 3px; background: #333; color: white;">
+                                    </div>
+                                    <div>
+                                        <label style="color: #d4af37; font-size: 12px; display: block; margin-bottom: 5px;">Type</label>
+                                        <select id="map-poi-type" style="width: 100%; padding: 8px; border: none; border-radius: 3px; background: #333; color: white;">
+                                            <option value="">Select type...</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <button onclick="clearMapPoints()" style="background: #f44336; color: white; border: none; padding: 8px 12px; border-radius: 3px; cursor: pointer; font-size: 0.9em;">
+                                            🗑️ Clear
+                                        </button>
+                                    </div>
+                                </div>
+                                <div style="margin-top: 10px; text-align: center;">
+                                    <div id="map-mode-indicator" style="color: #aa0000; font-size: 14px;">
+                                        Add Mode: <span id="map-mode-status">Inactive</span> | 
+                                        Move Mode: <span id="map-move-status">Inactive</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <?php endif; ?>
                     </div>
                 </div>
             </div>
@@ -195,7 +262,7 @@ require_once "./blueprints/gl_ap_start.php"; // includes the start of the genera
         </div>
         <div class="point-edit-modal-footer">
             <button type="button" onclick="saveTitle()" style="background: #4CAF50; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer;">✅ Confirm</button>
-            <button type="button" onclick="closeEditModal('title')" style="background: #f44336; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer;">❌ Cancel</button>
+            <button type="button" onclick="closeEditModal('title')" style="background: #f44336; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer;">✕ Cancel</button>
         </div>
     </div>
 </div>
@@ -212,7 +279,7 @@ require_once "./blueprints/gl_ap_start.php"; // includes the start of the genera
         </div>
         <div class="point-edit-modal-footer">
             <button type="button" onclick="saveDescription()" style="background: #4CAF50; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer;">✅ Confirm</button>
-            <button type="button" onclick="closeEditModal('description')" style="background: #f44336; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer;">❌ Cancel</button>
+            <button type="button" onclick="closeEditModal('description')" style="background: #f44336; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer;">✕ Cancel</button>
         </div>
     </div>
 </div>
@@ -230,7 +297,7 @@ require_once "./blueprints/gl_ap_start.php"; // includes the start of the genera
         </div>
         <div class="point-edit-modal-footer">
             <button type="button" onclick="saveOtherNames()" style="background: #4CAF50; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer;">✅ Confirm</button>
-            <button type="button" onclick="closeEditModal('other-names')" style="background: #f44336; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer;">❌ Cancel</button>
+            <button type="button" onclick="closeEditModal('other-names')" style="background: #f44336; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer;">✕ Cancel</button>
         </div>
     </div>
 </div>
@@ -249,7 +316,7 @@ require_once "./blueprints/gl_ap_start.php"; // includes the start of the genera
         </div>
         <div class="point-edit-modal-footer">
             <button type="button" onclick="saveType()" style="background: #4CAF50; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer;">✅ Confirm</button>
-            <button type="button" onclick="closeEditModal('type')" style="background: #f44336; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer;">❌ Cancel</button>
+            <button type="button" onclick="closeEditModal('type')" style="background: #f44336; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer;">✕ Cancel</button>
         </div>
     </div>
 </div>
@@ -267,7 +334,71 @@ require_once "./blueprints/gl_ap_start.php"; // includes the start of the genera
             </div>
         </div>
         <div class="point-edit-modal-footer">
-            <button type="button" onclick="closeEditModal('image-upload')" style="background: #f44336; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer;">❌ Close</button>
+            <button type="button" onclick="closeEditModal('image-upload')" style="background: #f44336; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer;">✕ Close</button>
+        </div>
+    </div>
+</div>
+
+<!-- Map Change Modal -->
+<div id="map-change-modal" class="point-edit-modal" style="display: none;">
+    <div class="point-edit-modal-content" style="max-width: 600px;">
+        <div class="point-edit-modal-header">
+            <h2>🖼️ Change Place Map</h2>
+            <button type="button" class="point-edit-modal-close" onclick="closeEditModal('map-change')">&times;</button>
+        </div>
+        <div class="point-edit-modal-body">
+            <div style="margin-bottom: 20px; padding: 15px; background: rgba(255, 165, 0, 0.1); border: 1px solid #FFA500; border-radius: 5px;">
+                <h4 style="color: #FFA500; margin: 0 0 10px 0;">⚠️ Important Notice</h4>
+                <p style="margin: 0; color: #ddd; font-size: 14px;">
+                    Changing the map will preserve all existing points. The points will maintain their relative positions (as percentages) on the new map.
+                    <br><br>
+                    <strong>Recommended:</strong> Save any unsaved points before changing the map.
+                </p>
+            </div>
+            <div style="margin-bottom: 20px;">
+                <h4 style="color: #d4af37;">Upload New Map Image</h4>
+                <input type="file" id="map-image-upload" accept="image/*" style="width: 100%; padding: 10px; margin-bottom: 10px;">
+                <div style="color: #aaa; font-size: 12px; margin-bottom: 15px;">
+                    Supported formats: JPG, PNG, GIF, WebP. Recommended size: 800x400 pixels or similar aspect ratio.
+                </div>
+                <button onclick="uploadMapImage()" style="background: #4CAF50; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer;">
+                    🖼️ Upload New Map
+                </button>
+            </div>
+        </div>
+        <div class="point-edit-modal-footer">
+            <button type="button" onclick="closeEditModal('map-change')" style="background: #f44336; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer;">✕ Cancel</button>
+        </div>
+    </div>
+</div>
+
+<!-- Map Point Edit Modal -->
+<div id="map-point-edit-modal" class="point-edit-modal" style="display: none;">
+    <div class="point-edit-modal-content">
+        <div class="point-edit-modal-header">
+            <h2>✏️ Edit Map Point</h2>
+            <button type="button" class="point-edit-modal-close" onclick="closeMapPointEditModal()">&times;</button>
+        </div>
+        <div class="point-edit-modal-body">
+            <div style="margin-bottom: 15px;">
+                <label style="color: #d4af37; font-size: 14px; display: block; margin-bottom: 5px;">Point Name</label>
+                <input type="text" id="edit-map-poi-name" style="width: 100%; padding: 10px; border: none; border-radius: 3px; background: #333; color: white;">
+            </div>
+            <div style="margin-bottom: 15px;">
+                <label style="color: #d4af37; font-size: 14px; display: block; margin-bottom: 5px;">Description</label>
+                <textarea id="edit-map-poi-description" style="width: 100%; height: 100px; padding: 10px; border: none; border-radius: 3px; background: #333; color: white; resize: vertical;"></textarea>
+            </div>
+            <div style="margin-bottom: 15px;">
+                <label style="color: #d4af37; font-size: 14px; display: block; margin-bottom: 5px;">Type</label>
+                <select id="edit-map-poi-type" style="width: 100%; padding: 10px; border: none; border-radius: 3px; background: #333; color: white;">
+                    <option value="">Select type...</option>
+                </select>
+            </div>
+        </div>
+        <div class="point-edit-modal-footer">
+            <button type="button" onclick="saveMapPointEdit()" style="background: #4CAF50; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer;">✅ Save Changes</button>
+            <button type="button" onclick="deleteMapPoint()" style="background: #f44336; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer;">🗑️ Delete Point</button>
+            <button type="button" onclick="closeMapPointEditModal()" style="background: #666; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer;">✕ Cancel</button>
         </div>
     </div>
 </div>
@@ -287,6 +418,7 @@ require_once "./blueprints/gl_ap_start.php"; // includes the start of the genera
     window.addEventListener('load', function() {
         loadMainImage();
         loadGalleryImages();
+        loadPlaceMap();
         <?php if (isset($_SESSION['user']) && in_array('admin', $user_roles)): ?>
         loadAvailableTypes();
         <?php endif; ?>
@@ -416,13 +548,783 @@ require_once "./blueprints/gl_ap_start.php"; // includes the start of the genera
         document.body.appendChild(modal);
     }
     
+    // Place Map Functionality
+    let mapData = null;
+    let mapPoints = [];
+    let mapEditMode = false;
+    let mapMoveMode = false;
+    let mapPointCounter = 0;
+    let hasUnsavedMapChanges = false;
+    let draggedPoint = null;
+    let dragOffset = { x: 0, y: 0 };
+    
+    // Load place map
+    async function loadPlaceMap() {
+        try {
+            const response = await fetch('./scriptes/place_map_manager.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    action: 'get_map_data',
+                    place_id: placeData.id
+                })
+            });
+            
+            const data = await response.json();
+            if (data.success && data.map) {
+                mapData = data.map;
+                loadMapImage();
+                loadMapPoints();
+            } else {
+                // No map data found, load default map
+                loadDefaultMapImage();
+            }
+        } catch (error) {
+            console.error('Error loading map:', error);
+            // On error, load default map
+            loadDefaultMapImage();
+        }
+    }
+    
+    // Load map image
+    function loadMapImage() {
+        const mapImage = document.getElementById('place-map-image');
+        // First try to load from place folder
+        const placeMapPath = `${placeData.folderPath}map/${mapData.image_map}`;
+        
+        mapImage.onerror = function() {
+            // If place-specific map doesn't exist, try default
+            mapImage.onerror = function() {
+                // If default doesn't exist, show placeholder
+                mapImage.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iODAwIiBoZWlnaHQ9IjQwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KICA8cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjMzMzIi8+CiAgPHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCwgc2Fucy1zZXJpZiIgZm9udC1zaXplPSIyNCIgZmlsbD0iIzY2NiIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPk5vIE1hcCBBdmFpbGFibGU8L3RleHQ+Cjwvc3ZnPg==';
+            };
+            mapImage.src = '../images/maps/default-map.jpg';
+        };
+        
+        mapImage.src = placeMapPath;
+    }
+    
+    // Load default map image when no map data is available
+    function loadDefaultMapImage() {
+        const mapImage = document.getElementById('place-map-image');
+        
+        // List of possible paths for default map
+        const defaultMapPaths = [
+            '../images/maps/default-map.jpg',
+            '../images/maps/map_monde.png',
+            './images/maps/default-map.jpg',
+            './images/maps/map_monde.png'
+        ];
+        
+        let currentPathIndex = 0;
+        
+        function tryNextPath() {
+            if (currentPathIndex < defaultMapPaths.length) {
+                const currentPath = defaultMapPaths[currentPathIndex];
+                console.log('Trying default map path:', currentPath);
+                
+                mapImage.onerror = function() {
+                    currentPathIndex++;
+                    tryNextPath();
+                };
+                
+                mapImage.onload = function() {
+                    console.log('Successfully loaded default map from:', currentPath);
+                };
+                
+                mapImage.src = currentPath;
+            } else {
+                // All paths failed, show placeholder
+                console.log('All default map paths failed, showing placeholder');
+                mapImage.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iODAwIiBoZWlnaHQ9IjQwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KICA8cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjMzMzIi8+CiAgPHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCwgc2Fucy1zZXJpZiIgZm9udC1zaXplPSIyNCIgZmlsbD0iIzY2NiIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPkRlZmF1bHQgTWFwPC90ZXh0Pgo8L3N2Zz4=';
+            }
+        }
+        
+        tryNextPath();
+    }
+    
+    // Load map points
+    async function loadMapPoints() {
+        if (!mapData) return;
+        
+        try {
+            const response = await fetch('./scriptes/place_map_manager.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    action: 'load_map_points',
+                    map_id: mapData.id_map
+                })
+            });
+            
+            const data = await response.json();
+            if (data.success && data.points) {
+                mapPoints = [];
+                
+                data.points.forEach(dbPoint => {
+                    const point = {
+                        id: generateMapPointId(),
+                        database_id: dbPoint.id_IP,
+                        name: dbPoint.name_IP,
+                        description: dbPoint.description_IP,
+                        type: dbPoint.type_name || dbPoint.type_IP,
+                        x: parseFloat(dbPoint.x_IP),
+                        y: parseFloat(dbPoint.y_IP),
+                        type_color: dbPoint.type_color || '#ff4444'
+                    };
+                    mapPoints.push(point);
+                });
+                
+                drawMapPoints();
+            }
+        } catch (error) {
+            console.error('Error loading map points:', error);
+        }
+    }
+    
+    // Generate unique ID for map points
+    function generateMapPointId() {
+        return 'map_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+    }
+    
+    // Draw all map points
+    function drawMapPoints() {
+        const overlay = document.getElementById('place-map-overlay');
+        // Clear existing points
+        overlay.querySelectorAll('.map-point').forEach(point => point.remove());
+        
+        mapPoints.forEach(point => {
+            createMapPointElement(point);
+        });
+    }
+    
+    // Create map point element
+    function createMapPointElement(point) {
+        const overlay = document.getElementById('place-map-overlay');
+        const pointElement = document.createElement('div');
+        pointElement.className = 'map-point';
+        pointElement.dataset.pointId = point.id;
+        pointElement.style.cssText = `
+            position: absolute;
+            left: ${point.x}%;
+            top: ${point.y}%;
+            width: 12px;
+            height: 12px;
+            background-color: ${point.type_color};
+            border: 2px solid white;
+            border-radius: 50%;
+            cursor: pointer;
+            transform: translate(-50%, -50%);
+            z-index: 10;
+            transition: transform 0.2s ease;
+        `;
+        
+        // Add hover effect
+        pointElement.addEventListener('mouseenter', function() {
+            this.style.transform = 'translate(-50%, -50%) scale(1.3)';
+        });
+        
+        pointElement.addEventListener('mouseleave', function() {
+            this.style.transform = 'translate(-50%, -50%) scale(1)';
+        });
+        
+        // Add tooltip
+        const tooltip = document.createElement('div');
+        tooltip.className = 'map-point-tooltip';
+        tooltip.innerHTML = `
+            <strong>${point.name}</strong><br>
+            Type: ${point.type}<br>
+            <p style="margin: 5px 0 0 0; font-size: 12px;">${point.description}</p>
+        `;
+        tooltip.style.cssText = `
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.9);
+            color: white;
+            padding: 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            white-space: nowrap;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            z-index: 20;
+            border: 1px solid #d4af37;
+        `;
+        
+        pointElement.appendChild(tooltip);
+        
+        // Show tooltip on hover
+        pointElement.addEventListener('mouseenter', function() {
+            tooltip.style.opacity = '1';
+        });
+        
+        pointElement.addEventListener('mouseleave', function() {
+            tooltip.style.opacity = '0';
+        });
+        
+        // Enable dragging if move mode is active
+        if (mapMoveMode) {
+            pointElement.style.cursor = 'grab';
+            pointElement.addEventListener('mousedown', startDragging);
+        }
+        
+        // Add click to edit (when no modes are active)
+        pointElement.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            if (!mapEditMode && !mapMoveMode) {
+                openMapPointEditModal(pointElement);
+            }
+        });
+        
+        overlay.appendChild(pointElement);
+    }
+    
+    <?php if (isset($_SESSION['user']) && in_array('admin', $user_roles)): ?>
+    // Map editing functions (admin only)
+    
+    // Toggle map edit mode
+    function toggleMapEditMode() {
+        // If move mode is active, deactivate it first
+        if (mapMoveMode) {
+            toggleMapMoveMode();
+        }
+        
+        mapEditMode = !mapEditMode;
+        const overlay = document.getElementById('place-map-overlay');
+        const controls = document.getElementById('map-controls');
+        const editBtn = document.getElementById('map-edit-btn');
+        const saveBtn = document.getElementById('map-save-btn');
+        const statusSpan = document.getElementById('map-mode-status');
+        
+        if (mapEditMode) {
+            overlay.style.cursor = 'crosshair';
+            overlay.style.backgroundColor = 'rgba(0, 170, 0, 0.1)';
+            controls.style.display = 'block';
+            editBtn.textContent = '❌ Exit Add';
+            editBtn.style.background = '#f44336';
+            saveBtn.style.display = hasUnsavedMapChanges ? 'inline-block' : 'none';
+            statusSpan.textContent = 'Active';
+            statusSpan.style.color = '#00aa00';
+            
+            // Add click listener for adding points
+            overlay.addEventListener('click', addMapPoint);
+        } else {
+            overlay.style.cursor = 'default';
+            overlay.style.backgroundColor = 'transparent';
+            controls.style.display = 'none';
+            editBtn.textContent = '✏️ Add Points';
+            editBtn.style.background = '#4CAF50';
+            saveBtn.style.display = 'none';
+            statusSpan.textContent = 'Inactive';
+            statusSpan.style.color = '#aa0000';
+            
+            // Remove click listener
+            overlay.removeEventListener('click', addMapPoint);
+        }
+    }
+    
+    // Toggle map move mode
+    function toggleMapMoveMode() {
+        // If edit mode is active, deactivate it first
+        if (mapEditMode) {
+            toggleMapEditMode();
+        }
+        
+        mapMoveMode = !mapMoveMode;
+        const overlay = document.getElementById('place-map-overlay');
+        const moveBtn = document.getElementById('map-move-btn');
+        const saveBtn = document.getElementById('map-save-btn');
+        const moveStatusSpan = document.getElementById('map-move-status');
+        
+        if (mapMoveMode) {
+            overlay.style.cursor = 'move';
+            overlay.style.backgroundColor = 'rgba(156, 39, 176, 0.1)';
+            moveBtn.textContent = '❌ Exit Move';
+            moveBtn.style.background = '#f44336';
+            saveBtn.style.display = hasUnsavedMapChanges ? 'inline-block' : 'none';
+            moveStatusSpan.textContent = 'Active';
+            moveStatusSpan.style.color = '#9C27B0';
+            
+            // Enable dragging for all points
+            enablePointDragging();
+        } else {
+            overlay.style.cursor = 'default';
+            overlay.style.backgroundColor = 'transparent';
+            moveBtn.textContent = '🔄 Move Points';
+            moveBtn.style.background = '#9C27B0';
+            saveBtn.style.display = 'none';
+            moveStatusSpan.textContent = 'Inactive';
+            moveStatusSpan.style.color = '#aa0000';
+            
+            // Disable dragging
+            disablePointDragging();
+        }
+    }
+    
+    // Add map point on click
+    function addMapPoint(e) {
+        if (!mapEditMode) return;
+        
+        // Don't add point if clicking on an existing point
+        if (e.target.classList.contains('map-point') || e.target.closest('.map-point')) {
+            return;
+        }
+        
+        const name = document.getElementById('map-poi-name').value.trim();
+        const description = document.getElementById('map-poi-description').value.trim() || 'No description';
+        const type = document.getElementById('map-poi-type').value.trim();
+        
+        if (!name) {
+            showMessage('⚠️ Point name is required!', 'error');
+            return;
+        }
+        
+        if (!type) {
+            showMessage('⚠️ Point type is required!', 'error');
+            return;
+        }
+        
+        const rect = e.target.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+        
+        const xPercent = (x / rect.width) * 100;
+        const yPercent = (y / rect.height) * 100;
+        
+        // Get type color
+        const selectedType = availableTypes.find(t => t.name_IPT === type);
+        const typeColor = selectedType ? selectedType.color_IPT : '#ff4444';
+        
+        const point = {
+            id: generateMapPointId(),
+            name: name,
+            description: description,
+            type: type,
+            x: xPercent,
+            y: yPercent,
+            type_color: typeColor
+        };
+        
+        mapPoints.push(point);
+        createMapPointElement(point);
+        
+        // Clear inputs
+        document.getElementById('map-poi-name').value = '';
+        document.getElementById('map-poi-description').value = '';
+        document.getElementById('map-poi-type').selectedIndex = 0;
+        
+        markMapAsUnsaved();
+        showMessage('✅ Point added to map! Use "Save Points" to make it permanent.', 'success');
+    }
+    
+    // Save map points
+    async function saveMapPoints() {
+        if (mapPoints.length === 0) {
+            showMessage('ℹ️ No points to save', 'info');
+            return;
+        }
+        
+        try {
+            const response = await fetch('./scriptes/place_map_manager.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    action: 'save_points',
+                    points: mapPoints,
+                    map_id: mapData ? mapData.id_map : null,
+                    place_id: placeData.id
+                })
+            });
+            
+            const data = await response.json();
+            if (data.success) {
+                // Update mapData if a new map was created
+                if (data.map_id && (!mapData || !mapData.id_map)) {
+                    mapData = {
+                        id_map: data.map_id,
+                        image_map: 'default-map.jpg',
+                        name_map: placeData.name + ' Map',
+                        place_id: placeData.id
+                    };
+                }
+                
+                // Update points with database IDs
+                if (data.saved_points) {
+                    data.saved_points.forEach(savedPoint => {
+                        const localPoint = mapPoints.find(p => p.id === savedPoint.local_id);
+                        if (localPoint) {
+                            localPoint.database_id = savedPoint.database_id;
+                        }
+                    });
+                }
+                
+                markMapAsSaved();
+                showMessage('✅ Map points saved successfully!', 'success');
+            } else {
+                showMessage('❌ Error saving points: ' + data.message, 'error');
+            }
+        } catch (error) {
+            console.error('Error saving map points:', error);
+            showMessage('❌ Connection error while saving points', 'error');
+        }
+    }
+    
+    // Clear map points
+    function clearMapPoints() {
+        const localPoints = mapPoints.filter(p => !p.database_id);
+        
+        if (localPoints.length === 0) {
+            showMessage('ℹ️ No local points to clear', 'info');
+            return;
+        }
+        
+        if (confirm(`Clear ${localPoints.length} unsaved point(s)?`)) {
+            // Remove local points
+            mapPoints = mapPoints.filter(p => p.database_id);
+            drawMapPoints();
+            markMapAsUnsaved();
+            showMessage('✅ Local points cleared', 'success');
+        }
+    }
+    
+    // Mark map as unsaved
+    function markMapAsUnsaved() {
+        hasUnsavedMapChanges = true;
+        const saveBtn = document.getElementById('map-save-btn');
+        if (saveBtn && (mapEditMode || mapMoveMode)) {
+            saveBtn.style.display = 'inline-block';
+            saveBtn.style.animation = 'pulse 2s infinite';
+        }
+    }
+    
+    // Mark map as saved
+    function markMapAsSaved() {
+        hasUnsavedMapChanges = false;
+        const saveBtn = document.getElementById('map-save-btn');
+        if (saveBtn) {
+            saveBtn.style.display = 'none';
+            saveBtn.style.animation = '';
+        }
+    }
+    
+    // Enable point dragging
+    function enablePointDragging() {
+        const points = document.querySelectorAll('.map-point');
+        points.forEach(point => {
+            point.style.cursor = 'grab';
+            point.addEventListener('mousedown', startDragging);
+        });
+    }
+    
+    // Disable point dragging
+    function disablePointDragging() {
+        const points = document.querySelectorAll('.map-point');
+        points.forEach(point => {
+            point.style.cursor = 'pointer';
+            point.removeEventListener('mousedown', startDragging);
+        });
+    }
+    
+    // Start dragging a point
+    function startDragging(e) {
+        if (!mapMoveMode) return;
+        
+        e.preventDefault();
+        e.stopPropagation();
+        
+        draggedPoint = e.target;
+        draggedPoint.style.cursor = 'grabbing';
+        draggedPoint.style.zIndex = '1000';
+        
+        const rect = document.getElementById('place-map-overlay').getBoundingClientRect();
+        const pointRect = draggedPoint.getBoundingClientRect();
+        
+        dragOffset.x = e.clientX - pointRect.left - pointRect.width / 2;
+        dragOffset.y = e.clientY - pointRect.top - pointRect.height / 2;
+        
+        document.addEventListener('mousemove', dragPoint);
+        document.addEventListener('mouseup', stopDragging);
+    }
+    
+    // Drag point to new position
+    function dragPoint(e) {
+        if (!draggedPoint || !mapMoveMode) return;
+        
+        const overlay = document.getElementById('place-map-overlay');
+        const rect = overlay.getBoundingClientRect();
+        
+        const x = e.clientX - rect.left - dragOffset.x;
+        const y = e.clientY - rect.top - dragOffset.y;
+        
+        // Convert to percentages
+        const xPercent = Math.max(0, Math.min(100, (x / rect.width) * 100));
+        const yPercent = Math.max(0, Math.min(100, (y / rect.height) * 100));
+        
+        // Update point position
+        draggedPoint.style.left = xPercent + '%';
+        draggedPoint.style.top = yPercent + '%';
+        
+        // Update point data
+        const pointId = draggedPoint.dataset.pointId;
+        const point = mapPoints.find(p => p.id === pointId);
+        if (point) {
+            point.x = xPercent;
+            point.y = yPercent;
+            markMapAsUnsaved();
+        }
+    }
+    
+    // Stop dragging
+    function stopDragging(e) {
+        if (draggedPoint) {
+            draggedPoint.style.cursor = 'grab';
+            draggedPoint.style.zIndex = '10';
+            draggedPoint = null;
+        }
+        
+        document.removeEventListener('mousemove', dragPoint);
+        document.removeEventListener('mouseup', stopDragging);
+    }
+    
+    // Point editing functions
+    function openMapPointEditModal(pointElement) {
+        const modal = document.getElementById('map-point-edit-modal');
+        const pointId = pointElement.dataset.pointId;
+        
+        // Find the point data
+        const point = mapPoints.find(p => p.id === pointId);
+        if (!point) return;
+        
+        document.getElementById('edit-map-poi-name').value = point.name || '';
+        document.getElementById('edit-map-poi-description').value = point.description || '';
+        
+        // Store the point ID for saving
+        modal.dataset.editingPointId = pointId;
+        
+        // Load types and then set the selected value
+        loadMapEditPointTypes().then(() => {
+            document.getElementById('edit-map-poi-type').value = point.type || '';
+        });
+        
+        modal.style.display = 'block';
+    }
+    
+    function closeMapPointEditModal() {
+        document.getElementById('map-point-edit-modal').style.display = 'none';
+    }
+    
+    async function saveMapPointEdit() {
+        const modal = document.getElementById('map-point-edit-modal');
+        const pointId = modal.dataset.editingPointId;
+        const newName = document.getElementById('edit-map-poi-name').value.trim();
+        const newDescription = document.getElementById('edit-map-poi-description').value.trim();
+        const newType = document.getElementById('edit-map-poi-type').value.trim();
+        
+        if (!newName) {
+            showMessage('⚠️ Please enter a name for the point', 'error');
+            return;
+        }
+        
+        if (!newType) {
+            showMessage('⚠️ Please select a type for the point', 'error');
+            return;
+        }
+        
+        // Find the point data
+        const mapPoint = mapPoints.find(p => p.id === pointId);
+        if (!mapPoint) {
+            showMessage('❌ Point data not found', 'error');
+            return;
+        }
+        
+        try {
+            // If point has database ID, update in database
+            if (mapPoint.database_id) {
+                const response = await fetch('./scriptes/place_map_manager.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        action: 'update_point',
+                        database_id: mapPoint.database_id,
+                        name: newName,
+                        description: newDescription,
+                        type: newType,
+                        x: mapPoint.x,
+                        y: mapPoint.y
+                    })
+                });
+                
+                const data = await response.json();
+                if (!data.success) {
+                    showMessage('❌ Database error: ' + (data.message || 'Unknown error'), 'error');
+                    return;
+                }
+            }
+            
+            // Update local data
+            const typeInfo = availableTypes.find(t => t.name_IPT === newType);
+            
+            mapPoint.name = newName;
+            mapPoint.description = newDescription;
+            mapPoint.type = newType;
+            if (typeInfo) {
+                mapPoint.type_color = typeInfo.color_IPT;
+            }
+            
+            // Update point element appearance
+            const pointElement = document.querySelector(`[data-point-id="${pointId}"]`);
+            if (pointElement) {
+                // Update point color
+                if (typeInfo) {
+                    pointElement.style.backgroundColor = typeInfo.color_IPT;
+                }
+                
+                // Update tooltip
+                const tooltip = pointElement.querySelector('.map-point-tooltip');
+                if (tooltip) {
+                    tooltip.innerHTML = `
+                        <strong>${newName}</strong><br>
+                        Type: ${newType}<br>
+                        <p style="margin: 5px 0 0 0; font-size: 12px;">${newDescription}</p>
+                    `;
+                }
+            }
+            
+            // Mark as unsaved if it's a local point (no database_id yet)
+            if (!mapPoint.database_id) {
+                markMapAsUnsaved();
+            }
+            
+            closeMapPointEditModal();
+            showMessage('✅ Point updated successfully!', 'success');
+            
+        } catch (error) {
+            console.error('Error updating point:', error);
+            showMessage('❌ Connection error while updating point', 'error');
+        }
+    }
+    
+    async function deleteMapPoint() {
+        const modal = document.getElementById('map-point-edit-modal');
+        const pointId = modal.dataset.editingPointId;
+        
+        if (confirm('Are you sure you want to delete this point?')) {
+            try {
+                // Find the point data
+                const mapPoint = mapPoints.find(p => p.id === pointId);
+                
+                // If point has database ID, delete from database
+                if (mapPoint && mapPoint.database_id) {
+                    const response = await fetch('./scriptes/place_map_manager.php', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            action: 'delete_point',
+                            database_id: mapPoint.database_id
+                        })
+                    });
+                    
+                    const data = await response.json();
+                    if (!data.success) {
+                        showMessage('❌ Database error: ' + (data.message || 'Unknown error'), 'error');
+                        return;
+                    }
+                }
+                
+                // Remove from DOM
+                const pointElement = document.querySelector(`[data-point-id="${pointId}"]`);
+                if (pointElement) {
+                    pointElement.remove();
+                }
+                
+                // Remove from mapPoints array
+                const index = mapPoints.findIndex(p => p.id === pointId);
+                if (index > -1) {
+                    mapPoints.splice(index, 1);
+                }
+                
+                closeMapPointEditModal();
+                
+                // Mark as unsaved only if it was a local point (no database_id)
+                if (!mapPoint || !mapPoint.database_id) {
+                    markMapAsUnsaved();
+                }
+                
+                showMessage('✅ Point deleted successfully!', 'success');
+                
+            } catch (error) {
+                console.error('Error deleting point:', error);
+                showMessage('❌ Connection error while deleting point', 'error');
+            }
+        }
+    }
+    
+    function loadMapEditPointTypes() {
+        return new Promise((resolve) => {
+            const typeSelect = document.getElementById('edit-map-poi-type');
+            if (!typeSelect) {
+                console.error('Edit map type select element not found');
+                resolve();
+                return;
+            }
+            
+            typeSelect.innerHTML = '<option value="">Select type...</option>';
+            
+            availableTypes.forEach(type => {
+                const option = document.createElement('option');
+                option.value = type.name_IPT;
+                option.textContent = type.name_IPT;
+                typeSelect.appendChild(option);
+            });
+            
+            resolve();
+        });
+    }
+    
+    // Load map point types in dropdown
+    function loadMapPointTypes() {
+        const typeSelect = document.getElementById('map-poi-type');
+        typeSelect.innerHTML = '<option value="">Select type...</option>';
+        
+        availableTypes.forEach(type => {
+            const option = document.createElement('option');
+            option.value = type.name_IPT;
+            option.textContent = type.name_IPT;
+            typeSelect.appendChild(option);
+        });
+    }
+    
+    // Update map point types when available types are loaded
+    const originalLoadAvailableTypes = loadAvailableTypes;
+    loadAvailableTypes = async function() {
+        await originalLoadAvailableTypes();
+        loadMapPointTypes();
+    };
+    
+    <?php endif; ?>
+    
     <?php if (isset($_SESSION['user']) && in_array('admin', $user_roles)): ?>
     // Admin editing functions
     
     // Load available types
     async function loadAvailableTypes() {
         try {
-            const response = await fetch('./scriptes/map_save_points.php', {
+            const response = await fetch('./scriptes/place_map_manager.php', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -504,10 +1406,16 @@ require_once "./blueprints/gl_ap_start.php"; // includes the start of the genera
         loadManageGallery();
     }
     
+    function changeMapImage() {
+        document.getElementById('map-change-modal').style.display = 'block';
+    }
+    
     function closeEditModal(type) {
         let modalId;
         if (type === 'image-upload') {
             modalId = 'image-upload-modal';
+        } else if (type === 'map-change') {
+            modalId = 'map-change-modal';
         } else {
             modalId = type + '-edit-modal';
         }
@@ -668,9 +1576,263 @@ require_once "./blueprints/gl_ap_start.php"; // includes the start of the genera
         showMessage('✅ Images uploaded successfully!', 'success');
     }
     
+    async function uploadMapImage() {
+        const fileInput = document.getElementById('map-image-upload');
+        const file = fileInput.files[0];
+        if (!file) {
+            showMessage('⚠️ Please select an image file first!', 'error');
+            return;
+        }
+        
+        // Check file type
+        if (!file.type.startsWith('image/')) {
+            showMessage('⚠️ Please select a valid image file!', 'error');
+            return;
+        }
+        
+        // Check file size (max 5MB to be safe)
+        if (file.size > 5 * 1024 * 1024) {
+            showMessage('⚠️ Image file is too large. Maximum size is 5MB.', 'error');
+            return;
+        }
+        
+        // Check if there are unsaved points
+        const unsavedPoints = mapPoints.filter(p => !p.database_id);
+        if (unsavedPoints.length > 0) {
+            if (!confirm(`You have ${unsavedPoints.length} unsaved point(s). They will be lost if you change the map now. Continue anyway?`)) {
+                return;
+            }
+        }
+        
+        try {
+            showMessage('⏳ Uploading map image...', 'info');
+            
+            console.log('Converting file to base64...', file.name, file.size, 'bytes');
+            const base64Data = await fileToBase64(file);
+            console.log('Base64 conversion complete, size:', base64Data.length, 'characters');
+            
+            const requestData = {
+                action: 'change_map_image',
+                place_id: placeData.id,
+                file_data: base64Data,
+                file_name: file.name,
+                file_type: file.type
+            };
+            
+            console.log('Sending request to server...', requestData);
+            
+            const response = await fetch('./scriptes/place_map_manager.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(requestData)
+            });
+            
+            console.log('Response status:', response.status);
+            console.log('Response headers:', [...response.headers.entries()]);
+            
+            let data;
+            let responseText;
+            
+            // First, read the response as text
+            try {
+                responseText = await response.text();
+                console.log('Raw response text:', responseText);
+            } catch (textError) {
+                console.error('Failed to read response as text:', textError);
+                showMessage(`❌ Failed to read server response. Status: ${response.status}`, 'error');
+                return;
+            }
+            
+            // Then try to parse it as JSON
+            try {
+                data = JSON.parse(responseText);
+            } catch (jsonError) {
+                console.error('JSON parse error:', jsonError);
+                console.error('Response was not valid JSON:', responseText);
+                showMessage(`❌ Server returned invalid JSON. Status: ${response.status}. Check console.`, 'error');
+                return;
+            }
+            
+            if (data.success) {
+                // Update mapData if it exists
+                if (mapData) {
+                    mapData.image_map = data.new_filename;
+                } else {
+                    // Create new mapData object
+                    mapData = {
+                        id_map: data.map_id,
+                        image_map: data.new_filename,
+                        name_map: placeData.name + ' Map',
+                        place_id: placeData.id
+                    };
+                }
+                
+                // Reload the map image
+                loadMapImage();
+                
+                // Redraw existing saved points (unsaved points are already filtered out)
+                const savedPoints = mapPoints.filter(p => p.database_id);
+                mapPoints = savedPoints;
+                drawMapPoints();
+                
+                closeEditModal('map-change');
+                showMessage('✅ Map image updated successfully! Points preserved.', 'success');
+            } else {
+                showMessage('❌ Error updating map: ' + data.message, 'error');
+            }
+        } catch (error) {
+            console.error('Error uploading map:', error);
+            showMessage('❌ Error uploading map image', 'error');
+        }
+    }
+    
+    // Helper function to convert file to base64
+    function fileToBase64(file) {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(reader.result.split(',')[1]); // Remove data:image/...;base64, prefix
+            reader.onerror = reject;
+            reader.readAsDataURL(file);
+        });
+    }
+    
     function loadManageGallery() {
-        // This would load a management interface for existing gallery images
-        document.getElementById('manage-gallery-list').innerHTML = 'Gallery management interface - to be implemented';
+        // Load detailed gallery management interface
+        fetch('./scriptes/place_image_manager.php', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                action: 'list_images',
+                slug: placeData.slug
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            const manageList = document.getElementById('manage-gallery-list');
+            
+            if (data.success && data.images && data.images.length > 0) {
+                let html = '<div style="max-height: 400px; overflow-y: auto;">';
+                
+                data.images.forEach((image, index) => {
+                    html += `
+                        <div class="manage-image-item" style="
+                            display: flex; 
+                            align-items: center; 
+                            gap: 15px; 
+                            padding: 10px; 
+                            border: 1px solid #444; 
+                            border-radius: 5px; 
+                            margin-bottom: 10px;
+                            background: rgba(0,0,0,0.2);
+                        ">
+                            <img src="${image.thumb_path}" 
+                                 alt="${image.name}" 
+                                 style="width: 60px; height: 60px; object-fit: cover; border-radius: 4px;">
+                            <div style="flex: 1;">
+                                <div style="margin-bottom: 5px;">
+                                    <strong style="color: #d4af37;">${image.name}</strong>
+                                </div>
+                                <div style="color: #888; font-size: 0.9em;">
+                                    Size: ${Math.round(image.size / 1024)}KB
+                                </div>
+                            </div>
+                            <div style="display: flex; gap: 5px;">
+                                <button onclick="renameImagePrompt('${image.name}')" 
+                                        style="background: #2196F3; color: white; border: none; padding: 5px 10px; border-radius: 3px; cursor: pointer; font-size: 0.8em;">
+                                    ✏️ Rename
+                                </button>
+                                <button onclick="deleteImageConfirm('${image.name}')" 
+                                        style="background: #f44336; color: white; border: none; padding: 5px 10px; border-radius: 3px; cursor: pointer; font-size: 0.8em;">
+                                    🗑️ Delete
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                });
+                
+                html += '</div>';
+                manageList.innerHTML = html;
+            } else {
+                manageList.innerHTML = '<p style="color: #888; text-align: center; padding: 20px;">No gallery images found</p>';
+            }
+        })
+        .catch(error => {
+            console.error('Error loading manage gallery:', error);
+            document.getElementById('manage-gallery-list').innerHTML = '<p style="color: #f44336;">Error loading images</p>';
+        });
+    }
+    
+    // Image management functions
+    function renameImagePrompt(currentName) {
+        const newName = prompt(`Rename image "${currentName}" to:`, currentName);
+        if (newName && newName !== currentName && newName.trim()) {
+            renameImage(currentName, newName.trim());
+        }
+    }
+    
+    async function renameImage(oldName, newName) {
+        try {
+            const response = await fetch('./scriptes/place_image_manager.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    action: 'rename_image',
+                    slug: placeData.slug,
+                    old_name: oldName,
+                    new_name: newName
+                })
+            });
+            
+            const data = await response.json();
+            if (data.success) {
+                showMessage('✅ Image renamed successfully!', 'success');
+                loadGalleryImages(); // Refresh main gallery
+                loadManageGallery(); // Refresh manage gallery
+            } else {
+                showMessage('❌ Error renaming image: ' + data.message, 'error');
+            }
+        } catch (error) {
+            showMessage('❌ Error renaming image', 'error');
+        }
+    }
+    
+    function deleteImageConfirm(imageName) {
+        if (confirm(`Are you sure you want to delete "${imageName}"? This action cannot be undone.`)) {
+            deleteImage(imageName);
+        }
+    }
+    
+    async function deleteImage(imageName) {
+        try {
+            const response = await fetch('./scriptes/place_image_manager.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    action: 'delete_image',
+                    slug: placeData.slug,
+                    image_name: imageName
+                })
+            });
+            
+            const data = await response.json();
+            if (data.success) {
+                showMessage('✅ Image deleted successfully!', 'success');
+                loadGalleryImages(); // Refresh main gallery
+                loadManageGallery(); // Refresh manage gallery
+            } else {
+                showMessage('❌ Error deleting image: ' + data.message, 'error');
+            }
+        } catch (error) {
+            showMessage('❌ Error deleting image', 'error');
+        }
     }
     
     <?php endif; ?>
@@ -736,6 +1898,19 @@ require_once "./blueprints/gl_ap_start.php"; // includes the start of the genera
             }, 300);
         }, 3000);
     }
+    
+    // Add event listeners for map point edit modal when page loads
+    window.addEventListener('load', function() {
+        // Close modal when clicking outside
+        const modal = document.getElementById('map-point-edit-modal');
+        if (modal) {
+            modal.addEventListener('click', function(e) {
+                if (e.target === modal) {
+                    closeMapPointEditModal();
+                }
+            });
+        }
+    });
 </script>
 
 <?php

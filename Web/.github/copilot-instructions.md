@@ -143,3 +143,15 @@ function handleHelpContainerPosition() {
 - Verify blueprint includes for missing footer/header elements
 - Database connection issues: check `BDD.env` and Docker services
 - CSS not updating: cache busting with `?ver=` parameter working
+
+## .md Files
+- create them in the folder Web/.github/
+
+## Testing Guidelines
+- place created testing or one-use files in `html/test/Web/tests/`
+- when testing ends, delete them to keep the environment clean but keep the tests folder
+
+## Troubleshooting Log
+- Troubleshooting files are to be placed in the `Web/.github/troubleshooting/` folder and shouldn't be placed elsewhere.
+- Troubleshooting names should be descriptive and follow the format: `TROUBLESHOOTING_{ISSUE_DESCRIPTION}.md` to ensure no conflicts with other files.
+

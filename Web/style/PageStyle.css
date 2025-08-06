@@ -375,6 +375,7 @@ html body {
     flex-wrap: wrap;
     flex-direction: column;
     width: calc(100% - 140px);
+    min-width: fit-content;
     margin: 50px;
     margin-inline: 2%; /* Margin between elements */
     padding: 20px;
@@ -1793,7 +1794,7 @@ html body {
     border: none;
     font-size: 28px;
     font-weight: bold;
-    color: #2c1810;
+    color: #ffffff !important; /* Force white color to be always visible */
     cursor: pointer;
     width: 30px;
     height: 30px;
@@ -1801,12 +1802,14 @@ html body {
     align-items: center;
     justify-content: center;
     transition: all 0.3s ease;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8); /* Add shadow for better visibility */
 }
 
 .point-edit-modal-close:hover {
-    background: rgba(44, 24, 16, 0.2);
+    background: rgba(255, 255, 255, 0.2);
     border-radius: 50%;
     transform: scale(1.1);
+    color: #ffffff !important; /* Ensure white color on hover */
 }
 
 .point-edit-modal-body {
@@ -1927,4 +1930,32 @@ html body {
     background: linear-gradient(135deg, #888, #aaa);
     box-shadow: 0 4px 15px rgba(136, 136, 136, 0.3);
     transform: translateY(-2px);
+}
+
+/* Modal close button styling */
+.point-edit-modal-close {
+    position: absolute;
+    top: 15px;
+    right: 20px;
+    background: none !important;
+    border: none !important;
+    font-size: 24px !important;
+    font-weight: bold !important;
+    color: white !important;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8) !important;
+    cursor: pointer !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    width: 30px !important;
+    height: 30px !important;
+    line-height: 24px !important;
+    text-align: center !important;
+    border-radius: 50px !important;
+    transition: all 0.2s ease !important;
+}
+
+.point-edit-modal-close:hover {
+    background: rgba(255, 255, 255, 0.2) !important;
+    transform: scale(1.1) !important;
+    text-shadow: 3px 3px 6px rgba(0, 0, 0, 1) !important;
 }

@@ -24,6 +24,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     // Allow anyone to list images (no admin check needed)
                     listImages($input['slug']);
                     break;
+                case 'rename_image':
+                    // Require admin access for renaming
+                    if (!isset($_SESSION['user']) || !isset($_SESSION['user_roles']) || !in_array('admin', $_SESSION['user_roles'])) {
+                        http_response_code(403);
+                        echo json_encode(['success' => false, 'message' => 'Access denied - Admin required']);
+                        exit;
+                    }
+                    renameImage($input);
+                    break;
+                case 'delete_image':
+                    // Require admin access for deleting
+                    if (!isset($_SESSION['user']) || !isset($_SESSION['user_roles']) || !in_array('admin', $_SESSION['user_roles'])) {
+                        http_response_code(403);
+                        echo json_encode(['success' => false, 'message' => 'Access denied - Admin required']);
+                        exit;
+                    }
+                    deleteImage($input);
+                    break;
                 default:
                     // Other actions require admin access
                     if (!isset($_SESSION['user']) || !isset($_SESSION['user_roles']) || !in_array('admin', $_SESSION['user_roles'])) {
@@ -169,5 +187,114 @@ function listImages($slug) {
     }
     
     echo json_encode(['success' => true, 'images' => $images]);
+}
+
+function renameImage($data) {
+    $slug = $data['slug'] ?? '';
+    $oldName = $data['old_name'] ?? '';
+    $newName = $data['new_name'] ?? '';
+    
+    if (empty($slug) || empty($oldName) || empty($newName)) {
+        echo json_encode(['success' => false, 'message' => 'Slug, old name, and new name are required']);
+        return;
+    }
+    
+    // Sanitize the new name
+    $newName = preg_replace('/[^a-zA-Z0-9_\-]/', '_', $newName);
+    if (empty($newName)) {
+        echo json_encode(['success' => false, 'message' => 'Invalid new name']);
+        return;
+    }
+    
+    $placeDir = '../../images/places/' . $slug;
+    
+    if (!is_dir($placeDir)) {
+        echo json_encode(['success' => false, 'message' => 'Place directory not found']);
+        return;
+    }
+    
+    // Find the old file
+    $oldFile = null;
+    $allowedExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
+    
+    foreach ($allowedExtensions as $ext) {
+        $testFile = $placeDir . '/' . $oldName . '.' . $ext;
+        if (file_exists($testFile)) {
+            $oldFile = $testFile;
+            $extension = $ext;
+            break;
+        }
+    }
+    
+    if (!$oldFile) {
+        echo json_encode(['success' => false, 'message' => 'Original file not found']);
+        return;
+    }
+    
+    // Prevent renaming main images
+    if (strpos(basename($oldFile), 'main.') === 0) {
+        echo json_encode(['success' => false, 'message' => 'Cannot rename main image']);
+        return;
+    }
+    
+    $newFile = $placeDir . '/' . $newName . '.' . $extension;
+    
+    // Check if new name already exists
+    if (file_exists($newFile)) {
+        echo json_encode(['success' => false, 'message' => 'A file with that name already exists']);
+        return;
+    }
+    
+    if (rename($oldFile, $newFile)) {
+        echo json_encode(['success' => true, 'message' => 'Image renamed successfully']);
+    } else {
+        echo json_encode(['success' => false, 'message' => 'Failed to rename image']);
+    }
+}
+
+function deleteImage($data) {
+    $slug = $data['slug'] ?? '';
+    $imageName = $data['image_name'] ?? '';
+    
+    if (empty($slug) || empty($imageName)) {
+        echo json_encode(['success' => false, 'message' => 'Slug and image name are required']);
+        return;
+    }
+    
+    $placeDir = '../../images/places/' . $slug;
+    
+    if (!is_dir($placeDir)) {
+        echo json_encode(['success' => false, 'message' => 'Place directory not found']);
+        return;
+    }
+    
+    // Find the file
+    $fileToDelete = null;
+    $allowedExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
+    
+    foreach ($allowedExtensions as $ext) {
+        $testFile = $placeDir . '/' . $imageName . '.' . $ext;
+        if (file_exists($testFile)) {
+            $fileToDelete = $testFile;
+            break;
+        }
+    }
+    
+    if (!$fileToDelete) {
+        echo json_encode(['success' => false, 'message' => 'File not found']);
+        return;
+    }
+    
+    // Prevent deleting main images
+    if (strpos(basename($fileToDelete), 'main.') === 0) {
+        echo json_encode(['success' => false, 'message' => 'Cannot delete main image']);
+        return;
+    }
+    
+    if (unlink($fileToDelete)) {
+        echo json_encode(['success' => true, 'message' => 'Image deleted successfully']);
+    } else {
+        echo json_encode(['success' => false, 'message' => 'Failed to delete image']);
+    }
 }
 ?>
