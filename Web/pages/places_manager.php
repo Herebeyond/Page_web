@@ -444,3 +444,4 @@ require_once "./blueprints/gl_ap_start.php"; // includes the start of the genera
 <?php
 require_once "./blueprints/gl_ap_end.php"; // includes the end of the general page file
 ?>
+

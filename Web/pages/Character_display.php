@@ -161,3 +161,4 @@ if (isset($_GET['race'])) {
 <?php
 require_once "./blueprints/gl_ap_end.php"; // includes the end of the general page file
 ?>
+

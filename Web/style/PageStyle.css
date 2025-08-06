@@ -1262,57 +1262,6 @@ html body {
 .type-color-indicator:hover::after {
     opacity: 1;
 }
-/* Point of Interest Styles */
-.map-point-of-interest {
-    position: absolute;
-    width: 12px;
-    height: 12px;
-    background: #ff4444;
-    border: 2px solid #ffffff;
-    border-radius: 50%;
-    cursor: pointer;
-    transform: translate(-50%, -50%);
-    z-index: 100;
-}
-
-.map-point-of-interest:hover {
-    transform: translate(-50%, -50%) scale(1.2);
-}
-
-.map-poi-tooltip {
-    position: absolute;
-    background: rgba(0, 0, 0, 0.9);
-    color: white;
-    padding: 8px;
-    border-radius: 5px;
-    border: 1px solid #d4af37;
-    font-size: 12px;
-    white-space: nowrap;
-    bottom: 100%;
-    left: 50%;
-    transform: translateX(-50%);
-    margin-bottom: 8px;
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity 0.3s;
-    z-index: 200;
-}
-
-.map-poi-tooltip.show {
-    opacity: 1;
-}
-
-.map-poi-tooltip::after {
-    content: '';
-    position: absolute;
-    top: 100%;
-    left: 50%;
-    margin-left: -5px;
-    border-width: 5px;
-    border-style: solid;
-    border-color: #d4af37 transparent transparent transparent;
-}
-
 /* User Map View Styles */
 .map-view-container {
     max-width: 1200px;
@@ -1929,32 +1878,4 @@ html body {
     background: linear-gradient(135deg, #888, #aaa);
     box-shadow: 0 4px 15px rgba(136, 136, 136, 0.3);
     transform: translateY(-2px);
-}
-
-/* Modal close button styling */
-.point-edit-modal-close {
-    position: absolute;
-    top: 15px;
-    right: 20px;
-    background: none !important;
-    border: none !important;
-    font-size: 24px !important;
-    font-weight: bold !important;
-    color: white !important;
-    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8) !important;
-    cursor: pointer !important;
-    padding: 0 !important;
-    margin: 0 !important;
-    width: 30px !important;
-    height: 30px !important;
-    line-height: 24px !important;
-    text-align: center !important;
-    border-radius: 50px !important;
-    transition: all 0.2s ease !important;
-}
-
-.point-edit-modal-close:hover {
-    background: rgba(255, 255, 255, 0.2) !important;
-    transform: scale(1.1) !important;
-    text-shadow: 3px 3px 6px rgba(0, 0, 0, 1) !important;
 }

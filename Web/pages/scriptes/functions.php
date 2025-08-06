@@ -11,6 +11,7 @@ const REDIRECT_LOCATION_CHARACTER_ADD = 'Location: Character_add.php';
 const REDIRECT_LOCATION_RACE_ADD = 'Location: Race_add.php';
 const REDIRECT_LOCATION_SPECIE_ADD = 'Location: Specie_add.php';
 const REDIRECT_LOCATION_MAP_VIEW = 'Location: map_view.php';
+const LOCATION_MAP_VIEW = 'Location: map_view.php';
 
 // Display constants
 const NOT_SPECIFIED = 'Not specified';
@@ -499,3 +500,4 @@ function updateUserProfile($userId, $username, $email, $password) {
 
     
 </script>
+

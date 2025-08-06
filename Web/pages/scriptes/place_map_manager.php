@@ -27,12 +27,12 @@ if (empty($action)) {
 }
 
 // Debug logging (to error log, not output)
-error_log("place_map_manager.php - Action: " . $action);
-error_log("place_map_manager.php - Input: " . print_r($input, true));
+error_log("place_map_manager.php - Action: [FILTERED]");
+error_log("place_map_manager.php - Input: [FILTERED]");
 
 // Debug logging
-error_log("Action: " . $action);
-error_log("Input: " . print_r($input, true));
+error_log("Action: [FILTERED]");
+error_log("Input: [FILTERED]");
 
 // Check permissions
 if (in_array($action, $admin_actions)) {
@@ -500,4 +500,4 @@ function changeMapImage($pdo, $input) {
         echo json_encode(['success' => false, 'message' => 'Error: ' . $e->getMessage()]);
     }
 }
-?>
+

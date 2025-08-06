@@ -192,7 +192,7 @@ function loadPoints($pdo, $input) {
         echo json_encode(['success' => true, 'points' => $points, 'count' => count($points)]);
         
     } catch (PDOException $e) {
-        echo json_encode(['success' => false, 'message' => 'Database error: ' . $e->getMessage()]);
+        echo json_encode(['success' => false, 'message' => DATABASE_ERROR_PREFIX . $e->getMessage()]);
     } catch (Exception $e) {
         echo json_encode(['success' => false, 'message' => 'Error during loading: ' . $e->getMessage()]);
     }
@@ -361,7 +361,7 @@ function loadPointTypes($pdo) {
         
         echo json_encode(['success' => true, 'types' => $types]);
     } catch (PDOException $e) {
-        echo json_encode(['success' => false, 'message' => 'Database error: ' . $e->getMessage()]);
+        echo json_encode(['success' => false, 'message' => DATABASE_ERROR_PREFIX . $e->getMessage()]);
     }
 }
 
@@ -390,7 +390,7 @@ function addPointType($pdo, $input) {
         
         echo json_encode(['success' => true, 'message' => 'Type added successfully', 'type_id' => $pdo->lastInsertId()]);
     } catch (PDOException $e) {
-        echo json_encode(['success' => false, 'message' => 'Database error: ' . $e->getMessage()]);
+        echo json_encode(['success' => false, 'message' => DATABASE_ERROR_PREFIX . $e->getMessage()]);
     }
 }
 
@@ -422,7 +422,7 @@ function deletePointType($pdo, $input) {
             echo json_encode(['success' => false, 'message' => 'Type not found']);
         }
     } catch (PDOException $e) {
-        echo json_encode(['success' => false, 'message' => 'Database error: ' . $e->getMessage()]);
+        echo json_encode(['success' => false, 'message' => DATABASE_ERROR_PREFIX . $e->getMessage()]);
     }
 }
 
@@ -457,7 +457,7 @@ function updateTypeColor($pdo, $input) {
             echo json_encode(['success' => false, 'message' => 'Type not found']);
         }
     } catch (PDOException $e) {
-        echo json_encode(['success' => false, 'message' => 'Database error: ' . $e->getMessage()]);
+        echo json_encode(['success' => false, 'message' => DATABASE_ERROR_PREFIX . $e->getMessage()]);
     }
 }
 
@@ -496,7 +496,6 @@ function checkDuplicateName($pdo, $input) {
             ]);
         }
     } catch (PDOException $e) {
-        echo json_encode(['success' => false, 'message' => 'Database error: ' . $e->getMessage()]);
+        echo json_encode(['success' => false, 'message' => DATABASE_ERROR_PREFIX . $e->getMessage()]);
     }
 }
-?>

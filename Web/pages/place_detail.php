@@ -5,7 +5,7 @@ require_once "./blueprints/page_init.php"; // includes the page initialization f
 $placeId = $_GET['id'] ?? null;
 
 if (!$placeId || !is_numeric($placeId)) {
-    header('Location: map_view.php');
+    header(LOCATION_MAP_VIEW);
     exit;
 }
 
@@ -24,7 +24,7 @@ try {
     $place = $stmt->fetch(PDO::FETCH_ASSOC);
     
     if (!$place) {
-        header('Location: map_view.php');
+        header(LOCATION_MAP_VIEW);
         exit;
     }
     
@@ -43,7 +43,7 @@ try {
     $place['folder_path'] = "../images/places/{$slug}/";
     
 } catch (Exception $e) {
-    header('Location: map_view.php');
+    header(LOCATION_MAP_VIEW);
     exit;
 }
 
@@ -54,7 +54,7 @@ require_once "./blueprints/gl_ap_start.php"; // includes the start of the genera
     <div class="place-detail-container">
         <!-- Navigation -->
         <div style="margin-bottom: 20px;">
-            <a href="map_view.php" style="
+            <a href="map_view.php" onfocus="this.style.outline='2px solid #d4af37'" style="
                 color: #d4af37; 
                 text-decoration: none; 
                 display: inline-flex; 
@@ -138,15 +138,15 @@ require_once "./blueprints/gl_ap_start.php"; // includes the start of the genera
                             <div style="background: rgba(0, 0, 0, 0.5); padding: 15px; border-radius: 5px; border: 1px solid #444;">
                                 <div style="display: grid; grid-template-columns: 1fr 1fr 150px auto; gap: 10px; align-items: end;">
                                     <div>
-                                        <label style="color: #d4af37; font-size: 12px; display: block; margin-bottom: 5px;">Point Name</label>
+                                        <label for="map-poi-name" style="color: #d4af37; font-size: 12px; display: block; margin-bottom: 5px;">Point Name</label>
                                         <input type="text" id="map-poi-name" placeholder="Enter point name" style="width: 100%; padding: 8px; border: none; border-radius: 3px; background: #333; color: white;">
                                     </div>
                                     <div>
-                                        <label style="color: #d4af37; font-size: 12px; display: block; margin-bottom: 5px;">Description</label>
+                                        <label for="map-poi-description" style="color: #d4af37; font-size: 12px; display: block; margin-bottom: 5px;">Description</label>
                                         <input type="text" id="map-poi-description" placeholder="Enter description" style="width: 100%; padding: 8px; border: none; border-radius: 3px; background: #333; color: white;">
                                     </div>
                                     <div>
-                                        <label style="color: #d4af37; font-size: 12px; display: block; margin-bottom: 5px;">Type</label>
+                                        <label for="map-poi-type" style="color: #d4af37; font-size: 12px; display: block; margin-bottom: 5px;">Type</label>
                                         <select id="map-poi-type" style="width: 100%; padding: 8px; border: none; border-radius: 3px; background: #333; color: white;">
                                             <option value="">Select type...</option>
                                         </select>
@@ -381,15 +381,15 @@ require_once "./blueprints/gl_ap_start.php"; // includes the start of the genera
         </div>
         <div class="point-edit-modal-body">
             <div style="margin-bottom: 15px;">
-                <label style="color: #d4af37; font-size: 14px; display: block; margin-bottom: 5px;">Point Name</label>
+                <label for="edit-map-poi-name" style="color: #d4af37; font-size: 14px; display: block; margin-bottom: 5px;">Point Name</label>
                 <input type="text" id="edit-map-poi-name" style="width: 100%; padding: 10px; border: none; border-radius: 3px; background: #333; color: white;">
             </div>
             <div style="margin-bottom: 15px;">
-                <label style="color: #d4af37; font-size: 14px; display: block; margin-bottom: 5px;">Description</label>
+                <label for="edit-map-poi-description" style="color: #d4af37; font-size: 14px; display: block; margin-bottom: 5px;">Description</label>
                 <textarea id="edit-map-poi-description" style="width: 100%; height: 100px; padding: 10px; border: none; border-radius: 3px; background: #333; color: white; resize: vertical;"></textarea>
             </div>
             <div style="margin-bottom: 15px;">
-                <label style="color: #d4af37; font-size: 14px; display: block; margin-bottom: 5px;">Type</label>
+                <label for="edit-map-poi-type" style="color: #d4af37; font-size: 14px; display: block; margin-bottom: 5px;">Type</label>
                 <select id="edit-map-poi-type" style="width: 100%; padding: 10px; border: none; border-radius: 3px; background: #333; color: white;">
                     <option value="">Select type...</option>
                 </select>
@@ -1916,3 +1916,4 @@ require_once "./blueprints/gl_ap_start.php"; // includes the start of the genera
 <?php
 require_once "./blueprints/gl_ap_end.php"; // includes the end of the general page file
 ?>
+

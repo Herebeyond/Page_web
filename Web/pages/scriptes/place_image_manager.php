@@ -444,4 +444,3 @@ function deleteImage($data) {
         echo json_encode(['success' => false, 'message' => 'Failed to delete image']);
     }
 }
-?>

@@ -155,19 +155,16 @@
         }
 
         // ADMIN VERIFICATION
-        if (isset($_SESSION['user'])) {
+        if (isset($_SESSION['user']) && in_array('admin', $user_roles)) {
             // $user and $user_roles are already set in page_init.php
-
-            // Check if the user is an admin using roles
-            if (in_array('admin', $user_roles)) { 
-                echo '
-                    <ul class=menu>
-                        <li class=menu-item>
-                            <div id=liAdmin class=divLi>
-                                <span> Admin </span>
-                                <img class=small-icon src="../images/small_img/fleche-deroulante.png">
-                            </div>
-                ';
+            echo '
+                <ul class=menu>
+                    <li class=menu-item>
+                        <div id=liAdmin class=divLi>
+                            <span> Admin </span>
+                            <img class=small-icon src="../images/small_img/fleche-deroulante.png">
+                        </div>
+            ';
 
                 echo '      <ul class="dropdown">';
                 // Loop through the array and display the elements in the list
@@ -185,8 +182,6 @@
                 echo '      </ul>
                         </li>
                     </ul>';
-
-            }
         }
             
         ?>
@@ -262,3 +257,4 @@ document.querySelectorAll('.dropdownFirstLevel').forEach(item => {
     }
 });
 </script>
+
