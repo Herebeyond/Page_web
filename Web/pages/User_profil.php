@@ -152,9 +152,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt->execute($params);
 
             // Optionally update $user session data if needed
-            if (!empty($username)) $user['username'] = $username;
-            if (!empty($email)) $user['email'] = $email;
-            if (!empty($iconFileName)) $user['icon'] = $iconFileName;
+            if (!empty($username)) {
+                $user['username'] = $username;
+            }
+            if (!empty($email)) {
+                $user['email'] = $email;
+            }
+            if (!empty($iconFileName)) {
+                $user['icon'] = $iconFileName;
+            }
 
             $_SESSION['success'] = "Profile updated successfully.";
             header('Location: User_profil.php');

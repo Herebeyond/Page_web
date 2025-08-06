@@ -523,8 +523,7 @@ html body {
 
 .infosP {
     text-decoration: underline;
-    margin-top: 5px;
-    margin: 0px;
+    margin: 5px 0px 0px 0px;
     padding-inline: 5px;
     color: rgb(255, 255, 88);
     font-weight: bold;

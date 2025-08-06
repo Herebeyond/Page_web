@@ -2,6 +2,13 @@
 session_start();
 require_once 'db.php'; // Database connection
 
+// Safety check for database connection
+if (!$pdo) {
+    $_SESSION['error'] = "Database connection error. Please try again later.";
+    header('Location: login.php');
+    exit;
+}
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') { // Check if the form has been submitted
     $username = trim($_POST['Identification']); // Sanitize user input
     $password = trim($_POST['psw']); 

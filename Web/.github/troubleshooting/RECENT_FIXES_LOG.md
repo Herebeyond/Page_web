@@ -2,6 +2,85 @@
 
 ---
 
+## 2024-12-19: SonarCloud Code Quality Issues Resolved
+
+### ✅ SONARCLOUD FIXES COMPLETE: Critical Code Smells and Quality Issues
+
+**Objective**: Fix all SonarCloud-reported critical issues including duplicate literals, missing curly braces, and CSS problems  
+**Files Affected**: Multiple PHP files, CSS, and shared constants  
+**Severity Level**: Critical - 16 issues resolved
+
+#### Issues Fixed:
+
+##### 1. **Duplicate String Literals** (Maintainability Issues)
+- ✅ `login.php`: "Location: login.php" → `REDIRECT_LOCATION_LOGIN` constant
+- ✅ `folder_manager.php`: "images/places/" → `IMAGES_PLACES_PATH` constant  
+- ✅ `place_image_manager.php`: "Access denied - Admin required" → `ACCESS_DENIED_ADMIN_REQUIRED`
+- ✅ `place_image_manager.php`: "Invalid slug format" → `INVALID_SLUG_FORMAT`
+- ✅ `place_image_manager.php`: "Invalid directory path" → `INVALID_DIRECTORY_PATH`
+- ✅ `place_map_manager.php`: SQL query → `SQL_SELECT_PLACE_NAME_BY_ID`
+- ✅ `map_save_points.php`: "Database error: " → `DATABASE_ERROR_PREFIX`
+- ✅ Multiple files: "Not specified" → `NOT_SPECIFIED` constant
+
+##### 2. **Missing Curly Braces** (Code Structure Issues)
+- ✅ `folder_manager.php`: Line 85 - Added braces around single statement
+- ✅ `User_profil.php`: Lines 155-157 - Added braces around if statements
+- ✅ `Dimensions.php`: Line 26 - Added braces around return statement
+- ✅ `Species.php`: Line 80 - Added braces around echo statement
+
+##### 3. **CSS Quality Issue**
+- ✅ `PageStyle.css`: Line 527 - Fixed margin shorthand conflict (margin-top + margin)
+
+#### Constants Added to `functions.php`:
+```php
+// Path constants
+const IMAGES_PLACES_PATH = 'images/places/';
+const REDIRECT_LOCATION_LOGIN = 'Location: login.php';
+const REDIRECT_LOCATION_CHARACTER_ADD = 'Location: Character_add.php';
+const REDIRECT_LOCATION_RACE_ADD = 'Location: Race_add.php';
+const REDIRECT_LOCATION_SPECIE_ADD = 'Location: Specie_add.php';
+const REDIRECT_LOCATION_MAP_VIEW = 'Location: map_view.php';
+
+// Display constants
+const NOT_SPECIFIED = 'Not specified';
+const ACCESS_DENIED_ADMIN_REQUIRED = 'Access denied - Admin required';
+const INVALID_SLUG_FORMAT = 'Invalid slug format';
+const INVALID_DIRECTORY_PATH = 'Invalid directory path';
+const DATABASE_ERROR_PREFIX = 'Database error: ';
+
+// Database query constants
+const SQL_SELECT_PLACE_NAME_BY_ID = 'SELECT name_IP FROM interest_points WHERE id_IP = ?';
+```
+
+#### Benefits Achieved:
+- ✅ **Maintainability**: Single source of truth for all string literals
+- ✅ **Code Quality**: All critical SonarCloud issues resolved
+- ✅ **Consistency**: Uniform coding standards across all files
+- ✅ **Readability**: Clear structure with proper bracing
+- ✅ **DRY Principle**: Eliminated duplicate literals throughout codebase
+
+#### Complexity Reduction:
+- **Note**: Some functions still exceed SonarCloud's cognitive complexity limits
+- **Action Needed**: Future refactoring to break down complex functions into smaller methods
+- **Priority**: Medium (functionality works correctly, but could benefit from further modularization)
+
+#### Files Modified:
+- `pages/scriptes/functions.php` - Added constants section
+- `login/login.php` - Constants usage and structure
+- `pages/scriptes/folder_manager.php` - Constants and bracing
+- `pages/scriptes/place_image_manager.php` - Constants usage
+- `pages/scriptes/place_map_manager.php` - Constants usage  
+- `pages/scriptes/map_save_points.php` - Constants usage
+- `pages/Beings_display.php` - Constants usage
+- `pages/Character_display.php` - Constants usage
+- `pages/Dimension_list.php` - Constants usage
+- `pages/User_profil.php` - Code structure fixes
+- `pages/Dimensions.php` - Code structure fixes
+- `pages/Species.php` - Code structure fixes
+- `style/PageStyle.css` - CSS quality fix
+
+---
+
 ## 2024-12-19: Code Refactoring - Shared Functions Implementation
 
 ### ✅ REFACTORING COMPLETE: Security Functions Moved to Shared Location

@@ -1,6 +1,28 @@
 <?php
 
 // ============================================================================
+// CONSTANTS - Common String Literals
+// ============================================================================
+
+// Path constants
+const IMAGES_PLACES_PATH = 'images/places/';
+const REDIRECT_LOCATION_LOGIN = 'Location: login.php';
+const REDIRECT_LOCATION_CHARACTER_ADD = 'Location: Character_add.php';
+const REDIRECT_LOCATION_RACE_ADD = 'Location: Race_add.php';
+const REDIRECT_LOCATION_SPECIE_ADD = 'Location: Specie_add.php';
+const REDIRECT_LOCATION_MAP_VIEW = 'Location: map_view.php';
+
+// Display constants
+const NOT_SPECIFIED = 'Not specified';
+const ACCESS_DENIED_ADMIN_REQUIRED = 'Access denied - Admin required';
+const INVALID_SLUG_FORMAT = 'Invalid slug format';
+const INVALID_DIRECTORY_PATH = 'Invalid directory path';
+const DATABASE_ERROR_PREFIX = 'Database error: ';
+
+// Database query constants
+const SQL_SELECT_PLACE_NAME_BY_ID = 'SELECT name_IP FROM interest_points WHERE id_IP = ?';
+
+// ============================================================================
 // SECURITY FUNCTIONS - Path Traversal Prevention
 // ============================================================================
 

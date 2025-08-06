@@ -39,6 +39,19 @@ require_once "./blueprints/gl_ap_end.php";     // Footer, scroll-to-top, closing
 - **Never duplicate functions** across multiple files - use shared functions instead
 - When creating new utility functions, add them to `functions.php` with proper documentation
 
+#### Available Constants (Use These Instead of String Literals!):
+```php
+// Path constants
+const IMAGES_PLACES_PATH = 'images/places/';
+const REDIRECT_LOCATION_LOGIN = 'Location: login.php';
+const NOT_SPECIFIED = 'Not specified';
+const ACCESS_DENIED_ADMIN_REQUIRED = 'Access denied - Admin required';
+const INVALID_SLUG_FORMAT = 'Invalid slug format';
+const INVALID_DIRECTORY_PATH = 'Invalid directory path';
+const DATABASE_ERROR_PREFIX = 'Database error: ';
+const SQL_SELECT_PLACE_NAME_BY_ID = 'SELECT name_IP FROM interest_points WHERE id_IP = ?';
+```
+
 #### Available Security Functions (Use These!):
 ```php
 // Input validation and sanitization
@@ -54,6 +67,12 @@ parseSecureJsonInput($jsonInput);        // Secure JSON parsing
 - Include `@param` and `@return` annotations
 - Group related functions with section headers
 - Security functions must include vulnerability prevention notes
+
+#### Code Quality Standards:
+- **String Literals**: Use constants instead of duplicating strings 3+ times
+- **Bracing**: Always use curly braces, even for single statements
+- **CSS**: Avoid conflicting shorthand properties (margin-top + margin)
+- **Complexity**: Keep functions under 15 cognitive complexity points
 
 ## Development Environment
 

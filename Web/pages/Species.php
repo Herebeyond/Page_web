@@ -77,7 +77,7 @@ $offset = ($page - 1) * $perPage;
         <?php endif; ?>
 
         <?php for ($i = 1; $i <= $totalPages; $i++): ?> <!-- Display the page numbers -->
-            <a href="?page=<?php echo $i; ?>"<?php if ($i == $page) echo ' class="active"'; ?>><?php echo $i; ?></a>
+            <a href="?page=<?php echo $i; ?>"<?php if ($i == $page) { echo ' class="active"'; } ?>><?php echo $i; ?></a>
         <?php endfor; ?>
 
         <?php if ($page < $totalPages): ?> <!-- If page is less than the total pages, display the next link -->

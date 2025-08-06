@@ -23,7 +23,9 @@ require_once "./blueprints/gl_ap_start.php";
 
     // Helper function to check if user has access to a page
     function hasPageAccess($page, $authorisation, $user_roles) {
-        if (!isset($authorisation[$page])) return false;
+        if (!isset($authorisation[$page])) {
+            return false;
+        }
         
         $auth_level = $authorisation[$page];
         

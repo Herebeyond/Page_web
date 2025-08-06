@@ -67,7 +67,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // Check if user is admin for uploads
         if (!isset($_SESSION['user']) || !isset($_SESSION['user_roles']) || !in_array('admin', $_SESSION['user_roles'])) {
             http_response_code(403);
-            echo json_encode(['success' => false, 'message' => 'Access denied - Admin required for uploads']);
+            echo json_encode(['success' => false, 'message' => ACCESS_DENIED_ADMIN_REQUIRED . ' for uploads']);
             exit;
         }
         handleImageUpload();
@@ -99,7 +99,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     // Require admin access for renaming
                     if (!isset($_SESSION['user']) || !isset($_SESSION['user_roles']) || !in_array('admin', $_SESSION['user_roles'])) {
                         http_response_code(403);
-                        echo json_encode(['success' => false, 'message' => 'Access denied - Admin required']);
+                        echo json_encode(['success' => false, 'message' => ACCESS_DENIED_ADMIN_REQUIRED]);
                         exit;
                     }
                     renameImage($input);
@@ -108,7 +108,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     // Require admin access for deleting
                     if (!isset($_SESSION['user']) || !isset($_SESSION['user_roles']) || !in_array('admin', $_SESSION['user_roles'])) {
                         http_response_code(403);
-                        echo json_encode(['success' => false, 'message' => 'Access denied - Admin required']);
+                        echo json_encode(['success' => false, 'message' => ACCESS_DENIED_ADMIN_REQUIRED]);
                         exit;
                     }
                     deleteImage($input);
@@ -117,7 +117,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     // Other actions require admin access
                     if (!isset($_SESSION['user']) || !isset($_SESSION['user_roles']) || !in_array('admin', $_SESSION['user_roles'])) {
                         http_response_code(403);
-                        echo json_encode(['success' => false, 'message' => 'Access denied - Admin required']);
+                        echo json_encode(['success' => false, 'message' => ACCESS_DENIED_ADMIN_REQUIRED]);
                         exit;
                     }
                         echo json_encode(['success' => false, 'message' => 'Unknown action']);
@@ -137,14 +137,14 @@ function handleImageUpload() {
     // Validate and sanitize the slug
     $sanitizedSlug = validateAndSanitizeSlug($slug);
     if ($sanitizedSlug === false) {
-        echo json_encode(['success' => false, 'message' => 'Invalid slug format']);
+        echo json_encode(['success' => false, 'message' => INVALID_SLUG_FORMAT]);
         return;
     }
     
     // Construct safe path
     $placeDir = constructSafePlacePath($sanitizedSlug);
     if ($placeDir === false) {
-        echo json_encode(['success' => false, 'message' => 'Invalid directory path']);
+        echo json_encode(['success' => false, 'message' => INVALID_DIRECTORY_PATH]);
         return;
     }
     
@@ -239,14 +239,14 @@ function listImages($slug) {
     // Validate and sanitize the slug
     $sanitizedSlug = validateAndSanitizeSlug($slug);
     if ($sanitizedSlug === false) {
-        echo json_encode(['success' => false, 'message' => 'Invalid slug format']);
+        echo json_encode(['success' => false, 'message' => INVALID_SLUG_FORMAT]);
         return;
     }
     
     // Construct safe path
     $placeDir = constructSafePlacePath($sanitizedSlug);
     if ($placeDir === false) {
-        echo json_encode(['success' => false, 'message' => 'Invalid directory path']);
+        echo json_encode(['success' => false, 'message' => INVALID_DIRECTORY_PATH]);
         return;
     }
     
@@ -306,7 +306,7 @@ function renameImage($data) {
     // Validate and sanitize the slug
     $sanitizedSlug = validateAndSanitizeSlug($slug);
     if ($sanitizedSlug === false) {
-        echo json_encode(['success' => false, 'message' => 'Invalid slug format']);
+        echo json_encode(['success' => false, 'message' => INVALID_SLUG_FORMAT]);
         return;
     }
     
@@ -325,7 +325,7 @@ function renameImage($data) {
     // Construct safe path
     $placeDir = constructSafePlacePath($sanitizedSlug);
     if ($placeDir === false) {
-        echo json_encode(['success' => false, 'message' => 'Invalid directory path']);
+        echo json_encode(['success' => false, 'message' => INVALID_DIRECTORY_PATH]);
         return;
     }
     
@@ -384,7 +384,7 @@ function deleteImage($data) {
     // Validate and sanitize the slug
     $sanitizedSlug = validateAndSanitizeSlug($slug);
     if ($sanitizedSlug === false) {
-        echo json_encode(['success' => false, 'message' => 'Invalid slug format']);
+        echo json_encode(['success' => false, 'message' => INVALID_SLUG_FORMAT]);
         return;
     }
     
@@ -403,7 +403,7 @@ function deleteImage($data) {
     // Construct safe path
     $placeDir = constructSafePlacePath($sanitizedSlug);
     if ($placeDir === false) {
-        echo json_encode(['success' => false, 'message' => 'Invalid directory path']);
+        echo json_encode(['success' => false, 'message' => INVALID_DIRECTORY_PATH]);
         return;
     }
     

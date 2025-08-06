@@ -82,7 +82,9 @@ function deletePlaceFolder($basePath, $slug) {
     
     // Recursively delete folder and contents with safe directory traversal
     function deleteDirectory($dir) {
-        if (!is_dir($dir)) return false;
+        if (!is_dir($dir)) {
+            return false;
+        }
         
         try {
             $iterator = new RecursiveDirectoryIterator($dir, RecursiveDirectoryIterator::SKIP_DOTS);
@@ -138,7 +140,7 @@ function getAllPlaceFolders($basePath) {
             $folders[] = [
                 'slug' => $itemName,
                 'name' => ucwords(str_replace('-', ' ', $itemName)),
-                'path' => 'images/places/' . $itemName, // Relative path for web access
+                'path' => IMAGES_PLACES_PATH . $itemName, // Relative path for web access
                 'has_images' => $hasImages
             ];
         }
@@ -171,7 +173,7 @@ switch ($action) {
                 'success' => true,
                 'exists' => $exists,
                 'slug' => $slug,
-                'folder_path' => 'images/places/' . $slug
+                'folder_path' => IMAGES_PLACES_PATH . $slug
             ]);
         } catch (Exception $e) {
             error_log('Error checking folder: ' . $e->getMessage());
@@ -205,7 +207,7 @@ switch ($action) {
                     'success' => true,
                     'message' => 'Folder structure created successfully',
                     'slug' => $slug,
-                    'folder_path' => 'images/places/' . $slug
+                    'folder_path' => IMAGES_PLACES_PATH . $slug
                 ]);
             } else {
                 echo json_encode(['success' => false, 'message' => 'Failed to create folder structure']);

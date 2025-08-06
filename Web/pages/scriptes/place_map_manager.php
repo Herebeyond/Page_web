@@ -134,7 +134,7 @@ function getMapData($pdo, $input) {
     
     if (!$map) {
         // Create default map for this place
-        $stmt = $pdo->prepare("SELECT name_IP FROM interest_points WHERE id_IP = ?");
+        $stmt = $pdo->prepare(SQL_SELECT_PLACE_NAME_BY_ID);
         $stmt->execute([$placeId]);
         $place = $stmt->fetch();
         
@@ -189,7 +189,7 @@ function saveMapPoints($pdo, $input) {
     // If no map_id but we have place_id, create a map first
     if (!$mapId && $placeId) {
         // Get place name for map creation
-        $stmt = $pdo->prepare("SELECT name_IP FROM interest_points WHERE id_IP = ?");
+        $stmt = $pdo->prepare(SQL_SELECT_PLACE_NAME_BY_ID);
         $stmt->execute([$placeId]);
         $place = $stmt->fetch(PDO::FETCH_ASSOC);
         
@@ -347,7 +347,7 @@ function changeMapImage($pdo, $input) {
     
     try {
         // Create place slug for folder path
-        $stmt = $pdo->prepare("SELECT name_IP FROM interest_points WHERE id_IP = ?");
+        $stmt = $pdo->prepare(SQL_SELECT_PLACE_NAME_BY_ID);
         $stmt->execute([$placeId]);
         $place = $stmt->fetch(PDO::FETCH_ASSOC);
         
