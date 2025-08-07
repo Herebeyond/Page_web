@@ -44,7 +44,7 @@ require_once "./blueprints/gl_ap_start.php"; // includes the start of the genera
                 <?php if (isset($_SESSION['user']) && isset($user_roles) && in_array('admin', $user_roles)): ?>
                 <div style="margin-top: 20px; padding-top: 15px; border-top: 1px solid #444;">
                     <p style="color: #888; font-size: 0.9em; margin-bottom: 10px;"><em>Administrator Tools:</em></p>
-                    <a href="Map_modif.php" onfocus="this.style.outline='2px solid #d4af37'" style="
+                    <a href="Map_modif.php" onfocus="this.style.outline='2px solid #d4af37'" onblur="this.style.outline=''" style="
                         background: #666; 
                         color: white; 
                         padding: 8px 16px; 

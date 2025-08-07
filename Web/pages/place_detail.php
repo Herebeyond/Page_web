@@ -54,7 +54,7 @@ require_once "./blueprints/gl_ap_start.php"; // includes the start of the genera
     <div class="place-detail-container">
         <!-- Navigation -->
         <div style="margin-bottom: 20px;">
-            <a href="map_view.php" onfocus="this.style.outline='2px solid #d4af37'" style="
+            <a href="map_view.php" onfocus="this.style.outline='2px solid #d4af37'" onblur="this.style.outline=''" style="
                 color: #d4af37; 
                 text-decoration: none; 
                 display: inline-flex; 
