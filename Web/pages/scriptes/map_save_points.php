@@ -5,9 +5,46 @@ ini_set('log_errors', 1);
 error_reporting(E_ALL);
 
 header('Content-Type: application/json');
-header('Access-Control-Allow-Origin: *');
+
+// Secure CORS policy - only allow requests from trusted origins
+$allowedOrigins = [
+    'http://localhost',
+    'http://localhost:80',
+    'http://localhost:8080',
+    'http://127.0.0.1',
+    'http://127.0.0.1:80', 
+    'http://127.0.0.1:8080',
+    'https://localhost',
+    'https://127.0.0.1',
+    // Add your Docker container URL if different
+    'http://host.docker.internal',
+    'http://host.docker.internal:80'
+];
+
+$origin = $_SERVER['HTTP_ORIGIN'] ?? '';
+$referer = $_SERVER['HTTP_REFERER'] ?? '';
+
+// Allow same-origin requests (no Origin header) or requests from allowed origins
+if (empty($origin)) {
+    // Same-origin request - allow it
+    header('Access-Control-Allow-Origin: null');
+} elseif (in_array($origin, $allowedOrigins)) {
+    // Allowed cross-origin request
+    header('Access-Control-Allow-Origin: ' . $origin);
+} else {
+    // Block unauthorized cross-origin requests
+    error_log("Blocked request from unauthorized origin: " . $origin);
+    http_response_code(403);
+    echo json_encode(['success' => false, 'message' => 'Access denied - Invalid origin']);
+    exit;
+}
+
 header('Access-Control-Allow-Methods: POST');
 header('Access-Control-Allow-Headers: Content-Type');
+header('Access-Control-Allow-Credentials: true');
+
+// Start session to check authentication for write operations
+session_start();
 
 // Use the existing database connection
 try {
@@ -15,6 +52,40 @@ try {
 } catch (Exception $e) {
     echo json_encode(['success' => false, 'message' => 'Database connection failed: ' . $e->getMessage()]);
     exit;
+}
+
+// Check if user is authenticated for write operations
+function requireAuthentication($action) {
+    $writeOperations = ['save_points', 'savePoints', 'delete_point', 'update_point', 'clear_points', 'add_type', 'delete_type', 'update_type_color'];
+    
+    if (in_array($action, $writeOperations)) {
+        if (!isset($_SESSION['user'])) {
+            http_response_code(401);
+            echo json_encode(['success' => false, 'message' => 'Authentication required']);
+            exit;
+        }
+        
+        // For admin-only operations, check admin role
+        $adminOnlyOperations = ['delete_point', 'clear_points', 'add_type', 'delete_type', 'update_type_color'];
+        if (in_array($action, $adminOnlyOperations)) {
+            // Load user roles - this mimics the pattern from page_init.php
+            try {
+                require_once '../blueprints/page_init.php';
+                if (!in_array('admin', $user_roles ?? [])) {
+                    http_response_code(403);
+                    echo json_encode(['success' => false, 'message' => 'Admin privileges required']);
+                    exit;
+                }
+            } catch (Exception $e) {
+                // Fallback: if we can't load roles, require session user at minimum
+                if (!isset($_SESSION['user'])) {
+                    http_response_code(403);
+                    echo json_encode(['success' => false, 'message' => 'Admin privileges required']);
+                    exit;
+                }
+            }
+        }
+    }
 }
 
 // Get input data
@@ -30,6 +101,9 @@ try {
 }
 
 $action = $input['action'] ?? '';
+
+// Check authentication before processing the action
+requireAuthentication($action);
 
 switch ($action) {
     case 'save_points':
