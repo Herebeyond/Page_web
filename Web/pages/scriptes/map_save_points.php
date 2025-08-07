@@ -6,34 +6,50 @@ error_reporting(E_ALL);
 
 header('Content-Type: application/json');
 
-// Secure CORS policy - only allow requests from trusted origins
+// Secure CORS policy - HTTPS ONLY for production security
 $allowedOrigins = [
-    'http://localhost',
-    'http://localhost:80',
-    'http://localhost:8080',
-    'http://127.0.0.1',
-    'http://127.0.0.1:80', 
-    'http://127.0.0.1:8080',
+    // HTTPS ONLY - Production ready and secure
     'https://localhost',
+    'https://localhost:443',
+    'https://localhost:8080',
     'https://127.0.0.1',
-    // Add your Docker container URL if different
-    'http://host.docker.internal',
-    'http://host.docker.internal:80'
+    'https://127.0.0.1:443',
+    'https://127.0.0.1:8080',
+    'https://host.docker.internal',
+    'https://host.docker.internal:443'
+    // HTTP REMOVED - Use HTTPS or configure SSL certificates for development
 ];
 
 $origin = $_SERVER['HTTP_ORIGIN'] ?? '';
-$referer = $_SERVER['HTTP_REFERER'] ?? '';
+$isHttps = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off';
 
-// Allow same-origin requests (no Origin header) or requests from allowed origins
+// Block all HTTP requests for security
+if (!empty($origin) && str_starts_with($origin, 'http://')) {
+    error_log("SECURITY VIOLATION: HTTP request blocked - HTTPS required: " . $origin);
+    http_response_code(403);
+    echo json_encode(['success' => false, 'message' => 'HTTPS required - HTTP not allowed for security']);
+    exit;
+}
+
+// Allow same-origin requests (no Origin header) but require HTTPS
 if (empty($origin)) {
-    // Same-origin request - allow it
+    // Same-origin request - allow it but enforce HTTPS
+    if (!$isHttps) {
+        error_log("SECURITY VIOLATION: Same-origin HTTP request blocked - HTTPS required");
+        http_response_code(403);
+        echo json_encode(['success' => false, 'message' => 'HTTPS required - HTTP not allowed for security']);
+        exit;
+    }
     header('Access-Control-Allow-Origin: null');
 } elseif (in_array($origin, $allowedOrigins)) {
-    // Allowed cross-origin request
+    // Allowed HTTPS cross-origin request
     header('Access-Control-Allow-Origin: ' . $origin);
+    
+    // Add HSTS header for all HTTPS connections
+    header('Strict-Transport-Security: max-age=31536000; includeSubDomains; preload');
 } else {
     // Block unauthorized cross-origin requests
-    error_log("Blocked request from unauthorized origin: " . $origin);
+    error_log("SECURITY VIOLATION: Blocked request from unauthorized origin: " . $origin);
     http_response_code(403);
     echo json_encode(['success' => false, 'message' => 'Access denied - Invalid origin']);
     exit;
@@ -42,6 +58,15 @@ if (empty($origin)) {
 header('Access-Control-Allow-Methods: POST');
 header('Access-Control-Allow-Headers: Content-Type');
 header('Access-Control-Allow-Credentials: true');
+
+// Additional security headers
+header('X-Content-Type-Options: nosniff');
+header('X-Frame-Options: DENY');
+header('X-XSS-Protection: 1; mode=block');
+header('Referrer-Policy: strict-origin-when-cross-origin');
+
+// Content Security Policy for API responses
+header('Content-Security-Policy: default-src \'none\'; frame-ancestors \'none\';');
 
 // Start session to check authentication for write operations
 session_start();

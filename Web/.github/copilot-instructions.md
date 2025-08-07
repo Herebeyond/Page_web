@@ -261,6 +261,33 @@ try {
 - **Directory Operations**: Use `DirectoryIterator` instead of `scandir()`
 - **File Verification**: Verify `realpath()` stays within expected directories
 - **Error Handling**: Log security violations, return safe error messages
+- **CORS Security**: Use restrictive origin whitelisting, prioritize HTTPS
+- **Security Headers**: Always include security headers for API endpoints
+
+### API Security Standards
+For API endpoints handling sensitive data:
+
+```php
+// Secure CORS with HTTPS prioritization
+$allowedOrigins = [
+    // HTTPS first (production ready)
+    'https://localhost', 'https://127.0.0.1',
+    // HTTP only for local development (log warnings)
+    'http://localhost', 'http://127.0.0.1'
+];
+
+// Security headers
+header('X-Content-Type-Options: nosniff');
+header('X-Frame-Options: DENY');
+header('X-XSS-Protection: 1; mode=block');
+header('Referrer-Policy: strict-origin-when-cross-origin');
+header('Content-Security-Policy: default-src \'none\'; frame-ancestors \'none\';');
+
+// HTTPS enforcement
+if (str_starts_with($origin, 'https://')) {
+    header('Strict-Transport-Security: max-age=31536000; includeSubDomains');
+}
+```
 
 ## Common Debugging
 - Check `authorisation.php` for page access issues
