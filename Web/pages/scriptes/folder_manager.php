@@ -4,12 +4,43 @@ ini_set('display_errors', 0);
 ini_set('log_errors', 1);
 error_reporting(E_ALL);
 
-require_once "../blueprints/page_init.php";
+session_start();
+require_once '../../login/db.php';
+require_once 'functions.php';
+
+// Check if user is logged in
+if (!isset($_SESSION['user'])) {
+    http_response_code(403);
+    echo json_encode(['success' => false, 'message' => 'Access denied - Not logged in']);
+    exit;
+}
+
+// Get user roles from database
+$user_roles = [];
+if (isset($_SESSION['user_roles'])) {
+    $user_roles = $_SESSION['user_roles'];
+} else {
+    // Fetch user roles from database if not in session
+    try {
+        // Validate PDO connection
+        if (!$pdo) {
+            throw new Exception('Database connection failed');
+        }
+        
+        $stmt = $pdo->prepare("SELECT r.name FROM user_roles ur JOIN roles r ON ur.role_id = r.id WHERE ur.user_id = ?");
+        $stmt->execute([$_SESSION['user']['id']]);
+        $user_roles = $stmt->fetchAll(PDO::FETCH_COLUMN);
+        $_SESSION['user_roles'] = $user_roles;
+    } catch (Exception $e) {
+        error_log('Error fetching user roles: ' . $e->getMessage());
+        $user_roles = [];
+    }
+}
 
 // Ensure user is admin
-if (!isset($_SESSION['user']) || !isset($user_roles) || !in_array('admin', $user_roles)) {
+if (!in_array('admin', $user_roles)) {
     http_response_code(403);
-    echo json_encode(['success' => false, 'message' => 'Access denied']);
+    echo json_encode(['success' => false, 'message' => 'Access denied - Admin required']);
     exit;
 }
 
@@ -41,13 +72,15 @@ if (!is_dir($basePath)) {
 
 function createPlaceSlug($name) {
     // Use shared secure slug creation function
-    return createSecureSlug($name);
+    return createSafeSlug($name);
 }
 
 function createPlaceFolders($basePath, $slug) {
-    // Construct safe path using shared function
-    $placePath = constructSafePlacePath($slug, $basePath);
-    if ($placePath === false) {
+    // Construct safe path for the place
+    $placePath = $basePath . DIRECTORY_SEPARATOR . $slug;
+    
+    // Validate the path for security
+    if (!isPathSafe($placePath, $basePath)) {
         return false;
     }
     
@@ -68,16 +101,20 @@ function createPlaceFolders($basePath, $slug) {
 }
 
 function checkFolderExists($basePath, $slug) {
-    $safePath = constructSafePlacePath($slug, $basePath);
-    if ($safePath === false) {
+    $safePath = $basePath . DIRECTORY_SEPARATOR . $slug;
+    
+    // Validate the path for security
+    if (!isPathSafe($safePath, $basePath)) {
         return false;
     }
     return is_dir($safePath);
 }
 
 function deletePlaceFolder($basePath, $slug) {
-    $placePath = constructSafePlacePath($slug, $basePath);
-    if ($placePath === false) {
+    $placePath = $basePath . DIRECTORY_SEPARATOR . $slug;
+    
+    // Validate the path for security
+    if (!isPathSafe($placePath, $basePath)) {
         return false;
     }
     

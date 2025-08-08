@@ -235,6 +235,27 @@ function sanitize_output($data) {
     return htmlspecialchars($data, ENT_QUOTES, 'UTF-8');
 }
 
+/**
+ * Validates and sanitizes a slug for directory/file operations
+ * @param string $slug The slug to validate
+ * @return string|false The sanitized slug or false if invalid
+ */
+function validateAndSanitizeSlug($slug) {
+    if (empty($slug) || !is_string($slug)) {
+        return false;
+    }
+    
+    // Remove dangerous characters and normalize
+    $slug = preg_replace('/[^a-zA-Z0-9_-]/', '', trim($slug));
+    
+    // Check for dangerous patterns
+    if (empty($slug) || $slug === '.' || $slug === '..' || strlen($slug) > 100) {
+        return false;
+    }
+    
+    return $slug;
+}
+
 // Note: JavaScript functions were moved to appropriate frontend files
 // to prevent HTML contamination in JSON API responses
 ?>

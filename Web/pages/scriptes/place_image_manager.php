@@ -11,28 +11,6 @@ require_once 'functions.php'; // Include shared functions
 
 header('Content-Type: application/json');
 
-// Security function to validate and sanitize slug
-function validateAndSanitizeSlug($slug) {
-    if (empty($slug)) {
-        return false;
-    }
-    
-    // Remove any path traversal attempts and dangerous characters
-    $slug = str_replace(['../', '..\\', '/', '\\', '.', '~'], '', $slug);
-    
-    // Only allow alphanumeric characters, hyphens, and underscores
-    if (!preg_match('/^[a-zA-Z0-9_-]+$/', $slug)) {
-        return false;
-    }
-    
-    // Limit length to prevent buffer overflow attacks
-    if (strlen($slug) > 100) {
-        return false;
-    }
-    
-    return $slug;
-}
-
 // Security function to construct safe path
 function constructSafePlacePath($slug) {
     $sanitizedSlug = validateAndSanitizeSlug($slug);
@@ -71,7 +49,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Handle file uploads (admin only)
     if (isset($_FILES['image'])) {
         // Check if user is admin for uploads
-        if (!isset($_SESSION['user']) || !isset($_SESSION['user_roles']) || !in_array('admin', $_SESSION['user_roles'])) {
+        if (!isset($_SESSION['user'])) {
+            http_response_code(403);
+            echo json_encode(['success' => false, 'message' => 'Not logged in']);
+            exit;
+        }
+        
+        // Get user roles safely
+        $user_roles = $_SESSION['user_roles'] ?? [];
+        if (!in_array('admin', $user_roles)) {
             http_response_code(403);
             echo json_encode(['success' => false, 'message' => ACCESS_DENIED_ADMIN_REQUIRED . ' for uploads']);
             exit;
@@ -95,8 +81,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             switch ($input['action']) {
                 case 'list_images':
                     // Validate slug before processing
-                    if (!isset($input['slug']) || validateAndSanitizeSlug($input['slug']) === false) {
-                        echo json_encode(['success' => false, 'message' => 'Invalid or missing slug']);
+                    if (!isset($input['slug'])) {
+                        echo json_encode(['success' => false, 'message' => 'Missing slug parameter']);
+                        exit;
+                    }
+                    
+                    if (validateAndSanitizeSlug($input['slug']) === false) {
+                        echo json_encode(['success' => false, 'message' => 'Invalid slug: ' . json_encode($input['slug'])]);
                         exit;
                     }
                     listImages($input['slug']);
