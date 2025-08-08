@@ -6,9 +6,13 @@ error_reporting(E_ALL);
 
 header('Content-Type: application/json');
 
-// Secure CORS policy - HTTPS ONLY for production security
+// Environment detection for development vs production
+$isLocalDevelopment = in_array($_SERVER['SERVER_NAME'] ?? '', ['localhost', '127.0.0.1']) || 
+                     (isset($_SERVER['HTTP_HOST']) && in_array($_SERVER['HTTP_HOST'], ['localhost', 'localhost:80', '127.0.0.1', '127.0.0.1:80']));
+
+// Secure CORS policy with development flexibility
 $allowedOrigins = [
-    // HTTPS ONLY - Production ready and secure
+    // Production HTTPS origins
     'https://localhost',
     'https://localhost:443',
     'https://localhost:8080',
@@ -17,36 +21,51 @@ $allowedOrigins = [
     'https://127.0.0.1:8080',
     'https://host.docker.internal',
     'https://host.docker.internal:443'
-    // HTTP REMOVED - Use HTTPS or configure SSL certificates for development
 ];
+
+// Allow HTTP for local development only
+if ($isLocalDevelopment) {
+    $allowedOrigins = array_merge($allowedOrigins, [
+        'http://localhost',
+        'http://localhost:80',
+        'http://localhost:8080',
+        'http://127.0.0.1',
+        'http://127.0.0.1:80',
+        'http://127.0.0.1:8080',
+        'http://host.docker.internal',
+        'http://host.docker.internal:80'
+    ]);
+}
 
 $origin = $_SERVER['HTTP_ORIGIN'] ?? '';
 $isHttps = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off';
 
-// Block all HTTP requests for security
-if (!empty($origin) && str_starts_with($origin, 'http://')) {
-    error_log("SECURITY VIOLATION: HTTP request blocked - HTTPS required: " . $origin);
+// Security check: Block HTTP in production but allow in local development
+if (!empty($origin) && str_starts_with($origin, 'http://') && !$isLocalDevelopment) {
+    error_log("SECURITY VIOLATION: HTTP request blocked in production - HTTPS required: " . $origin);
     http_response_code(403);
-    echo json_encode(['success' => false, 'message' => 'HTTPS required - HTTP not allowed for security']);
+    echo json_encode(['success' => false, 'message' => 'HTTPS required in production - HTTP not allowed for security']);
     exit;
 }
 
-// Allow same-origin requests (no Origin header) but require HTTPS
+// Handle CORS headers
 if (empty($origin)) {
-    // Same-origin request - allow it but enforce HTTPS
-    if (!$isHttps) {
-        error_log("SECURITY VIOLATION: Same-origin HTTP request blocked - HTTPS required");
+    // Same-origin request - apply development flexibility
+    if (!$isHttps && !$isLocalDevelopment) {
+        error_log("SECURITY VIOLATION: Same-origin HTTP request blocked in production - HTTPS required");
         http_response_code(403);
-        echo json_encode(['success' => false, 'message' => 'HTTPS required - HTTP not allowed for security']);
+        echo json_encode(['success' => false, 'message' => 'HTTPS required in production - HTTP not allowed for security']);
         exit;
     }
     header('Access-Control-Allow-Origin: null');
 } elseif (in_array($origin, $allowedOrigins)) {
-    // Allowed HTTPS cross-origin request
+    // Allowed origin request
     header('Access-Control-Allow-Origin: ' . $origin);
     
-    // Add HSTS header for all HTTPS connections
-    header('Strict-Transport-Security: max-age=31536000; includeSubDomains; preload');
+    // Add HSTS header for HTTPS connections only
+    if ($isHttps) {
+        header('Strict-Transport-Security: max-age=31536000; includeSubDomains; preload');
+    }
 } else {
     // Block unauthorized cross-origin requests
     error_log("SECURITY VIOLATION: Blocked request from unauthorized origin: " . $origin);

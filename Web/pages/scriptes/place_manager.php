@@ -1,4 +1,9 @@
 <?php
+// Disable all HTML error output for clean JSON responses
+ini_set('display_errors', 0);
+ini_set('log_errors', 1);
+error_reporting(E_ALL);
+
 session_start();
 require_once '../../login/db.php';
 

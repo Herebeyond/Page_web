@@ -1,11 +1,37 @@
 <?php
+// Disable all HTML error output for clean JSON responses
+ini_set('display_errors', 0);
+ini_set('log_errors', 1);
+error_reporting(E_ALL);
 
 require_once '../../login/db.php';
 
+// Verify database connection was successful  
+if (!isset($pdo) || !$pdo) {
+    http_response_code(500);
+    header('Content-Type: application/json');
+    echo json_encode(['success' => false, 'message' => 'Database connection failed']);
+    exit;
+}
+
 header('Content-Type: application/json');
+// Security headers
+header('X-Content-Type-Options: nosniff');
+header('X-Frame-Options: DENY');
+header('X-XSS-Protection: 1; mode=block');
 
 if (isset($_GET['character'])) { // Make the function fetchCharacterInfo work
     $characterName = trim($_GET['character']);
+    
+    // Validate character name input (security: prevent injection attempts)
+    if (empty($characterName) || strlen($characterName) > 255) {
+        echo json_encode([
+            'success' => false,
+            'message' => 'Invalid character name parameter'
+        ]);
+        exit;
+    }
+    
     error_log("Received character: " . $characterName); // Log the received character name
 
     try {
@@ -33,10 +59,10 @@ if (isset($_GET['character'])) { // Make the function fetchCharacterInfo work
             ]);
         }
     } catch (PDOException $e) {
-        error_log("Database error: " . $e->getMessage()); // Log database errors
+        error_log("Database error in fetch_character_info.php: " . $e->getMessage()); // Log database errors
         echo json_encode([
             'success' => false,
-            'message' => 'Database error: ' . $e->getMessage()
+            'message' => 'Database error occurred'
         ]);
     }
 } else {

@@ -1,4 +1,10 @@
 <?php
+// Clean output buffer and disable all HTML error output for clean JSON responses
+if (ob_get_level()) ob_end_clean();
+ini_set('display_errors', 0);
+ini_set('log_errors', 1);
+error_reporting(E_ALL);
+
 session_start();
 require_once '../../login/db.php';
 require_once 'functions.php'; // Include shared functions

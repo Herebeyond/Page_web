@@ -32,6 +32,16 @@ require_once "./blueprints/gl_ap_end.php";     // Footer, scroll-to-top, closing
 - Centralized in `login/db.php` using environment variables from `BDD.env`
 - Always use: `require_once '../../login/db.php';` for DB access
 - PDO with prepared statements standard
+- **CRITICAL**: All API files must validate PDO connection:
+```php
+// Verify database connection was successful
+if (!isset($pdo) || !$pdo) {
+    http_response_code(500);
+    header('Content-Type: application/json');
+    echo json_encode(['success' => false, 'message' => 'Database connection failed']);
+    exit;
+}
+```
 
 ### Shared Functions System
 - **CRITICAL**: All shared functions go in `pages/scriptes/functions.php`

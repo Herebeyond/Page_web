@@ -47,6 +47,29 @@ foreach ($hosts_to_try as $current_host) {
 if (!$pdo) {
     $error_msg = $last_error ? $last_error->getMessage() : 'Unknown database connection error';
     error_log("All database connection attempts failed. Last error: " . $error_msg);
-    exit('Erreur de connexion à la base de données');
+    
+    // Check if this is an API call (JSON expected) or a regular page
+    $is_api_call = (isset($_SERVER['CONTENT_TYPE']) && strpos($_SERVER['CONTENT_TYPE'], 'application/json') !== false) ||
+                   (isset($_SERVER['HTTP_ACCEPT']) && strpos($_SERVER['HTTP_ACCEPT'], 'application/json') !== false) ||
+                   (basename($_SERVER['SCRIPT_NAME']) !== basename($_SERVER['REQUEST_URI']) && strpos($_SERVER['REQUEST_URI'], '/scriptes/') !== false);
+    
+    if ($is_api_call) {
+        http_response_code(500);
+        header('Content-Type: application/json');
+        echo json_encode(['success' => false, 'message' => 'Database connection failed']);
+    } else {
+        // Debug: Show detailed error for regular pages
+        echo "<div style='padding: 20px; background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb;'>";
+        echo "<h3>Database Connection Error (Debug)</h3>";
+        echo "<p>Error: " . htmlspecialchars($error_msg) . "</p>";
+        echo "<p>Environment variables:</p>";
+        echo "<ul>";
+        echo "<li>DB_HOST: " . htmlspecialchars(getenv('DB_HOST') ?: 'not set') . "</li>";
+        echo "<li>DB_NAME: " . htmlspecialchars(getenv('DB_NAME') ?: 'not set') . "</li>";
+        echo "<li>DB_USER: " . htmlspecialchars(getenv('DB_USER') ?: 'not set') . "</li>";
+        echo "</ul>";
+        echo "</div>";
+    }
+    exit;
 }
 ?>

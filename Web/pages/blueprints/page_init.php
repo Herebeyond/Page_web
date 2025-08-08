@@ -8,15 +8,21 @@
  * @global array $user_roles Current user's roles
  */
 
+// Temporary debugging - enable error display
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
 
-// Start the session securely
-session_start([
-    'cookie_lifetime' => 86400, // 1 day
-    'cookie_secure' => true,
-    'cookie_httponly' => true,
-    'use_strict_mode' => true,
-    'use_only_cookies' => true,
-]);
+// Start the session securely (temporarily simplified for debugging)
+session_start();
+// Note: Secure session settings disabled temporarily for local development
+// session_start([
+//     'cookie_lifetime' => 86400, // 1 day
+//     'cookie_secure' => true,
+//     'cookie_httponly' => true,
+//     'use_strict_mode' => true,
+//     'use_only_cookies' => true,
+// ]);
 
 $_SESSION['last_page'] = $_SERVER['REQUEST_URI']; // Save the current page URL
 
@@ -31,13 +37,7 @@ $timeout_duration = 3600; // 60 minutes
 if (isset($_SESSION['LAST_ACTIVITY']) && (time() - $_SESSION['LAST_ACTIVITY']) > $timeout_duration) {
     session_unset();
     session_destroy();
-    session_start([
-        'cookie_lifetime' => 86400,
-        'cookie_secure' => true,
-        'cookie_httponly' => true,
-        'use_strict_mode' => true,
-        'use_only_cookies' => true,
-    ]);
+    session_start(); // Simplified for debugging
 }
 $_SESSION['LAST_ACTIVITY'] = time();
 
@@ -49,10 +49,16 @@ $current_page = htmlspecialchars(pathinfo(basename($_SERVER['PHP_SELF']), PATHIN
 
 /// BLOCKED USER VERIFICATION
 if (isset($_SESSION['user'])) {
-    // Ensure database connection is available
+    // Ensure database connection is available for user verification
     if (!isset($pdo) || !$pdo) {
-        error_log("Database connection not available in page_init.php");
-        exit('Database connection error');
+        error_log("Database connection not available in page_init.php for user verification");
+        // For regular pages (not API), show user-friendly error and allow logout
+        echo "<div style='padding: 20px; background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; border-radius: 4px; margin: 10px;'>";
+        echo "<h3>Database Connection Error</h3>";
+        echo "<p>We're experiencing technical difficulties. Please try again later.</p>";
+        echo "<a href='../login/logout.php' style='color: #721c24;'>Logout and try again</a>";
+        echo "</div>";
+        exit();
     }
     
     // Retrieve the user from the database
