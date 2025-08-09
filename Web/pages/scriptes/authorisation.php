@@ -1,10 +1,9 @@
 <?php
 
-
 // To determine if a user has access to a page and/or is displayed, we will check the following:
 // 1. all : all users can access the page and it is displayed normally
 // 2. admin : only admin users can access the page and it is displayed only for them
-// 3. hidden : all users can access the page but it is not displayed
+// 3. hidden : all users can access the page but it is not displayed, often because it needs an id in the url to display a specific resource and as such is only accessible by links
 
 // So far, there is no need to hide a page for admin users
 $authorisation = array(
@@ -25,7 +24,7 @@ $authorisation = array(
     'Admin' => 'admin',
     'User_profil' => 'hidden',
     'Map_modif' => 'admin',
-    'place_detail' => 'all',
+    'place_detail' => 'hidden',
     'places_manager' => 'admin'
 );
 

@@ -657,46 +657,45 @@ require_once "./blueprints/gl_ap_start.php"; // includes the start of the genera
                 const imageContainer = document.getElementById(`tooltip-image-${point.id}`);
                 if (!imageContainer) return; // Safety check
                 
-                const possibleExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
-                let imageFound = false;
-                
-                async function checkImage(extension) {
-                    try {
-                        const imagePath = `../images/places/${slug}/main.${extension}`;
-                        const response = await fetch(imagePath);
-                        if (response.ok) {
-                            imageContainer.innerHTML = `
-                                <img src="${imagePath}" 
-                                     alt="Image of ${point.name}" 
-                                     style="max-width: 180px; max-height: 120px; border-radius: 4px; box-shadow: 0 2px 4px rgba(0,0,0,0.3); object-fit: cover;">
-                            `;
-                            return true;
-                        }
-                    } catch (error) {
-                        return false;
-                    }
-                    return false;
-                }
-                
-                // Try each extension
-                (async () => {
-                    for (const ext of possibleExtensions) {
-                        if (await checkImage(ext)) {
-                            imageFound = true;
-                            break;
-                        }
-                    }
-                    
-                    if (!imageFound) {
+                // Use server-side image checker to avoid console 404 errors
+                fetch('./scriptes/image_checker.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        action: 'check_place_image',
+                        slug: slug
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success && data.found) {
+                        // Image exists, display it
+                        imageContainer.innerHTML = `
+                            <img src="${data.path}" 
+                                 alt="Image of ${point.name}" 
+                                 style="max-width: 180px; max-height: 120px; border-radius: 4px; box-shadow: 0 2px 4px rgba(0,0,0,0.3); object-fit: cover;">
+                        `;
+                    } else {
+                        // No image found
                         imageContainer.innerHTML = `
                             <div style="padding: 15px; background: rgba(0,0,0,0.1); border-radius: 4px; color: #666; font-size: 11px; border: 1px dashed #999;">
                                 📷 No image available
                             </div>
                         `;
                     }
-                })();
+                })
+                .catch(error => {
+                    console.error('Error checking image:', error);
+                    imageContainer.innerHTML = `
+                        <div style="padding: 15px; background: rgba(0,0,0,0.1); border-radius: 4px; color: #666; font-size: 11px; border: 1px dashed #999;">
+                            📷 No image available
+                        </div>
+                    `;
+                });
             }
-            
+
             // Function to position tooltip within viewport
             function positionTooltip() {
                 const rect = pointElement.getBoundingClientRect();
@@ -774,7 +773,7 @@ require_once "./blueprints/gl_ap_start.php"; // includes the start of the genera
             const point = points.find(p => p.id === pointId);
             if (!point) return;
             
-            // If point has database_id, remove from database too
+            // If point has database_id, remove from database first
             if (point.database_id) {
                 fetch('./scriptes/map_save_points.php', {
                     method: 'POST',
@@ -790,29 +789,43 @@ require_once "./blueprints/gl_ap_start.php"; // includes the start of the genera
                 .then(data => {
                     if (!data.success) {
                         showTemporaryMessage('❌ Error during database deletion: ' + data.message, 'error');
+                        return; // Don't remove from UI if database deletion failed
                     } else {
                         showTemporaryMessage('✅ Point deleted from database', 'success');
                         // Ask about folder deletion
                         askAboutFolderDeletion(point.name);
+                        
+                        // Remove from local array and DOM only after successful database deletion
+                        removePointFromUI(pointId);
                     }
+                })
+                .catch(error => {
+                    console.error('Error deleting point:', error);
+                    showTemporaryMessage('❌ Network error during deletion', 'error');
                 });
             } else {
                 showTemporaryMessage('✅ Local point deleted', 'success');
                 // Ask about folder deletion for local points too
                 askAboutFolderDeletion(point.name);
+                
+                // Remove local point immediately since it's not in database
+                removePointFromUI(pointId);
             }
-            
-            // Remove from local array and DOM
+        }
+        
+        // Helper function to remove point from UI
+        function removePointFromUI(pointId) {
+            // Remove from local array
             points = points.filter(p => p.id !== pointId);
+            
+            // Remove from DOM
             const pointElement = document.querySelector(`[data-point-id="${pointId}"]`);
             if (pointElement) {
                 pointElement.remove();
             }
             
-            // Mark as unsaved if it was a local change
-            if (!point.database_id) {
-                markAsUnsaved();
-            }
+            // Mark as unsaved
+            markAsUnsaved();
         }
         
         // Ask if user wants to delete the associated folder
@@ -1418,52 +1431,6 @@ require_once "./blueprints/gl_ap_start.php"; // includes the start of the genera
             markAsUnsaved();
             
                         showTemporaryMessage('✅ Point added locally! Use "Save to Database" to make it permanent.', 'success');
-        }
-        
-        // Remove point
-        function removePoint(pointId) {
-            const point = points.find(p => p.id === pointId);
-            if (!point) return;
-            
-            // If point has database_id, remove from database too
-            if (point.database_id) {
-                fetch('./scriptes/map_save_points.php', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        action: 'delete_point',
-                        database_id: point.database_id
-                    })
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (!data.success) {
-                        showTemporaryMessage('❌ Error during database deletion: ' + data.message, 'error');
-                    } else {
-                        showTemporaryMessage('✅ Point deleted from database', 'success');
-                        // Ask about folder deletion
-                        askAboutFolderDeletion(point.name);
-                    }
-                });
-            } else {
-                showTemporaryMessage('✅ Local point deleted', 'success');
-                // Ask about folder deletion for local points too
-                askAboutFolderDeletion(point.name);
-            }
-            
-            // Remove from local array and DOM
-            points = points.filter(p => p.id !== pointId);
-            const pointElement = document.querySelector(`[data-point-id="${pointId}"]`);
-            if (pointElement) {
-                pointElement.remove();
-            }
-            
-            // Mark as unsaved if it was a local change
-            if (!point.database_id) {
-                markAsUnsaved();
-            }
         }
         
         // Ask if user wants to delete the associated folder

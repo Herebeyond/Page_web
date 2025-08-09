@@ -100,6 +100,7 @@ try {
 
 // Check if user is authenticated for write operations
 function requireAuthentication($action) {
+    global $pdo;
     $writeOperations = ['save_points', 'savePoints', 'delete_point', 'update_point', 'clear_points', 'add_type', 'delete_type', 'update_type_color'];
     
     if (in_array($action, $writeOperations)) {
@@ -112,17 +113,28 @@ function requireAuthentication($action) {
         // For admin-only operations, check admin role
         $adminOnlyOperations = ['delete_point', 'clear_points', 'add_type', 'delete_type', 'update_type_color'];
         if (in_array($action, $adminOnlyOperations)) {
-            // Load user roles - this mimics the pattern from page_init.php
-            try {
-                require_once '../blueprints/page_init.php';
-                if (!in_array('admin', $user_roles ?? [])) {
-                    http_response_code(403);
-                    echo json_encode(['success' => false, 'message' => 'Admin privileges required']);
-                    exit;
+            // Check user roles from session (avoid page_init.php conflicts)
+            $user_roles = $_SESSION['user_roles'] ?? [];
+            if (!in_array('admin', $user_roles)) {
+                // If not in session, try to fetch from database
+                if (!$user_roles && isset($_SESSION['user']['id'])) {
+                    try {
+                        // Validate PDO connection
+                        if (!$pdo) {
+                            require_once '../../login/db.php';
+                        }
+                        
+                        $stmt = $pdo->prepare("SELECT r.name FROM user_roles ur JOIN roles r ON ur.role_id = r.id WHERE ur.user_id = ?");
+                        $stmt->execute([$_SESSION['user']['id']]);
+                        $user_roles = $stmt->fetchAll(PDO::FETCH_COLUMN);
+                        $_SESSION['user_roles'] = $user_roles;
+                    } catch (Exception $e) {
+                        error_log('Error fetching user roles: ' . $e->getMessage());
+                        $user_roles = [];
+                    }
                 }
-            } catch (Exception $e) {
-                // Fallback: if we can't load roles, require session user at minimum
-                if (!isset($_SESSION['user'])) {
+                
+                if (!in_array('admin', $user_roles)) {
                     http_response_code(403);
                     echo json_encode(['success' => false, 'message' => 'Admin privileges required']);
                     exit;

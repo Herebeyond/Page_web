@@ -51,14 +51,29 @@ function parseSecureJsonInput() {
  * @return bool True if path is safe, false otherwise
  */
 function isPathSafe($path, $allowedBase) {
-    $realPath = realpath($path);
     $realBase = realpath($allowedBase);
     
-    if ($realPath === false || $realBase === false) {
+    if ($realBase === false) {
         return false;
     }
     
-    return strpos($realPath, $realBase) === 0;
+    // For non-existent paths (like when creating folders), 
+    // we need to check the parent directory instead
+    if (!file_exists($path)) {
+        // Normalize the path without requiring it to exist
+        $normalizedPath = str_replace('\\', '/', $path);
+        $normalizedBase = str_replace('\\', '/', $realBase);
+        
+        // Check if the path starts with the allowed base
+        return strpos($normalizedPath, $normalizedBase) === 0;
+    } else {
+        // For existing paths, use realpath as before
+        $realPath = realpath($path);
+        if ($realPath === false) {
+            return false;
+        }
+        return strpos($realPath, $realBase) === 0;
+    }
 }
 
 /**

@@ -51,7 +51,9 @@ if (!$pdo) {
     // Check if this is an API call (JSON expected) or a regular page
     $is_api_call = (isset($_SERVER['CONTENT_TYPE']) && strpos($_SERVER['CONTENT_TYPE'], 'application/json') !== false) ||
                    (isset($_SERVER['HTTP_ACCEPT']) && strpos($_SERVER['HTTP_ACCEPT'], 'application/json') !== false) ||
-                   (basename($_SERVER['SCRIPT_NAME']) !== basename($_SERVER['REQUEST_URI']) && strpos($_SERVER['REQUEST_URI'], '/scriptes/') !== false);
+                   (strpos($_SERVER['REQUEST_URI'], '/scriptes/') !== false) ||
+                   (strpos($_SERVER['SCRIPT_NAME'], '/scriptes/') !== false) ||
+                   (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && $_SERVER['HTTP_X_REQUESTED_WITH'] === 'XMLHttpRequest');
     
     if ($is_api_call) {
         http_response_code(500);
