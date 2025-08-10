@@ -118,6 +118,7 @@ require_once "./blueprints/gl_ap_start.php"; // includes the start of the genera
             </div>
             <div class="point-edit-modal-footer">
                 <button type="button" class="point-edit-button save" onclick="savePointEdit()">💾 Save Changes</button>
+                <button type="button" class="point-edit-button view-details" onclick="viewPointDetails()">📋 View Details</button>
                 <button type="button" class="point-edit-button delete" onclick="deletePointFromModal()">🗑️ Delete Point</button>
                 <button type="button" class="point-edit-button cancel" onclick="closePointEditModal()">❌ Cancel</button>
             </div>
@@ -135,6 +136,32 @@ require_once "./blueprints/gl_ap_start.php"; // includes the start of the genera
         
         const mapOverlay = document.getElementById('interactive-map-overlay');
         const mapContainer = document.getElementById('interactive-map-container');
+        
+        // Create a consistent slug from a name (handles accents properly)
+        function createSlug(name) {
+            return name
+                .toLowerCase()
+                .trim()
+                // Normalize accented characters to their base forms
+                .normalize('NFD')
+                .replace(/[\u0300-\u036f]/g, '') // Remove diacritical marks
+                // Replace common special characters
+                .replace(/[àáâãäåæ]/g, 'a')
+                .replace(/[èéêë]/g, 'e')
+                .replace(/[ìíîï]/g, 'i')
+                .replace(/[òóôõöø]/g, 'o')
+                .replace(/[ùúûü]/g, 'u')
+                .replace(/[ýÿ]/g, 'y')
+                .replace(/[ñ]/g, 'n')
+                .replace(/[ç]/g, 'c')
+                .replace(/[ß]/g, 'ss')
+                .replace(/[œ]/g, 'oe')
+                // Replace any remaining non-alphanumeric characters with hyphens
+                .replace(/[^a-z0-9]/g, '-')
+                // Clean up multiple hyphens and trim
+                .replace(/-+/g, '-')
+                .replace(/^-+|-+$/g, '');
+        }
         
         // Toggle add mode
         function toggleAddMode() {
@@ -634,11 +661,7 @@ require_once "./blueprints/gl_ap_start.php"; // includes the start of the genera
             pointElement.style.borderColor = '#ffffff';
             
             // Create slug for image path
-            const slug = point.name.toLowerCase()
-                .trim()
-                .replace(/[^a-z0-9\-]/g, '-')
-                .replace(/-+/g, '-')
-                .replace(/^-+|-+$/g, '');
+            const slug = createSlug(point.name);
             
             // Create tooltip
             const tooltip = document.createElement('div');
@@ -665,7 +688,7 @@ require_once "./blueprints/gl_ap_start.php"; // includes the start of the genera
                     },
                     body: JSON.stringify({
                         action: 'check_place_image',
-                        slug: slug
+                        name: point.name  // Send original name, let server generate slug
                     })
                 })
                 .then(response => response.json())
@@ -834,11 +857,7 @@ require_once "./blueprints/gl_ap_start.php"; // includes the start of the genera
             
             if (deleteFolder) {
                 // Create slug from point name
-                const slug = pointName.toLowerCase()
-                                    .trim()
-                                    .replace(/[^a-z0-9\-]/g, '-')
-                                    .replace(/-+/g, '-')
-                                    .replace(/^-|-$/g, '');
+                const slug = createSlug(pointName);
                 
                 fetch('./scriptes/folder_manager.php', {
                     method: 'POST',
@@ -1174,6 +1193,20 @@ require_once "./blueprints/gl_ap_start.php"; // includes the start of the genera
             currentEditingPoint = null;
         }
         
+        // Navigate to place details page
+        function viewPointDetails() {
+            if (!currentEditingPoint) return;
+            
+            // Check if point has a database ID (saved points)
+            if (!currentEditingPoint.database_id) {
+                alert('This point hasn\'t been saved to the database yet. Please save it first before viewing details.');
+                return;
+            }
+            
+            // Open place_detail.php with the point's database ID in a new tab
+            window.open(`place_detail.php?id=${currentEditingPoint.database_id}`, '_blank');
+        }
+        
         // Update type dropdown in edit modal
         function updateEditTypeDropdown() {
             const editTypeSelect = document.getElementById('edit-poi-type');
@@ -1431,45 +1464,6 @@ require_once "./blueprints/gl_ap_start.php"; // includes the start of the genera
             markAsUnsaved();
             
                         showTemporaryMessage('✅ Point added locally! Use "Save to Database" to make it permanent.', 'success');
-        }
-        
-        // Ask if user wants to delete the associated folder
-        function askAboutFolderDeletion(pointName) {
-            const deleteFolder = confirm(`Do you also want to delete the folder for "${pointName}"?\n\nWarning: This will permanently delete all images and files in the folder!\n\nClick OK to delete the folder, or Cancel to keep it.`);
-            
-            if (deleteFolder) {
-                // Create slug from point name
-                const slug = pointName.toLowerCase()
-                                    .trim()
-                                    .replace(/[^a-z0-9\-]/g, '-')
-                                    .replace(/-+/g, '-')
-                                    .replace(/^-|-$/g, '');
-                
-                fetch('./scriptes/folder_manager.php', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        action: 'delete_place_folder',
-                        slug: slug
-                    })
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        showTemporaryMessage('✅ Folder deleted successfully!', 'success');
-                    } else {
-                        showTemporaryMessage('❌ Error deleting folder: ' + data.message, 'error');
-                    }
-                })
-                .catch(error => {
-                    console.error('Error deleting folder:', error);
-                    showTemporaryMessage('❌ Error deleting folder', 'error');
-                });
-            } else {
-                showTemporaryMessage('ℹ️ Folder preserved. You can manage it in Places Manager.', 'info');
-            }
         }
         
         // Load existing points on page load

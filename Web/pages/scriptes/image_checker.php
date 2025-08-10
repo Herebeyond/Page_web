@@ -9,6 +9,12 @@ header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Methods: POST');
 header('Access-Control-Allow-Headers: Content-Type');
 
+// Include functions for slug generation
+require_once 'functions.php';
+
+// Include functions for consistent slug generation
+require_once 'functions.php';
+
 try {
     $input = json_decode(file_get_contents('php://input'), true);
     if (json_last_error() !== JSON_ERROR_NONE) {
@@ -19,14 +25,24 @@ try {
     $action = $input['action'] ?? '';
     
     if ($action === 'check_place_image') {
+        // Accept either 'name' (original) or 'slug' (pre-generated) for backward compatibility
+        $name = $input['name'] ?? '';
         $slug = $input['slug'] ?? '';
-        if (empty($slug)) {
-            echo json_encode(['success' => false, 'message' => 'Slug required']);
+        
+        if (empty($name) && empty($slug)) {
+            echo json_encode(['success' => false, 'message' => 'Name or slug required']);
             exit;
         }
         
-        // Sanitize slug for security
-        $slug = preg_replace('/[^a-z0-9\-]/', '', strtolower($slug));
+        // Generate slug from name using server-side function for consistency
+        if (!empty($name)) {
+            $slug = createSafeSlug($name);
+        }
+        
+        if (empty($slug)) {
+            echo json_encode(['success' => false, 'message' => 'Invalid name for slug generation']);
+            exit;
+        }
         
         $extensions = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
         $basePath = __DIR__ . '/../../images/places/' . $slug . '/main.';

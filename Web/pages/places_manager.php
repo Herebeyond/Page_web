@@ -144,11 +144,28 @@ require_once "./blueprints/gl_ap_start.php"; // includes the start of the genera
     
     // Create slug from point name (same logic as backend)
     function createSlug(name) {
-        return name.toLowerCase()
-                  .trim()
-                  .replace(/[^a-z0-9\-]/g, '-')
-                  .replace(/-+/g, '-')
-                  .replace(/^-|-$/g, '');
+        return name
+            .toLowerCase()
+            .trim()
+            // Normalize accented characters to their base forms
+            .normalize('NFD')
+            .replace(/[\u0300-\u036f]/g, '') // Remove diacritical marks
+            // Replace common special characters
+            .replace(/[àáâãäåæ]/g, 'a')
+            .replace(/[èéêë]/g, 'e')
+            .replace(/[ìíîï]/g, 'i')
+            .replace(/[òóôõöø]/g, 'o')
+            .replace(/[ùúûü]/g, 'u')
+            .replace(/[ýÿ]/g, 'y')
+            .replace(/[ñ]/g, 'n')
+            .replace(/[ç]/g, 'c')
+            .replace(/[ß]/g, 'ss')
+            .replace(/[œ]/g, 'oe')
+            // Replace any remaining non-alphanumeric characters with hyphens
+            .replace(/[^a-z0-9]/g, '-')
+            // Clean up multiple hyphens and trim
+            .replace(/-+/g, '-')
+            .replace(/^-+|-+$/g, '');
     }
     
     // Check if folder is linked to a point

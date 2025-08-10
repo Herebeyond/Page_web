@@ -1712,7 +1712,7 @@ html body {
     border: 3px solid #d4af37;
     border-radius: 15px;
     width: 90%;
-    max-width: 500px;
+    max-width: fit-content;
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
     font-family: 'Cinzel', serif;
     position: relative;

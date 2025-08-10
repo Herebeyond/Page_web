@@ -82,11 +82,17 @@ function isPathSafe($path, $allowedBase) {
  * @return string Safe directory slug
  */
 function createSafeSlug($string) {
-    // Convert to lowercase and remove accents
-    $slug = strtolower($string);
-    $slug = iconv('UTF-8', 'ASCII//TRANSLIT', $slug);
+    // Convert to lowercase
+    $slug = strtolower(trim($string));
     
-    // Replace non-alphanumeric characters with hyphens
+    // Remove accents using a more reliable method
+    $slug = str_replace(
+        ['à', 'á', 'â', 'ã', 'ä', 'å', 'æ', 'è', 'é', 'ê', 'ë', 'ì', 'í', 'î', 'ï', 'ò', 'ó', 'ô', 'õ', 'ö', 'ø', 'ù', 'ú', 'û', 'ü', 'ý', 'ÿ', 'ñ', 'ç', 'ß', 'œ'],
+        ['a', 'a', 'a', 'a', 'a', 'a', 'ae', 'e', 'e', 'e', 'e', 'i', 'i', 'i', 'i', 'o', 'o', 'o', 'o', 'o', 'o', 'u', 'u', 'u', 'u', 'y', 'y', 'n', 'c', 'ss', 'oe'],
+        $slug
+    );
+    
+    // Replace any remaining non-alphanumeric characters with hyphens
     $slug = preg_replace('/[^a-z0-9\-]/', '-', $slug);
     
     // Remove multiple consecutive hyphens
