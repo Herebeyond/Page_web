@@ -18,6 +18,10 @@ const NOT_SPECIFIED = 'Not specified';
 const ACCESS_DENIED_ADMIN_REQUIRED = 'Access denied - Admin required';
 const INVALID_SLUG_FORMAT = 'Invalid slug format';
 const INVALID_DIRECTORY_PATH = 'Invalid directory path';
+const DATABASE_ERROR_PREFIX = 'Database error: ';
+
+// Database query constants
+const SQL_SELECT_PLACE_NAME_BY_ID = 'SELECT name_IP FROM interest_points WHERE id_IP = ?';
 
 // ============================================================================
 // UTILITY FUNCTIONS
@@ -275,6 +279,88 @@ function validateAndSanitizeSlug($slug) {
     }
     
     return $slug;
+}
+
+/**
+ * Create a secure slug from a name for directory/file operations
+ * @param string $name The name to convert to a slug
+ * @return string|false The secure slug or false if invalid
+ */
+function createSecureSlug($name) {
+    if (empty($name) || !is_string($name)) {
+        return false;
+    }
+    
+    // Use the existing createSafeSlug function
+    $slug = createSafeSlug($name);
+    
+    // Additional validation for security
+    return validateAndSanitizeSlug($slug);
+}
+
+/**
+ * Construct a safe path for place operations
+ * @param string $slug The sanitized slug
+ * @return string|false The safe path or false if invalid
+ */
+function constructSafePlacePath($slug) {
+    $sanitizedSlug = validateAndSanitizeSlug($slug);
+    if ($sanitizedSlug === false) {
+        return false;
+    }
+    
+    // Return the base path for places images
+    return IMAGES_PLACES_PATH . $sanitizedSlug;
+}
+
+/**
+ * Check if an image link/path is valid and accessible
+ * @param string $url The image path or URL to check
+ * @return bool True if the image exists and is valid, false otherwise
+ */
+function isImageLinkValid($url) {
+    // Handle local file paths (relative paths starting with ../)
+    if (strpos($url, '../') === 0) {
+        // Convert the relative path to an absolute path from the document root
+        // The caller (Species.php) is in the pages directory
+        // So ../images/file.png should resolve to [web_root]/images/file.png
+        
+        // Get the document root path (where the calling script is located)
+        $callerDir = dirname($_SERVER['SCRIPT_FILENAME']);
+        $absolutePath = $callerDir . '/' . $url;
+        $absolutePath = realpath($absolutePath);
+        
+        // Check if file exists and is actually a file (not directory)
+        if ($absolutePath && file_exists($absolutePath) && is_file($absolutePath)) {
+            // Check if it's an image by checking the file extension
+            $allowedExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'];
+            $extension = strtolower(pathinfo($absolutePath, PATHINFO_EXTENSION));
+            return in_array($extension, $allowedExtensions);
+        }
+        return false;
+    }
+    
+    // Handle URLs (for remote images)
+    if (filter_var($url, FILTER_VALIDATE_URL)) {
+        // Use cURL for URL validation
+        $ch = curl_init($url);
+        curl_setopt($ch, CURLOPT_NOBODY, true);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_HEADER, true);
+        curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+        curl_setopt($ch, CURLOPT_MAXREDIRS, 5);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 10); // 10 second timeout
+        curl_exec($ch);
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $contentType = curl_getinfo($ch, CURLINFO_CONTENT_TYPE);
+        curl_close($ch);
+        
+        // Check HTTP code and content type
+        return $httpCode === 200 && strpos($contentType, 'image/') !== false;
+    }
+    
+    // For other paths, assume invalid
+    return false;
 }
 
 // Note: JavaScript functions were moved to appropriate frontend files

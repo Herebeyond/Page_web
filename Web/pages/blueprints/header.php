@@ -48,7 +48,7 @@
                                     echo    '</div>
                                             <ul class="dropdown2">';
                                     foreach ($pages as $page3) {
-                                        if ($type[$page3] == 'Dimensions' && $page == 'Dimensions') {
+                                        if ($type[$page3] == $page) {
                                         echo '
                                             
                                                 <li>
@@ -101,7 +101,7 @@
                                 $specieName = $rowS["specie_name"];
                                 echo ' 
                                     <li class="dropdownFirstLevel">
-                                        <div class=liIntro onclick="window.location.href=\'./Beings_display.php?specie=' . sanitize_output($specieName) . '\'">
+                                        <div class=liIntro onclick="window.location.href=\'./Races_display.php?specie=' . sanitize_output($specieName) . '\'">
                                             <span> ' . $specieName . '</span>';
                                 if ($hasRaces) {
                                     echo '  <img class="small-icon" src=../images/small_img/fleche-deroulante.png>';
@@ -118,7 +118,7 @@
                                     if ($rowR["correspondence"] == $rowS["id_specie"]) {
                                         echo '
                                             <li>
-                                                <div class="liIntro" onclick="window.location.href=\'./Beings_display.php?specie=' . str_replace(" ", "_", sanitize_output($specieName)) . '&race=' . str_replace(" ", "_", sanitize_output($raceName)) . '\'">
+                                                <div class="liIntro" onclick="window.location.href=\'./Races_display.php?specie=' . str_replace(" ", "_", sanitize_output($specieName)) . '&race=' . str_replace(" ", "_", sanitize_output($raceName)) . '\'">
                                                     <span>' . sanitize_output($raceName) . '</span>
                                                 </div>
                                             </li>';

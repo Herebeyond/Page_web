@@ -26,6 +26,22 @@ require_once "./blueprints/gl_ap_start.php"; // includes the start of the genera
                 cities, dungeons, and other important places in this mystical realm.
             </p>
             
+            <!-- Map Selection Section -->
+            <div style="margin-bottom: 30px; padding: 20px; background: rgba(34, 32, 136, 0.1); border-radius: 8px; border: 1px solid rgba(34, 32, 136, 0.3);">
+                <h3 style="color: #222088; margin-bottom: 15px;">🗺️ Choose Your View</h3>
+                <div style="display: flex; align-items: center; gap: 20px; flex-wrap: wrap;">
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <label for="map-selector" style="color: #222088; white-space: nowrap; font-weight: bold;">Map Layer:</label>
+                        <select id="map-selector" style="padding: 8px 12px; background: white; border: 2px solid #222088; border-radius: 4px; color: #222088; min-width: 200px;">
+                            <option value="">Loading maps...</option>
+                        </select>
+                    </div>
+                    <div id="map-info" style="color: #666; font-size: 14px;">
+                        <!-- Map info will be displayed here -->
+                    </div>
+                </div>
+            </div>
+            
             <div id="interactive-map-container">
                 <img id="interactive-map-image" src="../images/maps/map_monde.png" alt="World Map">
                 <div id="interactive-map-overlay"></div>
@@ -65,6 +81,11 @@ require_once "./blueprints/gl_ap_start.php"; // includes the start of the genera
     <script>
         let points = [];
         let pointTypes = [];
+        
+        // Multi-map system variables
+        let availableMaps = [];
+        let currentMapId = 1; // Default to surface map
+        let currentMapData = null;
         
         const mapOverlay = document.getElementById('interactive-map-overlay');
         
@@ -115,13 +136,6 @@ require_once "./blueprints/gl_ap_start.php"; // includes the start of the genera
             pointElement.style.backgroundColor = pointColor;
             pointElement.style.borderColor = '#ffffff';
             
-            // Create slug for image path
-            const slug = point.name.toLowerCase()
-                .trim()
-                .replace(/[^a-z0-9\-]/g, '-')
-                .replace(/-+/g, '-')
-                .replace(/^-+|-+$/g, '');
-            
             // Create tooltip
             const tooltip = document.createElement('div');
             tooltip.className = 'map-poi-tooltip';
@@ -137,44 +151,45 @@ require_once "./blueprints/gl_ap_start.php"; // includes the start of the genera
             // Function to load main image
             function loadMainImageForTooltip() {
                 const imageContainer = document.getElementById(`tooltip-image-${point.id}`);
-                const possibleExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
-                let imageFound = false;
+                if (!imageContainer) return; // Safety check
                 
-                async function checkImage(extension) {
-                    try {
-                        const imagePath = `../images/places/${slug}/main.${extension}`;
-                        const response = await fetch(imagePath);
-                        if (response.ok) {
-                            imageContainer.innerHTML = `
-                                <img src="${imagePath}" 
-                                     alt="Image of ${point.name}" 
-                                     style="max-width: 180px; max-height: 120px; border-radius: 4px; box-shadow: 0 2px 4px rgba(0,0,0,0.3); object-fit: cover;">
-                            `;
-                            return true;
-                        }
-                    } catch (error) {
-                        return false;
-                    }
-                    return false;
-                }
-                
-                // Try each extension
-                (async () => {
-                    for (const ext of possibleExtensions) {
-                        if (await checkImage(ext)) {
-                            imageFound = true;
-                            break;
-                        }
-                    }
-                    
-                    if (!imageFound) {
+                // Use server-side image checker to avoid console 404 errors
+                fetch('./scriptes/image_checker.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        action: 'check_place_image',
+                        name: point.name  // Send original name, let server generate slug
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success && data.found) {
+                        // Image exists, display it
+                        imageContainer.innerHTML = `
+                            <img src="${data.path}" 
+                                 alt="Image of ${point.name}" 
+                                 style="max-width: 180px; max-height: 120px; border-radius: 4px; box-shadow: 0 2px 4px rgba(0,0,0,0.3); object-fit: cover;">
+                        `;
+                    } else {
+                        // No image found
                         imageContainer.innerHTML = `
                             <div style="padding: 15px; background: rgba(0,0,0,0.1); border-radius: 4px; color: #666; font-size: 11px; border: 1px dashed #999;">
                                 📷 No image available
                             </div>
                         `;
                     }
-                })();
+                })
+                .catch(error => {
+                    console.error('Error checking image:', error);
+                    imageContainer.innerHTML = `
+                        <div style="padding: 15px; background: rgba(0,0,0,0.1); border-radius: 4px; color: #666; font-size: 11px; border: 1px dashed #999;">
+                            📷 No image available
+                        </div>
+                    `;
+                });
             }
             
             // Function to position tooltip within viewport
@@ -252,7 +267,7 @@ require_once "./blueprints/gl_ap_start.php"; // includes the start of the genera
                 },
                 body: JSON.stringify({
                     action: 'loadPoints',
-                    map_id: 1
+                    map_id: currentMapId
                 })
             })
             .then(response => response.json())
@@ -328,12 +343,123 @@ require_once "./blueprints/gl_ap_start.php"; // includes the start of the genera
         window.addEventListener('scroll', handleHelpContainerPosition);
         window.addEventListener('resize', handleHelpContainerPosition);
         
+        // === Multi-Map Management Functions ===
+        
+        // Load available maps from database
+        function loadAvailableMaps() {
+            return fetch('./scriptes/maps_manager.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    action: 'get_maps_with_point_counts'
+                })
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.success) {
+                    availableMaps = data.maps;
+                    populateMapSelector();
+                    
+                    // Set default map if not already set
+                    if (!currentMapData && availableMaps.length > 0) {
+                        currentMapId = availableMaps[0].id_map;
+                        switchToMap(currentMapId);
+                    }
+                } else {
+                    console.error('Failed to load maps:', data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error loading maps:', error);
+            });
+        }
+        
+        // Populate the map selector dropdown
+        function populateMapSelector() {
+            const selector = document.getElementById('map-selector');
+            
+            if (!selector) {
+                console.error('Map selector element not found!');
+                return;
+            }
+            
+            selector.innerHTML = '';
+            
+            availableMaps.forEach(map => {
+                const option = document.createElement('option');
+                option.value = map.id_map;
+                option.textContent = `${map.name_map} (${map.point_count} points)`;
+                selector.appendChild(option);
+            });
+            
+            // Set current selection
+            selector.value = currentMapId;
+            
+            // Add change event listener
+            selector.addEventListener('change', function() {
+                const newMapId = parseInt(this.value);
+                if (newMapId !== currentMapId) {
+                    switchToMap(newMapId);
+                }
+            });
+        }
+        
+        // Switch to a different map
+        function switchToMap(mapId) {
+            currentMapId = mapId;
+            currentMapData = availableMaps.find(m => m.id_map == mapId);
+            
+            if (currentMapData) {
+                // Update map image
+                const mapImage = document.getElementById('interactive-map-image');
+                mapImage.src = currentMapData.image_map;
+                mapImage.alt = currentMapData.name_map;
+                
+                // Update map info display
+                updateMapInfo();
+                
+                // Clear current points and load points for this map
+                clearPointsFromDOM();
+                points = [];
+                loadPointsFromDB();
+                
+                // Update selector to show current selection
+                document.getElementById('map-selector').value = mapId;
+            }
+        }
+        
+        // Update map information display
+        function updateMapInfo() {
+            const mapInfo = document.getElementById('map-info');
+            if (currentMapData) {
+                mapInfo.innerHTML = `
+                    <span style="color: #222088; font-weight: bold;">${currentMapData.name_map}</span> |
+                    <span style="color: #666;">${currentMapData.point_count} points to explore</span>
+                `;
+            }
+        }
+        
+        // Clear all points from DOM
+        function clearPointsFromDOM() {
+            const existingPoints = document.querySelectorAll('.map-point-of-interest');
+            existingPoints.forEach(point => point.remove());
+        }
+        
         // Initial position check
         window.addEventListener('load', function() {
             handleHelpContainerPosition();
-            // Load point types first, then load points
-            loadPointTypes().then(function(typesLoaded) {
-                loadPointsFromDB(); // Load points after types are loaded
+            // Load maps first, then types, then points
+            loadAvailableMaps().then(function() {
+                return loadPointTypes();
+            }).then(function(typesLoaded) {
+                loadPointsFromDB(); // Load points after maps and types are loaded
             });
         });
         

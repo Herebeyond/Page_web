@@ -77,15 +77,42 @@ require_once "./blueprints/gl_ap_start.php"; // includes the start of the genera
 <script>
     let allFolders = [];
     let allPoints = [];
+    let allMaps = [];
     let currentFolderSlug = null;
     
     // Load all folders and points
     function loadAllData() {
         Promise.all([
+            loadAllMaps(),
             loadAllFolders(),
-            loadAllPoints()
+            loadAllPointsFromAllMaps()
         ]).then(() => {
             displayFoldersList();
+        });
+    }
+    
+    // Load all maps from database
+    function loadAllMaps() {
+        return fetch('./scriptes/maps_manager.php', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                action: 'get_all_maps'
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                allMaps = data.maps || [];
+                console.log(`Loaded ${allMaps.length} maps`);
+            } else {
+                console.error('Failed to load maps:', data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error loading maps:', error);
         });
     }
     
@@ -115,31 +142,73 @@ require_once "./blueprints/gl_ap_start.php"; // includes the start of the genera
     }
     
     // Load all points from database
-    function loadAllPoints() {
-        return fetch('./scriptes/map_save_points.php', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                action: 'loadPoints',
-                map_id: 1
+    function loadAllPointsFromAllMaps() {
+        // Load points from all maps by making separate requests
+        const mapPromises = [];
+        
+        // If we have maps loaded, load points for each map
+        if (allMaps.length > 0) {
+            allMaps.forEach(map => {
+                const promise = fetch('./scriptes/map_save_points.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        action: 'loadPoints',
+                        map_id: map.id_map
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success && data.points) {
+                        // Add map info to each point
+                        return data.points.map(point => ({
+                            ...point,
+                            map_name: map.name_map,
+                            map_id: map.id_map
+                        }));
+                    }
+                    return [];
+                });
+                mapPromises.push(promise);
+            });
+        } else {
+            // Fallback: load from default map if no maps are loaded yet
+            const promise = fetch('./scriptes/map_save_points.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    action: 'loadPoints',
+                    map_id: 1
+                })
             })
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success && data.points) {
-                allPoints = data.points || [];
-                console.log(`Loaded ${allPoints.length} points`);
-            } else {
-                console.log('No points found');
+            .then(response => response.json())
+            .then(data => {
+                if (data.success && data.points) {
+                    return data.points.map(point => ({
+                        ...point,
+                        map_name: 'Surface World',
+                        map_id: 1
+                    }));
+                }
+                return [];
+            });
+            mapPromises.push(promise);
+        }
+        
+        return Promise.all(mapPromises)
+            .then(results => {
+                // Flatten all points from all maps
+                allPoints = results.flat();
+                console.log(`Loaded ${allPoints.length} points from all maps`);
+            })
+            .catch(error => {
+                console.error('Error loading points:', error);
                 allPoints = [];
-            }
-        })
-        .catch(error => {
-            console.error('Error loading points:', error);
-            allPoints = [];
-        });
+            });
     }
     
     // Create slug from point name (same logic as backend)
@@ -212,7 +281,7 @@ require_once "./blueprints/gl_ap_start.php"; // includes the start of the genera
                             <h4 style="margin: 0; color: #f4cf47;">${folder.name}</h4>
                             <p style="margin: 5px 0 0 0; color: #ccc; font-size: 12px;">
                                 Slug: ${folder.slug}
-                                ${isLinked ? `<br>Linked to: ${linkedPoint.name_IP}` : '<br>No linked point'}
+                                ${isLinked ? `<br>Linked to: ${linkedPoint.name_IP} <span style="color: #00aa00;">(🗺️ ${linkedPoint.map_name})</span>` : '<br>No linked point'}
                             </p>
                         </div>
                     </div>
@@ -300,6 +369,7 @@ require_once "./blueprints/gl_ap_start.php"; // includes the start of the genera
                     <p><strong>Point ID:</strong> ${linkedPoint.id_IP}</p>
                     <p><strong>Name:</strong> ${linkedPoint.name_IP}</p>
                     <p><strong>Type:</strong> ${linkedPoint.type_IP}</p>
+                    <p><strong>Map:</strong> <span style="color: #00aa00; font-weight: bold;">🗺️ ${linkedPoint.map_name || 'Unknown Map'}</span></p>
                     <p><strong>Description:</strong> ${linkedPoint.description_IP}</p>
                     <div style="margin-top: 15px;">
                         <button onclick="goToPlaceDetail('${linkedPoint.id_IP}')" 
@@ -341,6 +411,8 @@ require_once "./blueprints/gl_ap_start.php"; // includes the start of the genera
     // Delete folder prompt
     function deleteFolderPrompt(slug) {
         if (confirm(`Are you sure you want to delete the folder "${slug}" and all its contents? This action cannot be undone.`)) {
+            // Set the current folder slug for the confirmation function
+            currentFolderSlug = slug;
             deleteFolderConfirm();
         }
     }

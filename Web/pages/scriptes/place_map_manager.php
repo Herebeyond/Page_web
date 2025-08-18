@@ -377,12 +377,14 @@ function changeMapImage($pdo, $input) {
         }
         
         // Create secure map directory path
-        $mapDir = constructSafePlacePath($slug, $baseImagesPath) . DIRECTORY_SEPARATOR . 'map';
-        if ($mapDir === false) {
+        $placePath = constructSafePlacePath($slug);
+        if ($placePath === false) {
             error_log("Failed to construct safe map directory path for slug: $slug");
             echo json_encode(['success' => false, 'message' => 'Invalid place identifier']);
             return;
         }
+        
+        $mapDir = $placePath . DIRECTORY_SEPARATOR . 'map';
         
         error_log("Target directory: $mapDir");
         error_log("Current working directory: " . getcwd());

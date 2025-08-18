@@ -28,6 +28,54 @@ require_once "./blueprints/gl_ap_end.php";     // Footer, scroll-to-top, closing
 - Role checking: `in_array('admin', $user_roles)` from `page_init.php`
 - When adding pages, **must update both arrays in authorisation.php**
 
+#### Parent-Child Page Relationships
+Pages can be organized into parent-child hierarchies using the `$type` array:
+- **Parent pages**: Set `$type['PageName'] => 'common'` - acts as landing page
+- **Child pages**: Set `$type['ChildPage'] => 'ParentPage'` - appears under parent in navigation
+
+**Example Implementation Pattern**:
+```php
+// In authorisation.php
+$authorisation = array(
+    'Beings' => 'all',          // Parent page - accessible to all
+    'Species' => 'all',         // Child page - accessible to all  
+    'Races' => 'all',           // Child page - accessible to all
+);
+
+$type = array(
+    'Beings' => 'common',       // Parent page
+    'Species' => 'Beings',      // Child of Beings
+    'Races' => 'Beings',        // Child of Beings
+);
+```
+
+**Parent Page Structure**: Parent pages scan for child pages and display them organized with descriptions:
+```php
+// Filter pages that are [Parent] type and user has access to
+$child_pages = [];
+foreach ($pages as $page) {
+    if (isset($type[$page]) && $type[$page] === 'ParentName' && hasPageAccess($page, $authorisation, $user_roles)) {
+        $child_pages[] = $page;
+    }
+}
+```
+
+**Navigation Dropdown Logic**: The header navigation automatically creates dropdowns for parent pages:
+```php
+// In header.php - Generic logic for any parent-child relationship
+foreach ($pages as $page3) {
+    if ($type[$page3] == $page) {  // Show all children of current parent
+        // Display child page in dropdown
+    }
+}
+```
+
+**CRITICAL**: When adding new parent-child relationships, ensure the `header.php` navigation logic is generic (not hardcoded to specific page names).
+
+**Current Hierarchies**:
+- **Dimensions** → Dimension_affichage, Dimension_list
+- **Beings** → Species, Races
+
 ### Database Connection
 - Centralized in `login/db.php` using environment variables from `BDD.env`
 - Always use: `require_once '../../login/db.php';` for DB access

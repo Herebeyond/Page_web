@@ -36,6 +36,22 @@ require_once "./blueprints/gl_ap_start.php"; // includes the start of the genera
         <div class="map-admin-container">
             <h1 class="map-admin-title">🔧 Administration - Interactive Map of Forgotten Worlds</h1>
             
+            <!-- Map Selection Section -->
+            <div style="margin-bottom: 30px; padding: 20px; background: rgba(212, 175, 55, 0.1); border-radius: 8px; border: 1px solid rgba(212, 175, 55, 0.3);">
+                <h3 style="color: #d4af37; margin-bottom: 15px;">🗺️ Map Layer Selection</h3>
+                <div style="display: flex; align-items: center; gap: 20px; flex-wrap: wrap;">
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <label for="map-selector" style="color: #f4cf47; white-space: nowrap;">Current Map:</label>
+                        <select id="map-selector" style="padding: 8px 12px; background: rgba(0, 0, 0, 0.7); border: 1px solid #d4af37; border-radius: 4px; color: #f4cf47; min-width: 200px;">
+                            <option value="">Loading maps...</option>
+                        </select>
+                    </div>
+                    <div id="map-info" style="color: #ccc; font-size: 14px;">
+                        <!-- Map info will be displayed here -->
+                    </div>
+                </div>
+            </div>
+            
             <div id="map-admin-controls">
                 <div style="display: flex; gap: 30px;">
                     <!-- Point Management Section -->
@@ -133,6 +149,11 @@ require_once "./blueprints/gl_ap_start.php"; // includes the start of the genera
         let hasUnsavedChanges = false; // Track if there are unsaved changes
         let draggedPoint = null;
         let dragOffset = { x: 0, y: 0 };
+        
+        // Multi-map system variables
+        let availableMaps = [];
+        let currentMapId = 1; // Default to surface map
+        let currentMapData = null;
         
         const mapOverlay = document.getElementById('interactive-map-overlay');
         const mapContainer = document.getElementById('interactive-map-container');
@@ -359,7 +380,7 @@ require_once "./blueprints/gl_ap_start.php"; // includes the start of the genera
                 },
                 body: JSON.stringify({
                     action: 'loadPoints',
-                    map_id: 1
+                    map_id: currentMapId
                 })
             })
             .then(response => {
@@ -986,7 +1007,7 @@ require_once "./blueprints/gl_ap_start.php"; // includes the start of the genera
                 body: JSON.stringify({
                     action: 'savePoints',
                     points: points,
-                    map_id: 1
+                    map_id: currentMapId
                 })
             })
             .then(response => response.json())
@@ -1468,9 +1489,11 @@ require_once "./blueprints/gl_ap_start.php"; // includes the start of the genera
         
         // Load existing points on page load
         window.addEventListener('load', function() {
-            // Load point types first, then load existing points
-            loadPointTypes().then(function(typesLoaded) {
-                loadExistingPoints(); // Load existing points after types are loaded
+            // Load maps first, then types, then existing points
+            loadAvailableMaps().then(function() {
+                return loadPointTypes();
+            }).then(function(typesLoaded) {
+                loadExistingPoints(); // Load existing points after maps and types are loaded
             });
             
             // Initial positioning check after page load
@@ -1478,6 +1501,129 @@ require_once "./blueprints/gl_ap_start.php"; // includes the start of the genera
             // Initialize status color
             initializeStatusColor();
         });
+        
+        // === Multi-Map Management Functions ===
+        
+        // Load available maps from database
+        function loadAvailableMaps() {
+            return fetch('./scriptes/maps_manager.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    action: 'get_maps_with_point_counts'
+                })
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.success) {
+                    availableMaps = data.maps;
+                    populateMapSelector();
+                    
+                    // Set default map if not already set
+                    if (!currentMapData && availableMaps.length > 0) {
+                        currentMapId = availableMaps[0].id_map;
+                        switchToMap(currentMapId);
+                    }
+                } else {
+                    console.error('Failed to load maps:', data.message);
+                    showTemporaryMessage('❌ Failed to load available maps', 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Error loading maps:', error);
+                showTemporaryMessage('❌ Connection error while loading maps', 'error');
+            });
+        }
+        
+        // Populate the map selector dropdown
+        function populateMapSelector() {
+            const selector = document.getElementById('map-selector');
+            
+            if (!selector) {
+                console.error('Map selector element not found!');
+                return;
+            }
+            
+            selector.innerHTML = '';
+            
+            availableMaps.forEach(map => {
+                const option = document.createElement('option');
+                option.value = map.id_map;
+                option.textContent = `${map.name_map} (${map.point_count} points)`;
+                selector.appendChild(option);
+            });
+            
+            // Set current selection
+            selector.value = currentMapId;
+            
+            // Add change event listener
+            selector.addEventListener('change', function() {
+                const newMapId = parseInt(this.value);
+                if (newMapId !== currentMapId) {
+                    switchToMap(newMapId);
+                }
+            });
+        }
+        
+        // Switch to a different map
+        function switchToMap(mapId) {
+            // Check for unsaved changes
+            if (hasUnsavedChanges) {
+                if (!confirm('You have unsaved changes. Switching maps will discard them. Continue?')) {
+                    // Revert selector to current map
+                    document.getElementById('map-selector').value = currentMapId;
+                    return;
+                }
+            }
+            
+            currentMapId = mapId;
+            currentMapData = availableMaps.find(m => m.id_map == mapId);
+            
+            if (currentMapData) {
+                // Update map image
+                const mapImage = document.getElementById('interactive-map-image');
+                mapImage.src = currentMapData.image_map;
+                mapImage.alt = currentMapData.name_map;
+                
+                // Update map info display
+                updateMapInfo();
+                
+                // Clear current points and load points for this map
+                clearPointsFromDOM();
+                points = [];
+                hasUnsavedChanges = false;
+                loadExistingPoints();
+                
+                // Update selector to show current selection
+                document.getElementById('map-selector').value = mapId;
+                
+                showTemporaryMessage(`🗺️ Switched to ${currentMapData.name_map}`, 'info');
+            }
+        }
+        
+        // Update map information display
+        function updateMapInfo() {
+            const mapInfo = document.getElementById('map-info');
+            if (currentMapData) {
+                mapInfo.innerHTML = `
+                    <span style="color: #d4af37;">${currentMapData.name_map}</span> |
+                    <span style="color: #f4cf47;">${currentMapData.point_count} points</span>
+                `;
+            }
+        }
+        
+        // Clear all points from DOM without affecting database
+        function clearPointsFromDOM() {
+            const existingPoints = document.querySelectorAll('.map-point');
+            existingPoints.forEach(point => point.remove());
+        }
         
         // Warn user about unsaved changes when leaving the page
         window.addEventListener('beforeunload', function(e) {
