@@ -110,13 +110,13 @@ function createMapForPlace($pdo, $input) {
         return;
     }
     
-    // Create new map
-    $stmt = $pdo->prepare("INSERT INTO maps (name_map, image_map, place_id, created_at) VALUES (?, ?, ?, NOW())");
+    // Create new place-specific map (is_active = 0 to exclude from main map system)
+    $stmt = $pdo->prepare("INSERT INTO maps (name_map, image_map, place_id, is_active, created_at) VALUES (?, ?, ?, 0, NOW())");
     $stmt->execute([$mapName, $mapImage, $placeId]);
     
     $mapId = $pdo->lastInsertId();
     
-    echo json_encode(['success' => true, 'map_id' => $mapId, 'message' => 'Map created successfully']);
+    echo json_encode(['success' => true, 'map_id' => $mapId, 'message' => 'Place-specific map created successfully']);
 }
 
 function getMapData($pdo, $input) {
@@ -127,20 +127,21 @@ function getMapData($pdo, $input) {
         return;
     }
     
-    // Get or create map for this place
+    // Get existing map for this place
     $stmt = $pdo->prepare("SELECT * FROM maps WHERE place_id = ?");
     $stmt->execute([$placeId]);
     $map = $stmt->fetch(PDO::FETCH_ASSOC);
     
     if (!$map) {
-        // Create default map for this place
+        // Create place-specific map automatically (but mark as inactive for main map system)
         $stmt = $pdo->prepare(SQL_SELECT_PLACE_NAME_BY_ID);
         $stmt->execute([$placeId]);
         $place = $stmt->fetch();
         
         $mapName = ($place ? $place['name_IP'] . ' Map' : 'Place Map');
         
-        $stmt = $pdo->prepare("INSERT INTO maps (name_map, image_map, place_id, created_at) VALUES (?, 'default-map.jpg', ?, NOW())");
+        // Create with is_active = 0 so it doesn't appear in main world map selector
+        $stmt = $pdo->prepare("INSERT INTO maps (name_map, image_map, place_id, is_active, created_at) VALUES (?, 'default-map.jpg', ?, 0, NOW())");
         $stmt->execute([$mapName, $placeId]);
         
         $mapId = $pdo->lastInsertId();
@@ -194,9 +195,9 @@ function saveMapPoints($pdo, $input) {
         $place = $stmt->fetch(PDO::FETCH_ASSOC);
         
         if ($place) {
-            // Create a new map for this place
+            // Create a new place-specific map (is_active = 0 to exclude from main map system)
             $mapName = $place['name_IP'] . ' Map';
-            $stmt = $pdo->prepare("INSERT INTO maps (name_map, image_map, place_id) VALUES (?, ?, ?)");
+            $stmt = $pdo->prepare("INSERT INTO maps (name_map, image_map, place_id, is_active) VALUES (?, ?, ?, 0)");
             $stmt->execute([$mapName, 'default-map.jpg', $placeId]);
             $mapId = $pdo->lastInsertId();
         }

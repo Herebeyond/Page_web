@@ -389,3 +389,9 @@ if (str_starts_with($origin, 'https://')) {
 - Troubleshooting files are to be placed in the `Web/.github/troubleshooting/` folder and shouldn't be placed elsewhere.
 - Troubleshooting names should be descriptive and follow the format: `TROUBLESHOOTING_{ISSUE_DESCRIPTION}.md` to ensure no conflicts with other files.
 
+## Commenting
+
+- Use clear and descriptive comments to explain complex logic or important decisions in the code.
+- Include comments for any non-obvious code, especially if it involves security or performance considerations.
+- Keep comments up to date with code changes to avoid confusion.
+- Do not hesitate to add comments to clarify your thought process or the purpose of specific code blocks.

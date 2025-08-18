@@ -36,7 +36,7 @@
                                     echo '
                                         <li class="dropdownFirstLevel">
                                             <div class=liIntro onclick=window.location.href="./' . sanitize_output($page) . '.php">
-                                                <span> ' . sanitize_output($page) . '</span>';
+                                                <span> ' . sanitize_output(str_replace('_', ' ', $page)) . '</span>';
                                                 foreach ($pages as $page2) { // 
                                                     if ($type[$page2] == $page) {
                                                         echo '
@@ -53,7 +53,7 @@
                                             
                                                 <li>
                                                     <div class=liIntro onclick=window.location.href="./' . sanitize_output($page3) . '.php">
-                                                        <span>' . sanitize_output($page3) . '</span>
+                                                        <span>' . sanitize_output(str_replace('_', ' ', $page3)) . '</span>
                                                     </div>
                                                 </li>
                                             ';
@@ -173,7 +173,7 @@
                         echo '
                             <li class="dropdownFirstLevel">
                                 <div class=liIntro onclick=window.location.href="./' . sanitize_output($page) . '.php">
-                                    <span>' . sanitize_output($page) . '</span>
+                                    <span>' . sanitize_output(str_replace('_', ' ', $page)) . '</span>
                                 </div>
                             </li>'; // Link to the corresponding page in the $pages array
                             // The onclick=window.location. allows me to remove the blue underlined link style

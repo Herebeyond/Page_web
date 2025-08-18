@@ -82,12 +82,17 @@ require_once "./blueprints/gl_ap_start.php"; // includes the start of the genera
     
     // Load all folders and points
     function loadAllData() {
-        Promise.all([
-            loadAllMaps(),
-            loadAllFolders(),
-            loadAllPointsFromAllMaps()
-        ]).then(() => {
+        // First load maps, then load folders and points
+        loadAllMaps().then(() => {
+            return Promise.all([
+                loadAllFolders(),
+                loadAllPointsFromAllMaps()
+            ]);
+        }).then(() => {
             displayFoldersList();
+        }).catch(error => {
+            console.error('Error loading data:', error);
+            displayFoldersList(); // Still try to display what we have
         });
     }
     
@@ -146,9 +151,12 @@ require_once "./blueprints/gl_ap_start.php"; // includes the start of the genera
         // Load points from all maps by making separate requests
         const mapPromises = [];
         
+        console.log(`Loading points from ${allMaps.length} maps`);
+        
         // If we have maps loaded, load points for each map
         if (allMaps.length > 0) {
             allMaps.forEach(map => {
+                console.log(`Loading points from map: ${map.name_map} (ID: ${map.id_map})`);
                 const promise = fetch('./scriptes/map_save_points.php', {
                     method: 'POST',
                     headers: {
@@ -162,6 +170,7 @@ require_once "./blueprints/gl_ap_start.php"; // includes the start of the genera
                 .then(response => response.json())
                 .then(data => {
                     if (data.success && data.points) {
+                        console.log(`Loaded ${data.points.length} points from map ${map.name_map}`);
                         // Add map info to each point
                         return data.points.map(point => ({
                             ...point,
@@ -169,11 +178,13 @@ require_once "./blueprints/gl_ap_start.php"; // includes the start of the genera
                             map_id: map.id_map
                         }));
                     }
+                    console.log(`No points found for map ${map.name_map}`);
                     return [];
                 });
                 mapPromises.push(promise);
             });
         } else {
+            console.warn('No maps loaded, falling back to default map ID 1');
             // Fallback: load from default map if no maps are loaded yet
             const promise = fetch('./scriptes/map_save_points.php', {
                 method: 'POST',
@@ -188,6 +199,7 @@ require_once "./blueprints/gl_ap_start.php"; // includes the start of the genera
             .then(response => response.json())
             .then(data => {
                 if (data.success && data.points) {
+                    console.log(`Loaded ${data.points.length} points from fallback map 1`);
                     return data.points.map(point => ({
                         ...point,
                         map_name: 'Surface World',
@@ -239,7 +251,11 @@ require_once "./blueprints/gl_ap_start.php"; // includes the start of the genera
     
     // Check if folder is linked to a point
     function isFolderLinked(folderSlug) {
-        return allPoints.some(point => createSlug(point.name_IP) === folderSlug);
+        const isLinked = allPoints.some(point => createSlug(point.name_IP) === folderSlug);
+        if (!isLinked) {
+            console.log(`Folder "${folderSlug}" not linked. Available points:`, allPoints.map(p => `${p.name_IP} (${createSlug(p.name_IP)}) from map ${p.map_name}`));
+        }
+        return isLinked;
     }
     
     // Get linked point for folder

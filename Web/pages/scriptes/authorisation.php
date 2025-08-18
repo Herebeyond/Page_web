@@ -25,7 +25,8 @@ $authorisation = array(
     'User_profil' => 'hidden',
     'Map_modif' => 'admin',
     'place_detail' => 'hidden',
-    'places_manager' => 'admin'
+    'places_manager' => 'admin',
+    'Ideas' => 'admin'
 );
 
 
@@ -53,7 +54,8 @@ $type = array(
     'User_profil' => 'common',
     'Map_modif' => 'common',
     'place_detail' => 'common',
-    'places_manager' => 'common'
+    'places_manager' => 'common',
+    'Ideas' => 'common'
 );
 
 ?>

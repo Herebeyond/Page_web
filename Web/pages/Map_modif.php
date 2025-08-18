@@ -868,8 +868,7 @@ require_once "./blueprints/gl_ap_start.php"; // includes the start of the genera
                 pointElement.remove();
             }
             
-            // Mark as unsaved
-            markAsUnsaved();
+            // Don't mark as unsaved for deletions - points are either already deleted from DB or were local-only
         }
         
         // Ask if user wants to delete the associated folder
@@ -928,8 +927,7 @@ require_once "./blueprints/gl_ap_start.php"; // includes the start of the genera
                 // Keep only database points
                 points = points.filter(p => p.database_id);
                 
-                // Mark as unsaved since we cleared local points
-                markAsUnsaved();
+                // Don't mark as unsaved - clearing local points doesn't require saving
                 
                 showTemporaryMessage('✅ Local points cleared successfully!', 'success');
             }
