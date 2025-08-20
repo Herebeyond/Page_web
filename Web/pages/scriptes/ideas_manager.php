@@ -4,7 +4,15 @@
  * Handles CRUD operations for the universe ideas system
  */
 
+// Suppress any output that could interfere with JSON response
+ob_start();
+error_reporting(E_ALL & ~E_NOTICE & ~E_WARNING);
+
 require_once '../../login/db.php';
+require_once 'entity_linking.php'; // Include entity linking functionality
+
+// Clean any output that might have been generated
+ob_clean();
 
 // Verify database connection was successful
 if (!isset($pdo) || !$pdo) {
@@ -47,8 +55,27 @@ try {
         case 'export_ideas':
             exportIdeas();
             break;
+        case 'process_all_entity_links':
+            $results = processAllIdeasEntityLinks();
+            echo json_encode([
+                'success' => $results['success'],
+                'message' => $results['message'],
+                'details' => $results
+            ]);
+            break;
+        case 'get_entities':
+            $entities = getAllEntityNames();
+            echo json_encode([
+                'success' => true,
+                'entities' => $entities,
+                'count' => count($entities)
+            ]);
+            break;
         case 'get_stats':
             getStats();
+            break;
+        case 'get_all_tags':
+            getAllTags();
             break;
         case 'bulk_import':
             bulkImport();
@@ -72,7 +99,7 @@ function getIdeas() {
     $offset = ($page - 1) * $limit;
     
     // Build WHERE clause based on filters
-    $where = ['ui.is_active = TRUE'];
+    $where = [];
     $params = [];
     
     if (!empty($_GET['search'])) {
@@ -91,11 +118,6 @@ function getIdeas() {
         $params[] = $_GET['certainty'];
     }
     
-    if (!empty($_GET['priority'])) {
-        $where[] = 'ui.priority = ?';
-        $params[] = $_GET['priority'];
-    }
-    
     if (!empty($_GET['status'])) {
         $where[] = 'ui.status = ?';
         $params[] = $_GET['status'];
@@ -106,7 +128,7 @@ function getIdeas() {
         $params[] = $_GET['parent_id'];
     }
     
-    $whereClause = implode(' AND ', $where);
+    $whereClause = !empty($where) ? implode(' AND ', $where) : '1=1';
     
     // Get total count
     $countQuery = "SELECT COUNT(*) FROM universe_ideas ui WHERE $whereClause";
@@ -116,9 +138,11 @@ function getIdeas() {
     
     // Get ideas with pagination
     $query = "
-        SELECT ui.*, 
+        SELECT ui.id_idea, ui.title, ui.content, ui.category, ui.certainty_level, 
+               ui.status, ui.tags, ui.parent_idea_id, ui.comments, ui.inspiration_source,
+               ui.created_at, ui.updated_at,
                COALESCE(parent.title, 'Root Idea') as parent_title,
-               (SELECT COUNT(*) FROM universe_ideas WHERE parent_idea_id = ui.id_idea AND is_active = TRUE) as child_count
+               (SELECT COUNT(*) FROM universe_ideas WHERE parent_idea_id = ui.id_idea) as child_count
         FROM universe_ideas ui
         LEFT JOIN universe_ideas parent ON ui.parent_idea_id = parent.id_idea
         WHERE $whereClause
@@ -129,6 +153,14 @@ function getIdeas() {
     $stmt = $pdo->prepare($query);
     $stmt->execute($params);
     $ideas = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    
+    // Process entity links for each idea's content before returning
+    foreach ($ideas as &$idea) {
+        if (!empty($idea['content'])) {
+            $idea['content'] = processEntityLinks($idea['content'], true); // true = for display only
+        }
+    }
+    unset($idea); // Break the reference
     
     // Get statistics
     $stats = getStatistics();
@@ -152,12 +184,14 @@ function getIdea() {
     }
     
     $query = "
-        SELECT ui.*, 
+        SELECT ui.id_idea, ui.title, ui.content, ui.category, ui.certainty_level, 
+               ui.status, ui.tags, ui.parent_idea_id, ui.comments, ui.inspiration_source,
+               ui.created_at, ui.updated_at,
                COALESCE(parent.title, 'Root Idea') as parent_title,
-               (SELECT COUNT(*) FROM universe_ideas WHERE parent_idea_id = ui.id_idea AND is_active = TRUE) as child_count
+               (SELECT COUNT(*) FROM universe_ideas WHERE parent_idea_id = ui.id_idea) as child_count
         FROM universe_ideas ui
         LEFT JOIN universe_ideas parent ON ui.parent_idea_id = parent.id_idea
-        WHERE ui.id_idea = ? AND ui.is_active = TRUE
+        WHERE ui.id_idea = ?
     ";
     
     $stmt = $pdo->prepare($query);
@@ -166,6 +200,11 @@ function getIdea() {
     
     if (!$idea) {
         throw new Exception('Idea not found');
+    }
+    
+    // Process entity links for the idea's content before returning
+    if (!empty($idea['content'])) {
+        $idea['content'] = processEntityLinks($idea['content'], true); // true = for display only
     }
     
     echo json_encode([
@@ -191,14 +230,9 @@ function createIdea() {
         'content' => trim($_POST['content']),
         'category' => $_POST['category'],
         'certainty_level' => $_POST['certainty_level'],
-        'priority' => $_POST['priority'] ?? 'Medium',
         'status' => $_POST['status'] ?? 'Draft',
-        'language' => $_POST['language'] ?? 'French',
-        'world_impact' => $_POST['world_impact'] ?? 'Local',
-        'ease_of_modification' => $_POST['ease_of_modification'] ?? 'Medium',
         'tags' => !empty($_POST['tags']) ? $_POST['tags'] : null,
         'parent_idea_id' => !empty($_POST['parent_idea_id']) ? intval($_POST['parent_idea_id']) : null,
-        'implementation_notes' => !empty($_POST['implementation_notes']) ? trim($_POST['implementation_notes']) : null,
         'comments' => !empty($_POST['comments']) ? trim($_POST['comments']) : null,
         'inspiration_source' => !empty($_POST['inspiration_source']) ? trim($_POST['inspiration_source']) : null
     ];
@@ -206,11 +240,7 @@ function createIdea() {
     // Validate enums
     $validCategories = ['Magic_Systems', 'Creatures', 'Gods_Demons', 'Dimensions_Realms', 'Physics_Reality', 'Races_Beings', 'Items_Artifacts', 'Lore_History', 'Geography', 'Politics', 'Technology', 'Culture', 'Other'];
     $validCertainties = ['Idea', 'Not_Sure', 'Developing', 'Established', 'Canon'];
-    $validPriorities = ['Low', 'Medium', 'High', 'Critical'];
-    $validStatuses = ['Draft', 'In_Progress', 'Review', 'Finalized', 'Archived'];
-    $validLanguages = ['French', 'English', 'Mixed'];
-    $validImpacts = ['Local', 'Regional', 'Global', 'Universal', 'Dimensional'];
-    $validEases = ['Easy', 'Medium', 'Hard', 'Core_Element'];
+    $validStatuses = ['Draft', 'In_Progress', 'Review', 'Finalized', 'Archived', 'Need_Correction'];
     
     if (!in_array($data['category'], $validCategories)) {
         throw new Exception('Invalid category');
@@ -218,25 +248,13 @@ function createIdea() {
     if (!in_array($data['certainty_level'], $validCertainties)) {
         throw new Exception('Invalid certainty level');
     }
-    if (!in_array($data['priority'], $validPriorities)) {
-        throw new Exception('Invalid priority');
-    }
     if (!in_array($data['status'], $validStatuses)) {
         throw new Exception('Invalid status');
-    }
-    if (!in_array($data['language'], $validLanguages)) {
-        throw new Exception('Invalid language');
-    }
-    if (!in_array($data['world_impact'], $validImpacts)) {
-        throw new Exception('Invalid world impact');
-    }
-    if (!in_array($data['ease_of_modification'], $validEases)) {
-        throw new Exception('Invalid ease of modification');
     }
     
     // Validate parent idea exists if provided
     if ($data['parent_idea_id']) {
-        $stmt = $pdo->prepare("SELECT id_idea FROM universe_ideas WHERE id_idea = ? AND is_active = TRUE");
+        $stmt = $pdo->prepare("SELECT id_idea FROM universe_ideas WHERE id_idea = ?");
         $stmt->execute([$data['parent_idea_id']]);
         if (!$stmt->fetch()) {
             throw new Exception('Parent idea not found');
@@ -253,22 +271,25 @@ function createIdea() {
     
     $query = "
         INSERT INTO universe_ideas (
-            title, content, category, certainty_level, priority, status, language,
-            world_impact, ease_of_modification, tags, parent_idea_id, 
-            implementation_notes, comments, inspiration_source
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            title, content, category, certainty_level, status,
+            tags, parent_idea_id, 
+            comments, inspiration_source
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
     ";
     
     $stmt = $pdo->prepare($query);
     $success = $stmt->execute([
         $data['title'], $data['content'], $data['category'], $data['certainty_level'],
-        $data['priority'], $data['status'], $data['language'], $data['world_impact'],
-        $data['ease_of_modification'], $data['tags'], $data['parent_idea_id'],
-        $data['implementation_notes'], $data['comments'], $data['inspiration_source']
+        $data['status'], $data['tags'], $data['parent_idea_id'],
+        $data['comments'], $data['inspiration_source']
     ]);
     
     if ($success) {
         $ideaId = $pdo->lastInsertId();
+        
+        // Process entity links in the content
+        processIdeaEntityLinks($ideaId);
+        
         echo json_encode([
             'success' => true,
             'message' => 'Idea created successfully',
@@ -288,7 +309,7 @@ function updateIdea() {
     }
     
     // Check if idea exists
-    $stmt = $pdo->prepare("SELECT id_idea FROM universe_ideas WHERE id_idea = ? AND is_active = TRUE");
+    $stmt = $pdo->prepare("SELECT id_idea FROM universe_ideas WHERE id_idea = ?");
     $stmt->execute([$id]);
     if (!$stmt->fetch()) {
         throw new Exception('Idea not found');
@@ -308,14 +329,9 @@ function updateIdea() {
         'content' => trim($_POST['content']),
         'category' => $_POST['category'],
         'certainty_level' => $_POST['certainty_level'],
-        'priority' => $_POST['priority'] ?? 'Medium',
         'status' => $_POST['status'] ?? 'Draft',
-        'language' => $_POST['language'] ?? 'French',
-        'world_impact' => $_POST['world_impact'] ?? 'Local',
-        'ease_of_modification' => $_POST['ease_of_modification'] ?? 'Medium',
         'tags' => !empty($_POST['tags']) ? $_POST['tags'] : null,
         'parent_idea_id' => !empty($_POST['parent_idea_id']) ? intval($_POST['parent_idea_id']) : null,
-        'implementation_notes' => !empty($_POST['implementation_notes']) ? trim($_POST['implementation_notes']) : null,
         'comments' => !empty($_POST['comments']) ? trim($_POST['comments']) : null,
         'inspiration_source' => !empty($_POST['inspiration_source']) ? trim($_POST['inspiration_source']) : null
     ];
@@ -334,22 +350,23 @@ function updateIdea() {
     
     $query = "
         UPDATE universe_ideas SET 
-            title = ?, content = ?, category = ?, certainty_level = ?, priority = ?, 
-            status = ?, language = ?, world_impact = ?, ease_of_modification = ?, 
-            tags = ?, parent_idea_id = ?, implementation_notes = ?, comments = ?, 
-            inspiration_source = ?, updated_at = CURRENT_TIMESTAMP
+            title = ?, content = ?, category = ?, certainty_level = ?, 
+            status = ?, tags = ?, parent_idea_id = ?, 
+            comments = ?, inspiration_source = ?, updated_at = CURRENT_TIMESTAMP
         WHERE id_idea = ?
     ";
     
     $stmt = $pdo->prepare($query);
     $success = $stmt->execute([
         $data['title'], $data['content'], $data['category'], $data['certainty_level'],
-        $data['priority'], $data['status'], $data['language'], $data['world_impact'],
-        $data['ease_of_modification'], $data['tags'], $data['parent_idea_id'],
-        $data['implementation_notes'], $data['comments'], $data['inspiration_source'], $id
+        $data['status'], $data['tags'], $data['parent_idea_id'],
+        $data['comments'], $data['inspiration_source'], $id
     ]);
     
     if ($success) {
+        // Process entity links in the updated content
+        processIdeaEntityLinks($id);
+        
         echo json_encode([
             'success' => true,
             'message' => 'Idea updated successfully'
@@ -368,14 +385,14 @@ function deleteIdea() {
     }
     
     // Check if idea exists
-    $stmt = $pdo->prepare("SELECT id_idea FROM universe_ideas WHERE id_idea = ? AND is_active = TRUE");
+    $stmt = $pdo->prepare("SELECT id_idea FROM universe_ideas WHERE id_idea = ?");
     $stmt->execute([$id]);
     if (!$stmt->fetch()) {
         throw new Exception('Idea not found');
     }
     
     // Check if idea has children
-    $stmt = $pdo->prepare("SELECT COUNT(*) FROM universe_ideas WHERE parent_idea_id = ? AND is_active = TRUE");
+    $stmt = $pdo->prepare("SELECT COUNT(*) FROM universe_ideas WHERE parent_idea_id = ?");
     $stmt->execute([$id]);
     $childCount = $stmt->fetchColumn();
     
@@ -384,8 +401,8 @@ function deleteIdea() {
         $pdo->prepare("UPDATE universe_ideas SET parent_idea_id = NULL WHERE parent_idea_id = ?")->execute([$id]);
     }
     
-    // Soft delete the idea
-    $stmt = $pdo->prepare("UPDATE universe_ideas SET is_active = FALSE, updated_at = CURRENT_TIMESTAMP WHERE id_idea = ?");
+    // Actually delete the idea from the database
+    $stmt = $pdo->prepare("DELETE FROM universe_ideas WHERE id_idea = ?");
     $success = $stmt->execute([$id]);
     
     if ($success) {
@@ -404,7 +421,6 @@ function getParentOptions() {
     $query = "
         SELECT id_idea, title 
         FROM universe_ideas 
-        WHERE is_active = TRUE 
         ORDER BY title ASC
     ";
     
@@ -423,19 +439,19 @@ function getStatistics() {
     $stats = [];
     
     // Total ideas
-    $stmt = $pdo->query("SELECT COUNT(*) FROM universe_ideas WHERE is_active = TRUE");
+    $stmt = $pdo->query("SELECT COUNT(*) FROM universe_ideas");
     $stats['total'] = $stmt->fetchColumn();
     
     // Canon ideas
-    $stmt = $pdo->query("SELECT COUNT(*) FROM universe_ideas WHERE is_active = TRUE AND certainty_level = 'Canon'");
+    $stmt = $pdo->query("SELECT COUNT(*) FROM universe_ideas WHERE certainty_level = 'Canon'");
     $stats['canon'] = $stmt->fetchColumn();
     
     // Developing ideas
-    $stmt = $pdo->query("SELECT COUNT(*) FROM universe_ideas WHERE is_active = TRUE AND certainty_level = 'Developing'");
+    $stmt = $pdo->query("SELECT COUNT(*) FROM universe_ideas WHERE certainty_level = 'Developing'");
     $stats['developing'] = $stmt->fetchColumn();
     
     // Categories count
-    $stmt = $pdo->query("SELECT COUNT(DISTINCT category) FROM universe_ideas WHERE is_active = TRUE");
+    $stmt = $pdo->query("SELECT COUNT(DISTINCT category) FROM universe_ideas");
     $stats['categories'] = $stmt->fetchColumn();
     
     return $stats;
@@ -451,13 +467,17 @@ function getStats() {
 function exportIdeas() {
     global $pdo;
     
+    // Clear any previous output for CSV export
+    if (ob_get_length()) ob_clean();
+    
     $query = "
-        SELECT ui.*, 
+        SELECT ui.id_idea, ui.title, ui.content, ui.category, ui.certainty_level, 
+               ui.status, ui.tags, ui.parent_idea_id, ui.comments, ui.inspiration_source,
+               ui.created_at, ui.updated_at,
                COALESCE(parent.title, 'Root Idea') as parent_title,
-               (SELECT COUNT(*) FROM universe_ideas WHERE parent_idea_id = ui.id_idea AND is_active = TRUE) as child_count
+               (SELECT COUNT(*) FROM universe_ideas WHERE parent_idea_id = ui.id_idea) as child_count
         FROM universe_ideas ui
         LEFT JOIN universe_ideas parent ON ui.parent_idea_id = parent.id_idea
-        WHERE ui.is_active = TRUE
         ORDER BY ui.category, ui.title
     ";
     
@@ -476,9 +496,8 @@ function exportIdeas() {
     
     // Add CSV headers
     $headers = [
-        'ID', 'Title', 'Category', 'Certainty Level', 'Priority', 'Status', 'Language',
-        'World Impact', 'Ease of Modification', 'Parent Title', 'Child Count', 'Tags',
-        'Content', 'Implementation Notes', 'Comments', 'Inspiration Source', 'Created At', 'Updated At'
+        'ID', 'Title', 'Category', 'Certainty Level', 'Status', 'Parent Title', 'Child Count', 'Tags',
+        'Content', 'Comments', 'Inspiration Source', 'Created At', 'Updated At'
     ];
     
     fputcsv($output, $headers);
@@ -492,18 +511,13 @@ function exportIdeas() {
             $idea['title'],
             str_replace('_', ' ', $idea['category']),
             str_replace('_', ' ', $idea['certainty_level']),
-            $idea['priority'],
             str_replace('_', ' ', $idea['status']),
-            $idea['language'],
-            $idea['world_impact'],
-            str_replace('_', ' ', $idea['ease_of_modification']),
             $idea['parent_title'],
             $idea['child_count'],
             $tags,
             $idea['content'],
-            $idea['implementation_notes'],
-            $idea['comments'],
-            $idea['inspiration_source'],
+            $idea['comments'] ?? '',
+            $idea['inspiration_source'] ?? '',
             $idea['created_at'],
             $idea['updated_at']
         ];
@@ -529,7 +543,7 @@ function hasCircularReference($ideaId, $parentId) {
         $visited[] = $currentParent;
         
         // Get the parent of current parent
-        $stmt = $pdo->prepare("SELECT parent_idea_id FROM universe_ideas WHERE id_idea = ? AND is_active = TRUE");
+        $stmt = $pdo->prepare("SELECT parent_idea_id FROM universe_ideas WHERE id_idea = ?");
         $stmt->execute([$currentParent]);
         $result = $stmt->fetch(PDO::FETCH_ASSOC);
         
@@ -545,7 +559,6 @@ function bulkImport() {
     $ideasText = $_POST['ideasText'] ?? '';
     $defaultCategory = $_POST['defaultCategory'] ?? 'Other';
     $defaultCertainty = $_POST['defaultCertainty'] ?? 'Idea';
-    $defaultLanguage = $_POST['defaultLanguage'] ?? 'French';
     
     if (empty($ideasText)) {
         throw new Exception('No ideas text provided');
@@ -563,7 +576,7 @@ function bulkImport() {
         
         try {
             // Parse the idea text
-            $idea = parseIdeaText($rawIdea, $defaultCategory, $defaultCertainty, $defaultLanguage);
+            $idea = parseIdeaText($rawIdea, $defaultCategory, $defaultCertainty);
             
             if (empty($idea['title']) || empty($idea['content'])) {
                 $errors[] = "Idea " . ($index + 1) . ": Missing title or content";
@@ -573,9 +586,9 @@ function bulkImport() {
             // Insert the idea
             $query = "
                 INSERT INTO universe_ideas (
-                    title, content, category, certainty_level, language, tags, 
-                    priority, status, world_impact, ease_of_modification
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    title, content, category, certainty_level, tags, 
+                    status
+                ) VALUES (?, ?, ?, ?, ?, ?)
             ";
             
             $stmt = $pdo->prepare($query);
@@ -584,12 +597,8 @@ function bulkImport() {
                 $idea['content'],
                 $idea['category'],
                 $idea['certainty_level'],
-                $idea['language'],
                 $idea['tags'],
-                $idea['priority'],
-                $idea['status'],
-                $idea['world_impact'],
-                $idea['ease_of_modification']
+                $idea['status']
             ]);
             
             if ($success) {
@@ -612,19 +621,15 @@ function bulkImport() {
     ]);
 }
 
-function parseIdeaText($text, $defaultCategory, $defaultCertainty, $defaultLanguage) {
+function parseIdeaText($text, $defaultCategory, $defaultCertainty) {
     $lines = explode("\n", $text);
     $idea = [
         'title' => '',
         'content' => '',
         'category' => $defaultCategory,
         'certainty_level' => $defaultCertainty,
-        'language' => $defaultLanguage,
         'tags' => null,
-        'priority' => 'Medium',
-        'status' => 'Draft',
-        'world_impact' => 'Local',
-        'ease_of_modification' => 'Medium'
+        'status' => 'Draft'
     ];
     
     $currentSection = '';
@@ -635,7 +640,7 @@ function parseIdeaText($text, $defaultCategory, $defaultCertainty, $defaultLangu
         if (empty($line)) continue;
         
         // Check for field definitions
-        if (preg_match('/^(Title|Content|Tags|Category|Certainty|Language|Priority|Status|Impact|Ease):\s*(.*)$/i', $line, $matches)) {
+        if (preg_match('/^(Title|Content|Tags|Category|Certainty|Status):\s*(.*)$/i', $line, $matches)) {
             // Save previous content if we were building content
             if ($currentSection === 'content' && !empty($contentLines)) {
                 $idea['content'] = implode("\n", $contentLines);
@@ -679,12 +684,12 @@ function parseIdeaText($text, $defaultCategory, $defaultCertainty, $defaultLangu
                     }
                     $currentSection = 'certainty';
                     break;
-                case 'language':
-                    $validLanguages = ['French', 'English', 'Mixed'];
-                    if (in_array($value, $validLanguages)) {
-                        $idea['language'] = $value;
+                case 'status':
+                    $validStatuses = ['Draft', 'In_Progress', 'Review', 'Finalized', 'Archived'];
+                    if (in_array($value, $validStatuses)) {
+                        $idea['status'] = $value;
                     }
-                    $currentSection = 'language';
+                    $currentSection = 'status';
                     break;
                 default:
                     $currentSection = '';
@@ -703,5 +708,43 @@ function parseIdeaText($text, $defaultCategory, $defaultCertainty, $defaultLangu
     }
     
     return $idea;
+}
+
+function getAllTags() {
+    global $pdo;
+    
+    try {
+        $query = "
+            SELECT DISTINCT tags 
+            FROM universe_ideas 
+            WHERE tags IS NOT NULL AND tags != ''
+        ";
+        
+        $stmt = $pdo->prepare($query);
+        $stmt->execute();
+        $results = $stmt->fetchAll(PDO::FETCH_COLUMN);
+        
+        $allTags = [];
+        foreach ($results as $tagJson) {
+            $tags = json_decode($tagJson, true);
+            if (is_array($tags)) {
+                $allTags = array_merge($allTags, $tags);
+            }
+        }
+        
+        // Remove duplicates and sort
+        $allTags = array_unique($allTags);
+        sort($allTags);
+        
+        echo json_encode([
+            'success' => true,
+            'tags' => array_values($allTags)
+        ]);
+    } catch (Exception $e) {
+        echo json_encode([
+            'success' => false,
+            'message' => 'Error fetching tags: ' . $e->getMessage()
+        ]);
+    }
 }
 ?>

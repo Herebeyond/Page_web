@@ -3,358 +3,6 @@ require_once "./blueprints/page_init.php";
 require_once "./blueprints/gl_ap_start.php";
 ?>
 
-<style>
-/* Ideas Management Specific Styles */
-.ideas-container {
-    max-width: 1400px;
-    margin: 0 auto;
-    padding: 20px;
-}
-
-.ideas-header {
-    text-align: center;
-    margin-bottom: 30px;
-    border-bottom: 3px solid #222088;
-    padding-bottom: 20px;
-}
-
-.ideas-controls {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 15px;
-    margin-bottom: 30px;
-    padding: 20px;
-    background: linear-gradient(135deg, #f8f9ff 0%, #e8ecff 100%);
-    border-radius: 10px;
-    box-shadow: 0 2px 10px rgba(34, 32, 136, 0.1);
-}
-
-.control-group {
-    display: flex;
-    flex-direction: column;
-    min-width: 150px;
-}
-
-.control-group label {
-    font-weight: bold;
-    color: #222088;
-    margin-bottom: 5px;
-}
-
-.control-group select,
-.control-group input {
-    padding: 8px 12px;
-    border: 2px solid #ddd;
-    border-radius: 5px;
-    font-size: 14px;
-    transition: border-color 0.3s;
-}
-
-.control-group select:focus,
-.control-group input:focus {
-    border-color: #222088;
-    outline: none;
-}
-
-.btn-primary {
-    background: linear-gradient(135deg, #222088 0%, #4a47a3 100%);
-    color: white;
-    border: none;
-    padding: 10px 20px;
-    border-radius: 5px;
-    cursor: pointer;
-    font-weight: bold;
-    transition: all 0.3s;
-}
-
-.btn-primary:hover {
-    background: linear-gradient(135deg, #1a1766 0%, #3d3a89 100%);
-    transform: translateY(-2px);
-    box-shadow: 0 4px 15px rgba(34, 32, 136, 0.3);
-}
-
-.btn-secondary {
-    background: linear-gradient(135deg, #6c757d 0%, #5a6268 100%);
-    color: white;
-    border: none;
-    padding: 8px 16px;
-    border-radius: 5px;
-    cursor: pointer;
-    font-size: 14px;
-    transition: all 0.3s;
-}
-
-.btn-secondary:hover {
-    background: linear-gradient(135deg, #5a6268 0%, #495057 100%);
-}
-
-.ideas-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
-    gap: 20px;
-    margin-bottom: 30px;
-}
-
-.idea-card {
-    background: white;
-    border-radius: 10px;
-    padding: 20px;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-    transition: all 0.3s;
-    border-left: 5px solid #222088;
-}
-
-.idea-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 8px 25px rgba(34, 32, 136, 0.2);
-}
-
-.idea-title {
-    font-size: 18px;
-    font-weight: bold;
-    color: #222088;
-    margin-bottom: 10px;
-    line-height: 1.3;
-}
-
-.idea-meta {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-    margin-bottom: 15px;
-}
-
-.idea-badge {
-    padding: 4px 8px;
-    border-radius: 15px;
-    font-size: 12px;
-    font-weight: bold;
-    text-transform: uppercase;
-}
-
-.badge-category {
-    background: #e3f2fd;
-    color: #1976d2;
-}
-
-.badge-certainty-idea { background: #fff3e0; color: #f57c00; }
-.badge-certainty-not_sure { background: #ffebee; color: #d32f2f; }
-.badge-certainty-developing { background: #e8f5e8; color: #388e3c; }
-.badge-certainty-established { background: #e3f2fd; color: #1976d2; }
-.badge-certainty-canon { background: #f3e5f5; color: #7b1fa2; }
-
-.badge-priority-low { background: #f1f8e9; color: #689f38; }
-.badge-priority-medium { background: #fff8e1; color: #ffa000; }
-.badge-priority-high { background: #ffebee; color: #d32f2f; }
-.badge-priority-critical { background: #4a148c; color: white; }
-
-.idea-content {
-    color: #555;
-    line-height: 1.6;
-    margin-bottom: 15px;
-    max-height: 150px;
-    overflow-y: auto;
-    border-left: 3px solid #e0e0e0;
-    padding-left: 15px;
-}
-
-.idea-tags {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 5px;
-    margin-bottom: 15px;
-}
-
-.tag {
-    background: #f5f5f5;
-    color: #666;
-    padding: 3px 8px;
-    border-radius: 10px;
-    font-size: 11px;
-}
-
-.idea-actions {
-    display: flex;
-    gap: 10px;
-    justify-content: flex-end;
-}
-
-.idea-hierarchy {
-    margin-bottom: 10px;
-    font-size: 12px;
-    color: #666;
-}
-
-.parent-link {
-    color: #222088;
-    text-decoration: none;
-    font-weight: bold;
-}
-
-.parent-link:hover {
-    text-decoration: underline;
-}
-
-.child-count {
-    background: #222088;
-    color: white;
-    padding: 2px 6px;
-    border-radius: 10px;
-    font-size: 10px;
-    margin-left: 5px;
-}
-
-/* Modal Styles */
-.modal {
-    display: none;
-    position: fixed;
-    z-index: 1000;
-    left: 0;
-    top: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.5);
-    backdrop-filter: blur(5px);
-}
-
-.modal-content {
-    background-color: white;
-    margin: 2% auto;
-    padding: 30px;
-    border-radius: 15px;
-    width: 90%;
-    max-width: 800px;
-    max-height: 90vh;
-    overflow-y: auto;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-}
-
-.modal-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 20px;
-    border-bottom: 2px solid #222088;
-    padding-bottom: 15px;
-}
-
-.modal-title {
-    color: #222088;
-    font-size: 24px;
-    font-weight: bold;
-}
-
-.close {
-    color: #aaa;
-    font-size: 28px;
-    font-weight: bold;
-    cursor: pointer;
-    transition: color 0.3s;
-}
-
-.close:hover {
-    color: #222088;
-}
-
-.form-group {
-    margin-bottom: 20px;
-}
-
-.form-group label {
-    display: block;
-    margin-bottom: 5px;
-    font-weight: bold;
-    color: #333;
-}
-
-.form-group input,
-.form-group select,
-.form-group textarea {
-    width: 100%;
-    padding: 10px;
-    border: 2px solid #ddd;
-    border-radius: 5px;
-    font-size: 14px;
-    font-family: inherit;
-    transition: border-color 0.3s;
-}
-
-.form-group input:focus,
-.form-group select:focus,
-.form-group textarea:focus {
-    border-color: #222088;
-    outline: none;
-}
-
-.form-group textarea {
-    min-height: 120px;
-    resize: vertical;
-}
-
-.form-row {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 20px;
-}
-
-@media (max-width: 768px) {
-    .form-row {
-        grid-template-columns: 1fr;
-    }
-    
-    .ideas-grid {
-        grid-template-columns: 1fr;
-    }
-    
-    .ideas-controls {
-        flex-direction: column;
-    }
-}
-
-.stats-section {
-    background: linear-gradient(135deg, #222088 0%, #4a47a3 100%);
-    color: white;
-    padding: 20px;
-    border-radius: 10px;
-    margin-bottom: 30px;
-}
-
-.stats-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-    gap: 20px;
-    text-align: center;
-}
-
-.stat-item h3 {
-    font-size: 24px;
-    margin-bottom: 5px;
-}
-
-.stat-item p {
-    font-size: 14px;
-    opacity: 0.9;
-}
-
-/* Import and Quick Add Modal Specific Styles */
-.results-section {
-    padding: 15px;
-    background: #f8f9ff;
-    border-radius: 8px;
-    border: 1px solid #222088;
-}
-
-.success {
-    color: #28a745;
-    font-weight: bold;
-}
-
-.error {
-    color: #dc3545;
-    font-weight: bold;
-}
-</style>
-
 <div class="content-page">
     <div class="ideas-container">
         <div class="ideas-header">
@@ -424,21 +72,11 @@ require_once "./blueprints/gl_ap_start.php";
             </div>
             
             <div class="control-group">
-                <label for="priorityFilter">Priority</label>
-                <select id="priorityFilter">
-                    <option value="">All Priorities</option>
-                    <option value="Low">Low</option>
-                    <option value="Medium">Medium</option>
-                    <option value="High">High</option>
-                    <option value="Critical">Critical</option>
-                </select>
-            </div>
-            
-            <div class="control-group">
                 <label for="statusFilter">Status</label>
                 <select id="statusFilter">
                     <option value="">All Status</option>
                     <option value="Draft">Draft</option>
+                    <option value="Need_Correction">Need Correction</option>
                     <option value="In_Progress">In Progress</option>
                     <option value="Review">Review</option>
                     <option value="Finalized">Finalized</option>
@@ -465,6 +103,11 @@ require_once "./blueprints/gl_ap_start.php";
                 <label>&nbsp;</label>
                 <button class="btn-secondary" onclick="exportIdeas()">� Export Ideas</button>
             </div>
+
+            <div class="control-group">
+                <label>&nbsp;</label>
+                <button class="btn-warning" onclick="processAllEntityLinks()" id="processLinksBtn">🔗 Process Entity Links</button>
+            </div>
         </div>
 
         <!-- Ideas Grid -->
@@ -484,9 +127,11 @@ require_once "./blueprints/gl_ap_start.php";
 <!-- Idea Modal -->
 <div id="ideaModal" class="modal">
     <div class="modal-content">
+        <!-- Fixed Close Button -->
+        <span class="close close-fixed" onclick="closeIdeaModal()" title="Close Modal">&times;</span>
+        
         <div class="modal-header">
             <h2 class="modal-title" id="modalTitle">Add New Idea</h2>
-            <span class="close" onclick="closeIdeaModal()">&times;</span>
         </div>
         
         <form id="ideaForm">
@@ -529,49 +174,16 @@ require_once "./blueprints/gl_ap_start.php";
                 </div>
             </div>
             
-            <div class="form-row">
-                <div class="form-group">
-                    <label for="ideaPriority">Priority</label>
-                    <select id="ideaPriority" name="priority">
-                        <option value="Low">Low</option>
-                        <option value="Medium">Medium</option>
-                        <option value="High">High</option>
-                        <option value="Critical">Critical</option>
-                    </select>
-                </div>
-                
-                <div class="form-group">
-                    <label for="ideaStatus">Status</label>
-                    <select id="ideaStatus" name="status">
-                        <option value="Draft">Draft</option>
-                        <option value="In_Progress">In Progress</option>
-                        <option value="Review">Review</option>
-                        <option value="Finalized">Finalized</option>
-                        <option value="Archived">Archived</option>
-                    </select>
-                </div>
-            </div>
-            
-            <div class="form-row">
-                <div class="form-group">
-                    <label for="ideaLanguage">Language</label>
-                    <select id="ideaLanguage" name="language">
-                        <option value="French">French</option>
-                        <option value="English">English</option>
-                        <option value="Mixed">Mixed</option>
-                    </select>
-                </div>
-                
-                <div class="form-group">
-                    <label for="ideaWorldImpact">World Impact</label>
-                    <select id="ideaWorldImpact" name="world_impact">
-                        <option value="Local">Local</option>
-                        <option value="Regional">Regional</option>
-                        <option value="Global">Global</option>
-                        <option value="Universal">Universal</option>
-                        <option value="Dimensional">Dimensional</option>
-                    </select>
-                </div>
+            <div class="form-group">
+                <label for="ideaStatus">Status</label>
+                <select id="ideaStatus" name="status">
+                    <option value="Draft">Draft</option>
+                    <option value="Need_Correction">Need Correction</option>
+                    <option value="In_Progress">In Progress</option>
+                    <option value="Review">Review</option>
+                    <option value="Finalized">Finalized</option>
+                    <option value="Archived">Archived</option>
+                </select>
             </div>
             
             <div class="form-group">
@@ -582,6 +194,12 @@ require_once "./blueprints/gl_ap_start.php";
             <div class="form-group">
                 <label for="ideaTags">Tags</label>
                 <input type="text" id="ideaTags" name="tags" placeholder="Enter tags separated by commas: magic, demons, reality">
+                <div id="existingTagsContainer" class="existing-tags-container">
+                    <label>Existing Tags:</label>
+                    <div id="existingTagsList" class="existing-tags-list">
+                        <!-- Will be populated by JavaScript -->
+                    </div>
+                </div>
             </div>
             
             <div class="form-group">
@@ -592,26 +210,9 @@ require_once "./blueprints/gl_ap_start.php";
                 </select>
             </div>
             
-            <div class="form-row">
-                <div class="form-group">
-                    <label for="ideaEase">Ease of Modification</label>
-                    <select id="ideaEase" name="ease_of_modification">
-                        <option value="Easy">Easy</option>
-                        <option value="Medium">Medium</option>
-                        <option value="Hard">Hard</option>
-                        <option value="Core_Element">Core Element</option>
-                    </select>
-                </div>
-                
-                <div class="form-group">
-                    <label for="ideaSource">Inspiration Source</label>
-                    <input type="text" id="ideaSource" name="inspiration_source" placeholder="Where did this idea come from?">
-                </div>
-            </div>
-            
             <div class="form-group">
-                <label for="ideaImplementation">Implementation Notes</label>
-                <textarea id="ideaImplementation" name="implementation_notes" placeholder="How to implement or use this idea..."></textarea>
+                <label for="ideaSource">Inspiration Source</label>
+                <input type="text" id="ideaSource" name="inspiration_source" placeholder="Where did this idea come from?">
             </div>
             
             <div class="form-group">
@@ -630,9 +231,11 @@ require_once "./blueprints/gl_ap_start.php";
 <!-- Quick Add Modal -->
 <div id="quickAddModal" class="modal">
     <div class="modal-content">
+        <!-- Fixed Close Button -->
+        <span class="close close-fixed" onclick="closeQuickAddModal()" title="Close Modal">&times;</span>
+        
         <div class="modal-header">
             <h2 class="modal-title">✨ Quick Add Single Idea</h2>
-            <span class="close" onclick="closeQuickAddModal()">&times;</span>
         </div>
         
         <form id="quickAddForm">
@@ -681,6 +284,12 @@ require_once "./blueprints/gl_ap_start.php";
             <div class="form-group">
                 <label for="quickTags">Tags (comma separated)</label>
                 <input type="text" id="quickTags" name="quickTags" placeholder="tag1, tag2, tag3">
+                <div id="quickExistingTagsContainer" class="existing-tags-container">
+                    <label>Existing Tags:</label>
+                    <div id="quickExistingTagsList" class="existing-tags-list">
+                        <!-- Will be populated by JavaScript -->
+                    </div>
+                </div>
             </div>
             
             <div id="quickAddResults" class="results-section" style="display: none; margin-top: 15px;">
@@ -698,9 +307,11 @@ require_once "./blueprints/gl_ap_start.php";
 <!-- Bulk Import Modal -->
 <div id="bulkImportModal" class="modal">
     <div class="modal-content" style="max-width: 900px;">
+        <!-- Fixed Close Button -->
+        <span class="close close-fixed" onclick="closeBulkImportModal()" title="Close Modal">&times;</span>
+        
         <div class="modal-header">
             <h2 class="modal-title">📥 Bulk Import Ideas</h2>
-            <span class="close" onclick="closeBulkImportModal()">&times;</span>
         </div>
         
         <div style="background: #f8f9ff; border-left: 4px solid #222088; padding: 15px; margin-bottom: 20px; border-radius: 0 8px 8px 0;">
@@ -765,15 +376,6 @@ Tags: tag1, tag2, tag3</div>
                 </div>
             </div>
             
-            <div class="form-group">
-                <label for="defaultLanguage">Default Language</label>
-                <select id="defaultLanguage" name="defaultLanguage">
-                    <option value="French">French</option>
-                    <option value="English">English</option>
-                    <option value="Mixed">Mixed</option>
-                </select>
-            </div>
-            
             <div id="importResults" class="results-section" style="display: none; margin-top: 15px;">
                 <h3>Import Results:</h3>
                 <div id="resultsContent"></div>
@@ -807,26 +409,13 @@ function setupEventListeners() {
     document.getElementById('searchInput').addEventListener('input', debounce(applyFilters, 300));
     document.getElementById('categoryFilter').addEventListener('change', applyFilters);
     document.getElementById('certaintyFilter').addEventListener('change', applyFilters);
-    document.getElementById('priorityFilter').addEventListener('change', applyFilters);
     document.getElementById('statusFilter').addEventListener('change', applyFilters);
     
     // Form submission
     document.getElementById('ideaForm').addEventListener('submit', handleFormSubmit);
     
-    // Modal close on outside click
-    window.addEventListener('click', function(event) {
-        const ideaModal = document.getElementById('ideaModal');
-        const quickAddModal = document.getElementById('quickAddModal');
-        const bulkImportModal = document.getElementById('bulkImportModal');
-        
-        if (event.target === ideaModal) {
-            closeIdeaModal();
-        } else if (event.target === quickAddModal) {
-            closeQuickAddModal();
-        } else if (event.target === bulkImportModal) {
-            closeBulkImportModal();
-        }
-    });
+    // Modal close on outside click - DISABLED to prevent accidental closing
+    // Users can only close modals using the × button or ESC key
     
     // ESC key support for all modals
     document.addEventListener('keydown', function(event) {
@@ -849,7 +438,6 @@ function setupNewModalListeners() {
         formData.append('content', document.getElementById('quickContent').value);
         formData.append('category', document.getElementById('quickCategory').value);
         formData.append('certainty_level', document.getElementById('quickCertainty').value);
-        formData.append('language', 'French'); // Default language
         
         const tagsInput = document.getElementById('quickTags').value;
         if (tagsInput) {
@@ -997,37 +585,137 @@ function displayIdeas(append = false) {
         grid.innerHTML = '';
     }
     
-    allIdeas.slice(append ? -20 : 0).forEach(idea => {
-        const ideaCard = createIdeaCard(idea);
-        grid.appendChild(ideaCard);
+    // Group ideas by parent-child relationships
+    const ideaGroups = organizeIdeasByHierarchy(allIdeas.slice(append ? -20 : 0));
+    
+    ideaGroups.forEach(group => {
+        const groupElement = createIdeaGroup(group);
+        grid.appendChild(groupElement);
     });
 }
 
-function createIdeaCard(idea) {
+function organizeIdeasByHierarchy(ideas) {
+    const groups = [];
+    const processedIds = new Set();
+    
+    // Sort ideas: parents first (by creation order), then orphaned children
+    const sortedIdeas = [...ideas].sort((a, b) => {
+        const aIsParent = !(a.parent_title && a.parent_title !== 'Root Idea');
+        const bIsParent = !(b.parent_title && b.parent_title !== 'Root Idea');
+        
+        // Parents come first
+        if (aIsParent && !bIsParent) return -1;
+        if (!aIsParent && bIsParent) return 1;
+        
+        // Within same type, sort by ID (creation order)
+        return a.id_idea - b.id_idea;
+    });
+    
+    sortedIdeas.forEach(idea => {
+        if (processedIds.has(idea.id_idea)) return;
+        
+        const isSubIdea = idea.parent_title && idea.parent_title !== 'Root Idea';
+        
+        if (!isSubIdea) {
+            // This is a parent idea - find all its children
+            const children = ideas.filter(child => 
+                child.parent_idea_id == idea.id_idea && 
+                child.parent_title !== 'Root Idea'
+            ).sort((a, b) => a.id_idea - b.id_idea); // Sort children by creation order
+            
+            groups.push({
+                parent: idea,
+                children: children
+            });
+            
+            // Mark this idea and its children as processed
+            processedIds.add(idea.id_idea);
+            children.forEach(child => processedIds.add(child.id_idea));
+        } else if (!processedIds.has(idea.id_idea)) {
+            // This is an orphaned sub-idea (parent not in current view)
+            groups.push({
+                parent: null,
+                children: [idea]
+            });
+            processedIds.add(idea.id_idea);
+        }
+    });
+    
+    return groups;
+}
+
+function createIdeaGroup(group) {
+    const groupDiv = document.createElement('div');
+    groupDiv.className = 'idea-group';
+    
+    if (group.parent) {
+        // Add parent class for proper styling
+        groupDiv.classList.add('parent-idea');
+        
+        // Add wrapper div for visual grouping when there are children
+        if (group.children.length > 0) {
+            groupDiv.classList.add('has-children-wrapper');
+        }
+        
+        // Create parent card
+        const parentCard = createIdeaCard(group.parent, group.children.length > 0);
+        groupDiv.appendChild(parentCard);
+        
+        // Always create and show sub-ideas container for children
+        if (group.children.length > 0) {
+            const subContainer = document.createElement('div');
+            subContainer.className = 'children-container';
+            subContainer.id = `sub-ideas-${group.parent.id_idea}`;
+            
+            group.children.forEach((child, index) => {
+                const childCard = createIdeaCard(child, false, true);
+                
+                // Add tree connector classes based on position
+                if (index === group.children.length - 1) {
+                    childCard.classList.add('last-child');
+                }
+                
+                subContainer.appendChild(childCard);
+            });
+            
+            groupDiv.appendChild(subContainer);
+        }
+    } else {
+        // Orphaned sub-ideas (should not happen in tree view, but keep for safety)
+        group.children.forEach(child => {
+            const childCard = createIdeaCard(child, false, true);
+            groupDiv.appendChild(childCard);
+        });
+    }
+    
+    return groupDiv;
+}
+
+function createIdeaCard(idea, hasChildren = false, isSubIdea = false) {
     const card = document.createElement('div');
-    card.className = 'idea-card';
+    const actualIsSubIdea = isSubIdea || (idea.parent_title && idea.parent_title !== 'Root Idea');
+    const actualHasChildren = hasChildren || parseInt(idea.child_count) > 0;
+    
+    // Apply different styling for parent vs child ideas
+    if (actualIsSubIdea) {
+        card.className = 'idea-card sub-idea-card';
+    } else {
+        card.className = `idea-card parent-idea-card${actualHasChildren ? ' has-children' : ''}`;
+    }
+    
     card.dataset.ideaId = idea.id_idea;
     
     const tags = idea.tags ? JSON.parse(idea.tags) : [];
-    const hasChildren = parseInt(idea.child_count) > 0;
     
     card.innerHTML = `
-        ${idea.parent_title && idea.parent_title !== 'Root Idea' ? 
-            `<div class="idea-hierarchy">
-                <span>Sub-idea of: <a href="#" class="parent-link" onclick="filterByParent(${idea.parent_idea_id})">${idea.parent_title}</a></span>
-            </div>` : ''
-        }
-        
         <div class="idea-title">
-            ${idea.title}
-            ${hasChildren ? `<span class="child-count">${idea.child_count} sub-ideas</span>` : ''}
+            ${actualHasChildren && !actualIsSubIdea ? '📁 ' : (actualIsSubIdea ? '' : '📄 ')}${idea.title}
         </div>
         
         <div class="idea-meta">
             <span class="idea-badge badge-category">${idea.category.replace('_', ' ')}</span>
             <span class="idea-badge badge-certainty-${idea.certainty_level.toLowerCase()}">${idea.certainty_level.replace('_', ' ')}</span>
-            <span class="idea-badge badge-priority-${idea.priority.toLowerCase()}">${idea.priority}</span>
-            <span class="idea-badge" style="background: #f0f0f0; color: #666;">${idea.language}</span>
+            ${idea.status ? `<span class="idea-badge badge-status">${idea.status}</span>` : ''}
         </div>
         
         <div class="idea-content">${idea.content}</div>
@@ -1061,7 +749,6 @@ function applyFilters() {
         search: document.getElementById('searchInput').value,
         category: document.getElementById('categoryFilter').value,
         certainty: document.getElementById('certaintyFilter').value,
-        priority: document.getElementById('priorityFilter').value,
         status: document.getElementById('statusFilter').value
     };
     
@@ -1088,11 +775,15 @@ function openIdeaModal(ideaId = null) {
     form.reset();
     
     if (ideaId) {
-        modalTitle.textContent = 'Edit Idea';
-        loadIdeaForEdit(ideaId);
+        // For editing, we'll call editIdea function directly
+        modal.style.display = 'none'; // Close first, editIdea will reopen it
+        editIdea(ideaId);
+        return;
     } else {
         modalTitle.textContent = 'Add New Idea';
         document.getElementById('ideaId').value = '';
+        loadExistingTags(); // Load existing tags for new idea
+        loadParentOptions(); // Load parent options
     }
     
     modal.style.display = 'block';
@@ -1100,40 +791,6 @@ function openIdeaModal(ideaId = null) {
 
 function closeIdeaModal() {
     document.getElementById('ideaModal').style.display = 'none';
-}
-
-async function loadIdeaForEdit(ideaId) {
-    try {
-        const response = await fetch(`scriptes/ideas_manager.php?action=get_idea&id=${ideaId}`);
-        const data = await response.json();
-        
-        if (data.success) {
-            const idea = data.idea;
-            
-            document.getElementById('ideaId').value = idea.id_idea;
-            document.getElementById('ideaTitle').value = idea.title;
-            document.getElementById('ideaCategory').value = idea.category;
-            document.getElementById('ideaCertainty').value = idea.certainty_level;
-            document.getElementById('ideaPriority').value = idea.priority;
-            document.getElementById('ideaStatus').value = idea.status;
-            document.getElementById('ideaLanguage').value = idea.language;
-            document.getElementById('ideaWorldImpact').value = idea.world_impact;
-            document.getElementById('ideaContent').value = idea.content;
-            document.getElementById('ideaParent').value = idea.parent_idea_id || '';
-            document.getElementById('ideaEase').value = idea.ease_of_modification;
-            document.getElementById('ideaSource').value = idea.inspiration_source || '';
-            document.getElementById('ideaImplementation').value = idea.implementation_notes || '';
-            document.getElementById('ideaComments').value = idea.comments || '';
-            
-            // Handle tags
-            if (idea.tags) {
-                const tags = JSON.parse(idea.tags);
-                document.getElementById('ideaTags').value = tags.join(', ');
-            }
-        }
-    } catch (error) {
-        console.error('Error loading idea for edit:', error);
-    }
 }
 
 async function handleFormSubmit(event) {
@@ -1195,10 +852,6 @@ async function loadParentOptions() {
 }
 
 // Action functions
-function editIdea(ideaId) {
-    openIdeaModal(ideaId);
-}
-
 function duplicateIdea(ideaId) {
     const idea = allIdeas.find(i => i.id_idea == ideaId);
     if (idea) {
@@ -1285,6 +938,7 @@ function openQuickAddModal() {
     document.getElementById('quickAddModal').style.display = 'block';
     document.getElementById('quickAddForm').reset();
     document.getElementById('quickAddResults').style.display = 'none';
+    loadExistingTags(); // Load existing tags
 }
 
 function closeQuickAddModal() {
@@ -1302,8 +956,141 @@ function closeBulkImportModal() {
     document.getElementById('bulkImportModal').style.display = 'none';
 }
 
+// Load existing tags for display in forms
+async function loadExistingTags() {
+    try {
+        const response = await fetch('scriptes/ideas_manager.php?action=get_all_tags');
+        const data = await response.json();
+        
+        if (data.success) {
+            displayExistingTags(data.tags);
+        }
+    } catch (error) {
+        console.error('Error loading existing tags:', error);
+    }
+}
+
+// Display existing tags in both modals
+function displayExistingTags(tags) {
+    const containers = [
+        document.getElementById('existingTagsList'),
+        document.getElementById('quickExistingTagsList')
+    ];
+    
+    containers.forEach(container => {
+        if (container) {
+            container.innerHTML = '';
+            tags.forEach(tag => {
+                const tagElement = document.createElement('span');
+                tagElement.className = 'existing-tag';
+                tagElement.textContent = tag;
+                tagElement.onclick = () => addTagToInput(tag, container.closest('.modal').querySelector('input[name*="tags"]'));
+                container.appendChild(tagElement);
+            });
+        }
+    });
+}
+
+// Add tag to input field
+function addTagToInput(tag, inputElement) {
+    if (!inputElement) return;
+    
+    const currentTags = inputElement.value.split(',').map(t => t.trim()).filter(t => t);
+    if (!currentTags.includes(tag)) {
+        currentTags.push(tag);
+        inputElement.value = currentTags.join(', ');
+    }
+}
+
+// Edit idea function with prefilled data
+async function editIdea(ideaId) {
+    try {
+        const response = await fetch(`scriptes/ideas_manager.php?action=get_idea&id=${ideaId}`);
+        const data = await response.json();
+        
+        if (data.success) {
+            const idea = data.idea;
+            
+            // Open modal and set modal title
+            document.getElementById('ideaModal').style.display = 'block';
+            document.getElementById('modalTitle').textContent = 'Edit Idea';
+            
+            // Set the hidden ideaId field for form submission
+            document.getElementById('ideaId').value = ideaId;
+            
+            // Prefill form fields
+            document.getElementById('ideaTitle').value = idea.title || '';
+            // Strip HTML links from content for editing (show original text)
+            const contentWithoutLinks = idea.content ? idea.content.replace(/<a[^>]*class="entity-link[^"]*"[^>]*>(.*?)<\/a>/g, '$1') : '';
+            document.getElementById('ideaContent').value = contentWithoutLinks;
+            document.getElementById('ideaCategory').value = idea.category || '';
+            document.getElementById('ideaCertainty').value = idea.certainty_level || '';
+            document.getElementById('ideaStatus').value = idea.status || '';
+            document.getElementById('ideaComments').value = idea.comments || '';
+            document.getElementById('ideaSource').value = idea.inspiration_source || '';
+            document.getElementById('ideaParent').value = idea.parent_idea_id || '';
+            
+            // Handle tags
+            if (idea.tags) {
+                const tags = JSON.parse(idea.tags);
+                document.getElementById('ideaTags').value = tags.join(', ');
+            } else {
+                document.getElementById('ideaTags').value = '';
+            }
+            
+            // Load existing tags
+            await loadExistingTags();
+            
+            // Load parent options
+            await loadParentOptions();
+        }
+    } catch (error) {
+        console.error('Error loading idea for editing:', error);
+        alert('Error loading idea data');
+    }
+}
+
+// Process all ideas for entity links
+async function processAllEntityLinks() {
+    if (!confirm('This will process all ideas to add entity links. This may take a while for large databases. Continue?')) {
+        return;
+    }
+    
+    const btn = document.getElementById('processLinksBtn');
+    const originalText = btn.textContent;
+    btn.disabled = true;
+    btn.textContent = '⏳ Processing...';
+    
+    try {
+        const response = await fetch('scriptes/ideas_manager.php', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded'
+            },
+            body: 'action=process_all_entity_links'
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            alert(`Entity links processed successfully!\n${data.message}`);
+            // Reload ideas to show the updated content with links
+            loadIdeas(1, false);
+        } else {
+            alert('Error processing entity links: ' + data.message);
+        }
+    } catch (error) {
+        console.error('Error processing entity links:', error);
+        alert('Error processing entity links. Please try again.');
+    } finally {
+        btn.disabled = false;
+        btn.textContent = originalText;
+    }
+}
 
 </script>
+
+
 
 <?php
 require_once "./blueprints/gl_ap_end.php";
