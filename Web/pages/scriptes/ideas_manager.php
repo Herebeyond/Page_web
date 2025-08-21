@@ -103,9 +103,21 @@ function getIdeas() {
     $params = [];
     
     if (!empty($_GET['search'])) {
-        $search = '%' . $_GET['search'] . '%';
-        $where[] = '(ui.title LIKE ? OR ui.content LIKE ? OR ui.tags LIKE ? OR ui.comments LIKE ?)';
-        $params = array_merge($params, [$search, $search, $search, $search]);
+        $searchTerms = preg_split('/\s+/', trim($_GET['search']));
+        $searchTerms = array_filter($searchTerms); // Remove empty terms
+        
+        if (!empty($searchTerms)) {
+            $searchConditions = [];
+            
+            foreach ($searchTerms as $term) {
+                $searchTerm = '%' . $term . '%';
+                $searchConditions[] = '(ui.title LIKE ? OR ui.content LIKE ? OR ui.tags LIKE ? OR ui.comments LIKE ?)';
+                $params = array_merge($params, [$searchTerm, $searchTerm, $searchTerm, $searchTerm]);
+            }
+            
+            // All search terms must be found (AND logic)
+            $where[] = '(' . implode(' AND ', $searchConditions) . ')';
+        }
     }
     
     if (!empty($_GET['category'])) {

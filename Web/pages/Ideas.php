@@ -128,7 +128,7 @@ require_once "./blueprints/gl_ap_start.php";
 <div id="ideaModal" class="modal">
     <div class="modal-content">
         <!-- Fixed Close Button -->
-        <span class="close close-fixed" onclick="closeIdeaModal()" title="Close Modal">&times;</span>
+        <span class="close close-fixed" onclick="closeIdeaModal()" title="Close">&times;</span>
         
         <div class="modal-header">
             <h2 class="modal-title" id="modalTitle">Add New Idea</h2>
@@ -232,7 +232,7 @@ require_once "./blueprints/gl_ap_start.php";
 <div id="quickAddModal" class="modal">
     <div class="modal-content">
         <!-- Fixed Close Button -->
-        <span class="close close-fixed" onclick="closeQuickAddModal()" title="Close Modal">&times;</span>
+        <span class="close close-fixed" onclick="closeQuickAddModal()" title="Close">&times;</span>
         
         <div class="modal-header">
             <h2 class="modal-title">✨ Quick Add Single Idea</h2>
@@ -308,7 +308,7 @@ require_once "./blueprints/gl_ap_start.php";
 <div id="bulkImportModal" class="modal">
     <div class="modal-content" style="max-width: 900px;">
         <!-- Fixed Close Button -->
-        <span class="close close-fixed" onclick="closeBulkImportModal()" title="Close Modal">&times;</span>
+        <span class="close close-fixed" onclick="closeBulkImportModal()" title="Close">&times;</span>
         
         <div class="modal-header">
             <h2 class="modal-title">📥 Bulk Import Ideas</h2>
@@ -432,6 +432,12 @@ function setupNewModalListeners() {
     document.getElementById('quickAddForm').addEventListener('submit', async function(e) {
         e.preventDefault();
         
+        // Get the submit button and add loading state
+        const submitBtn = this.querySelector('button[type="submit"]');
+        const originalText = submitBtn.textContent;
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<span style="display: inline-flex; align-items: center; gap: 8px;"><div style="width: 16px; height: 16px; border: 2px solid #fff; border-top: 2px solid transparent; border-radius: 50%; animation: spin 1s linear infinite;"></div>Adding...</span>';
+        
         const formData = new FormData();
         formData.append('action', 'create_idea');
         formData.append('title', document.getElementById('quickTitle').value);
@@ -478,12 +484,22 @@ function setupNewModalListeners() {
             document.getElementById('quickAddResults').style.display = 'block';
             document.getElementById('quickResultsContent').innerHTML = 
                 `<div class="error">❌ Failed to add idea: ${error.message}</div>`;
+        } finally {
+            // Restore button state
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = originalText;
         }
     });
     
     // Bulk Import Form Event Listener
     document.getElementById('bulkImportForm').addEventListener('submit', async function(e) {
         e.preventDefault();
+        
+        // Get the submit button and add loading state
+        const submitBtn = this.querySelector('button[type="submit"]');
+        const originalText = submitBtn.textContent;
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<span style="display: inline-flex; align-items: center; gap: 8px;"><div style="width: 16px; height: 16px; border: 2px solid #fff; border-top: 2px solid transparent; border-radius: 50%; animation: spin 1s linear infinite;"></div>Importing...</span>';
         
         const formData = new FormData(e.target);
         formData.append('action', 'bulk_import');
@@ -528,6 +544,10 @@ function setupNewModalListeners() {
             document.getElementById('importResults').style.display = 'block';
             document.getElementById('resultsContent').innerHTML = 
                 `<div class="error">❌ Import failed: ${error.message}</div>`;
+        } finally {
+            // Restore button state
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = originalText;
         }
     });
 }
@@ -598,6 +618,22 @@ function organizeIdeasByHierarchy(ideas) {
     const groups = [];
     const processedIds = new Set();
     
+    // Helper function to recursively find all children of a given idea
+    function findChildrenRecursively(parentId) {
+        const directChildren = ideas.filter(child => 
+            child.parent_idea_id == parentId && 
+            child.parent_title !== 'Root Idea'
+        ).sort((a, b) => a.id_idea - b.id_idea);
+        
+        return directChildren.map(child => {
+            processedIds.add(child.id_idea);
+            return {
+                ...child,
+                children: findChildrenRecursively(child.id_idea)
+            };
+        });
+    }
+    
     // Sort ideas: parents first (by creation order), then orphaned children
     const sortedIdeas = [...ideas].sort((a, b) => {
         const aIsParent = !(a.parent_title && a.parent_title !== 'Root Idea');
@@ -617,20 +653,16 @@ function organizeIdeasByHierarchy(ideas) {
         const isSubIdea = idea.parent_title && idea.parent_title !== 'Root Idea';
         
         if (!isSubIdea) {
-            // This is a parent idea - find all its children
-            const children = ideas.filter(child => 
-                child.parent_idea_id == idea.id_idea && 
-                child.parent_title !== 'Root Idea'
-            ).sort((a, b) => a.id_idea - b.id_idea); // Sort children by creation order
+            // This is a top-level parent idea - find all its nested children
+            const nestedChildren = findChildrenRecursively(idea.id_idea);
             
             groups.push({
                 parent: idea,
-                children: children
+                children: nestedChildren
             });
             
-            // Mark this idea and its children as processed
+            // Mark this idea as processed
             processedIds.add(idea.id_idea);
-            children.forEach(child => processedIds.add(child.id_idea));
         } else if (!processedIds.has(idea.id_idea)) {
             // This is an orphaned sub-idea (parent not in current view)
             groups.push({
@@ -668,14 +700,8 @@ function createIdeaGroup(group) {
             subContainer.id = `sub-ideas-${group.parent.id_idea}`;
             
             group.children.forEach((child, index) => {
-                const childCard = createIdeaCard(child, false, true);
-                
-                // Add tree connector classes based on position
-                if (index === group.children.length - 1) {
-                    childCard.classList.add('last-child');
-                }
-                
-                subContainer.appendChild(childCard);
+                const childElement = createNestedIdeaElement(child, index === group.children.length - 1);
+                subContainer.appendChild(childElement);
             });
             
             groupDiv.appendChild(subContainer);
@@ -689,6 +715,42 @@ function createIdeaGroup(group) {
     }
     
     return groupDiv;
+}
+
+// Helper function to create nested idea elements recursively
+function createNestedIdeaElement(ideaWithChildren, isLastSibling = false) {
+    const container = document.createElement('div');
+    container.className = 'nested-idea-container';
+    
+    // Create the idea card itself
+    const hasChildren = ideaWithChildren.children && ideaWithChildren.children.length > 0;
+    const childCard = createIdeaCard(ideaWithChildren, hasChildren, true);
+    
+    // Add tree connector classes based on position
+    if (isLastSibling) {
+        childCard.classList.add('last-child');
+    }
+    
+    container.appendChild(childCard);
+    
+    // If this idea has children, create a nested container for them
+    if (hasChildren) {
+        const nestedSubContainer = document.createElement('div');
+        nestedSubContainer.className = 'nested-children-container';
+        nestedSubContainer.id = `nested-sub-ideas-${ideaWithChildren.id_idea}`;
+        
+        ideaWithChildren.children.forEach((nestedChild, index) => {
+            const nestedElement = createNestedIdeaElement(
+                nestedChild, 
+                index === ideaWithChildren.children.length - 1
+            );
+            nestedSubContainer.appendChild(nestedElement);
+        });
+        
+        container.appendChild(nestedSubContainer);
+    }
+    
+    return container;
 }
 
 function createIdeaCard(idea, hasChildren = false, isSubIdea = false) {
@@ -709,22 +771,52 @@ function createIdeaCard(idea, hasChildren = false, isSubIdea = false) {
     
     card.innerHTML = `
         <div class="idea-title">
-            ${actualHasChildren && !actualIsSubIdea ? '📁 ' : (actualIsSubIdea ? '' : '📄 ')}${idea.title}
+            ${actualHasChildren && !actualIsSubIdea ? '📁 ' : (actualIsSubIdea ? '' : '📄 ')}${highlightSearchTerms(idea.title, getSearchTerms())}
         </div>
         
         <div class="idea-meta">
-            <span class="idea-badge badge-category">${idea.category.replace('_', ' ')}</span>
-            <span class="idea-badge badge-certainty-${idea.certainty_level.toLowerCase()}">${idea.certainty_level.replace('_', ' ')}</span>
-            ${idea.status ? `<span class="idea-badge badge-status">${idea.status}</span>` : ''}
+            <div class="meta-item">
+                <span class="meta-label">Category</span>
+                <span class="idea-badge badge-category">${idea.category.replace('_', ' ')}</span>
+            </div>
+            <div class="meta-item">
+                <span class="meta-label">Certainty</span>
+                <span class="idea-badge badge-certainty-${idea.certainty_level.toLowerCase()}">${idea.certainty_level.replace('_', ' ')}</span>
+            </div>
+            ${idea.status ? 
+                `<div class="meta-item">
+                    <span class="meta-label">Status</span>
+                    <span class="idea-badge badge-status">${idea.status}</span>
+                </div>` : ''
+            }
         </div>
         
-        <div class="idea-content">${idea.content}</div>
+        <div class="idea-content">${highlightSearchTerms(idea.content, getSearchTerms())}</div>
+        
+        ${idea.inspiration_source ? 
+            `<div class="idea-inspiration">
+                <strong>💡 Inspiration Source:</strong> ${highlightSearchTerms(idea.inspiration_source, getSearchTerms())}
+            </div>` : ''
+        }
+        
+        ${idea.comments ? 
+            `<div class="idea-comments">
+                <strong>💬 Comments:</strong> ${highlightSearchTerms(idea.comments, getSearchTerms())}
+            </div>` : ''
+        }
         
         ${tags.length > 0 ? 
             `<div class="idea-tags">
                 ${tags.map(tag => `<span class="tag">${tag}</span>`).join('')}
             </div>` : ''
         }
+        
+        <div class="idea-dates">
+            <span class="idea-date">📅 Created: ${new Date(idea.created_at).toLocaleDateString()}</span>
+            ${idea.updated_at && idea.updated_at !== idea.created_at ? 
+                `<span class="idea-date">✏️ Modified: ${new Date(idea.updated_at).toLocaleDateString()}</span>` : ''
+            }
+        </div>
         
         <div class="idea-actions">
             <button class="btn-secondary" onclick="editIdea(${idea.id_idea})">✏️ Edit</button>
@@ -799,6 +891,12 @@ async function handleFormSubmit(event) {
     const formData = new FormData(event.target);
     const ideaId = formData.get('ideaId');
     
+    // Get the submit button and add loading state
+    const submitBtn = event.target.querySelector('button[type="submit"]');
+    const originalText = submitBtn.textContent;
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<span style="display: inline-flex; align-items: center; gap: 8px;"><div style="width: 16px; height: 16px; border: 2px solid #fff; border-top: 2px solid transparent; border-radius: 50%; animation: spin 1s linear infinite;"></div>Saving...</span>';
+    
     // Convert tags to JSON
     const tagsInput = formData.get('tags');
     if (tagsInput) {
@@ -827,6 +925,10 @@ async function handleFormSubmit(event) {
     } catch (error) {
         console.error('Error saving idea:', error);
         alert('Error saving idea. Please try again.');
+    } finally {
+        // Restore button state
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = originalText;
     }
 }
 
@@ -1086,6 +1188,62 @@ async function processAllEntityLinks() {
         btn.disabled = false;
         btn.textContent = originalText;
     }
+}
+
+// Helper function to get current search terms
+function getSearchTerms() {
+    const searchInput = document.getElementById('searchInput');
+    if (!searchInput || !searchInput.value.trim()) {
+        return [];
+    }
+    
+    // Split by spaces and filter out empty strings
+    return searchInput.value.trim().toLowerCase().split(/\s+/).filter(term => term.length > 0);
+}
+
+// Helper function to highlight search terms in text
+function highlightSearchTerms(text, searchTerms) {
+    if (!text || !searchTerms || searchTerms.length === 0) {
+        return text;
+    }
+    
+    // Create a temporary DOM element to parse HTML safely
+    const tempDiv = document.createElement('div');
+    tempDiv.innerHTML = text;
+    
+    // Function to recursively process text nodes only
+    function processTextNodes(node) {
+        if (node.nodeType === Node.TEXT_NODE) {
+            // This is a text node - apply highlighting
+            let nodeText = node.textContent;
+            let highlightedText = nodeText;
+            
+            searchTerms.forEach(term => {
+                // Escape special regex characters
+                const escapedTerm = term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+                const regex = new RegExp(`(${escapedTerm})`, 'gi');
+                highlightedText = highlightedText.replace(regex, '<mark class="search-highlight">$1</mark>');
+            });
+            
+            // If highlighting was applied, replace the text node with HTML
+            if (highlightedText !== nodeText) {
+                const span = document.createElement('span');
+                span.innerHTML = highlightedText;
+                node.parentNode.replaceChild(span, node);
+            }
+        } else if (node.nodeType === Node.ELEMENT_NODE) {
+            // This is an element node - process its children
+            // Convert to array to avoid live NodeList issues during replacement
+            const children = Array.from(node.childNodes);
+            children.forEach(child => processTextNodes(child));
+        }
+    }
+    
+    // Process all text nodes in the temporary div
+    processTextNodes(tempDiv);
+    
+    // Return the processed HTML
+    return tempDiv.innerHTML;
 }
 
 </script>

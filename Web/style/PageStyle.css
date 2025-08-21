@@ -2293,6 +2293,11 @@ html body {
     }
 }
 
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
 /* Click indicator for user icon */
 .user-icon-display img {
     cursor: pointer;
@@ -2434,7 +2439,7 @@ html body {
 
 .modal-content {
     background-color: white;
-    margin: 2% auto;
+    margin: 1% auto;
     padding: 30px;
     border-radius: 15px;
     width: 90%;
@@ -2442,6 +2447,7 @@ html body {
     max-height: 90vh;
     overflow-y: auto;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    position: relative; /* Enable absolute positioning for close button */
 }
 
 .modal-header {
@@ -2469,6 +2475,36 @@ html body {
 
 .close:hover {
     color: #222088;
+}
+
+/* Fixed close button for modals - always visible at top right */
+.close-fixed {
+    position: fixed;
+    top: calc(2% + 15px);
+    right: calc((100% - 90%) / 2 - 50px);
+    color: #666;
+    font-size: 32px;
+    font-weight: bold;
+    cursor: pointer;
+    z-index: 10001;
+    background-color: rgba(255, 255, 255, 0.95);
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.25);
+    border: 2px solid rgba(34, 32, 136, 0.2);
+}
+
+.close-fixed:hover {
+    color: #222088;
+    background-color: rgba(255, 255, 255, 1);
+    transform: scale(1.1);
+    box-shadow: 0 4px 16px rgba(34, 32, 136, 0.35);
+    border-color: rgba(34, 32, 136, 0.4);
 }
 
 .form-group {
@@ -2736,32 +2772,93 @@ html body {
 .idea-meta {
     display: flex;
     flex-wrap: wrap;
-    gap: 10px;
+    gap: 15px;
     margin-bottom: 15px;
+    align-items: flex-start;
+}
+
+/* Meta item container for label + badge */
+.meta-item {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    align-items: flex-start;
+}
+
+/* Small labels above badges */
+.meta-label {
+    font-size: 0.7em;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #666;
+    margin-bottom: 2px;
 }
 
 .idea-badge {
-    padding: 4px 8px;
-    border-radius: 15px;
-    font-size: 12px;
-    font-weight: bold;
-    text-transform: uppercase;
+    padding: 6px 12px;
+    border-radius: 16px;
+    font-size: 0.85em;
+    font-weight: 500;
+    text-transform: capitalize;
+    border: 1px solid transparent;
+    white-space: nowrap;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
 }
 
+/* Category badges - Blue theme */
 .badge-category {
-    background: #e3f2fd;
-    color: #1976d2;
+    background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+    color: #1565c0;
+    border-color: #90caf9;
 }
 
-.badge-certainty-idea { background: #fff3e0; color: #f57c00; }
-.badge-certainty-not_sure { background: #ffebee; color: #d32f2f; }
-.badge-certainty-developing { background: #e8f5e8; color: #388e3c; }
-.badge-certainty-established { background: #e3f2fd; color: #1976d2; }
-.badge-certainty-canon { background: #f3e5f5; color: #7b1fa2; }
+/* Certainty level badges - Distinct colors for each level */
+.badge-certainty-idea { 
+    background: linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%); 
+    color: #e65100; 
+    border-color: #ffcc02;
+}
 
+.badge-certainty-not_sure { 
+    background: linear-gradient(135deg, #ffebee 0%, #ffcdd2 100%); 
+    color: #c62828; 
+    border-color: #ef5350;
+}
+
+.badge-certainty-developing { 
+    background: linear-gradient(135deg, #e8f5e8 0%, #c8e6c9 100%); 
+    color: #2e7d32; 
+    border-color: #66bb6a;
+}
+
+.badge-certainty-established { 
+    background: linear-gradient(135deg, #e1f5fe 0%, #b3e5fc 100%); 
+    color: #0277bd; 
+    border-color: #29b6f6;
+}
+
+.badge-certainty-canon { 
+    background: linear-gradient(135deg, #f3e5f5 0%, #e1bee7 100%); 
+    color: #6a1b9a; 
+    border-color: #ab47bc;
+}
+
+/* Status badges - Green theme */
 .badge-status {
-    background: #e1f5fe;
-    color: #0277bd;
+    background: linear-gradient(135deg, #e8f5e8 0%, #c8e6c9 100%);
+    color: #2e7d32;
+    border-color: #81c784;
+}
+
+/* Search highlighting */
+.search-highlight {
+    background: linear-gradient(135deg, #fff59d 0%, #ffeb3b 100%);
+    color: #f57f17;
+    padding: 2px 4px;
+    border-radius: 3px;
+    font-weight: 600;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.1);
 }
 
 /* Existing Tags Display */
@@ -2826,6 +2923,52 @@ html body {
     background-color: rgba(248, 249, 252, 1);
     border-color: rgba(34, 32, 136, 0.25);
     box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(34, 32, 136, 0.1);
+}
+
+/* New styles for inspiration source and comments */
+.idea-inspiration {
+    margin: 10px 0;
+    padding: 8px 12px;
+    background: #f0f8ff;
+    border-left: 3px solid #4a90e2;
+    border-radius: 4px;
+    font-size: 0.9em;
+    line-height: 1.4;
+}
+
+.idea-inspiration strong {
+    color: #4a90e2;
+}
+
+.idea-comments {
+    margin: 10px 0;
+    padding: 8px 12px;
+    background: #f8f9fa;
+    border-left: 3px solid #6c757d;
+    border-radius: 4px;
+    font-size: 0.9em;
+    line-height: 1.4;
+}
+
+.idea-comments strong {
+    color: #6c757d;
+}
+
+/* Dates styling - subtle and less prominent */
+.idea-dates {
+    margin-top: 12px;
+    padding-top: 8px;
+    border-top: 1px solid #e9ecef;
+    display: flex;
+    gap: 15px;
+    flex-wrap: wrap;
+}
+
+.idea-date {
+    font-size: 0.75em;
+    color: #6c757d;
+    opacity: 0.7;
+    font-style: italic;
 }
 
 .idea-tags {
@@ -3138,6 +3281,43 @@ html body {
     margin-top: 12px;
     position: relative;
     box-sizing: border-box;
+}
+
+/* Nested children container styling for multi-level nesting */
+.nested-idea-container {
+    margin-bottom: 10px;
+}
+
+.nested-children-container {
+    margin-left: 25px;
+    border-left: 2px solid #e9ecef;
+    padding-left: 15px;
+    margin-top: 10px;
+    position: relative;
+}
+
+/* Visual indicators for nested levels */
+.nested-children-container::before {
+    content: '';
+    position: absolute;
+    left: -2px;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: linear-gradient(to bottom, #d1c4e9 0%, #e8eaf6 100%);
+}
+
+/* Different border colors for different nesting levels */
+.nested-children-container .nested-children-container {
+    border-left-color: #f1f3f4;
+    margin-left: 20px;
+    padding-left: 12px;
+}
+
+.nested-children-container .nested-children-container .nested-children-container {
+    border-left-color: #f8f9fa;
+    margin-left: 15px;
+    padding-left: 10px;
 }
 
 /* Enhanced parent idea styling */
