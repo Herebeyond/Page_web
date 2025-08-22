@@ -378,6 +378,46 @@ if (str_starts_with($origin, 'https://')) {
 
 ---
 
+## Modifications Documentation
+
+
+### Modifications.txt Format
+when a new feature is added or an existing feature is changed, it must be documented in the modifications.txt file.
+When documenting changes in `.github/modifications.txt`, use the following format:
+
+**Date Format**: `DD-MM-YYYY HH:MM` (24-hour format)
+**Structure**:
+```
+DD-MM-YYYY HH:MM
+### Feature/Change Title
+
+**Features Added:**
+- Description of features
+
+**Files Modified:**
+1. **filename.ext**
+   - Specific changes made
+   
+**Key Features:**
+- Important functionality highlights
+
+**Data Safety Measures:**
+- Security and integrity considerations
+```
+
+**Example**:
+```
+21-08-2025 20:46
+### Category Management System Implementation
+
+**Features Added:**
+- Complete category management system with safe deletion
+```
+
+This format ensures consistency and makes it easy to track when changes were made and what was implemented.
+
+---
+
 ## .md Files
 - create them in the folder Web/.github/
 

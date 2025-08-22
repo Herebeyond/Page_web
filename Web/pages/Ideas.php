@@ -108,6 +108,11 @@ require_once "./blueprints/gl_ap_start.php";
                 <label>&nbsp;</label>
                 <button class="btn-warning" onclick="processAllEntityLinks()" id="processLinksBtn">🔗 Process Entity Links</button>
             </div>
+
+            <div class="control-group">
+                <label>&nbsp;</label>
+                <button class="btn-info" onclick="openCategoryManagerModal()">🏷️ Manage Categories</button>
+            </div>
         </div>
 
         <!-- Ideas Grid -->
@@ -386,6 +391,38 @@ Tags: tag1, tag2, tag3</div>
                 <button type="submit" class="btn-primary" style="margin-left: 10px;">🚀 Import Ideas</button>
             </div>
         </form>
+    </div>
+</div>
+
+<!-- Category Manager Modal -->
+<div id="categoryManagerModal" class="modal">
+    <div class="modal-content" style="max-width: 700px;">
+        <!-- Fixed Close Button -->
+        <span class="close close-fixed" onclick="closeCategoryManagerModal()" title="Close">&times;</span>
+        
+        <div class="modal-header">
+            <h2 class="modal-title">🏷️ Category Management</h2>
+        </div>
+        
+        <div class="category-manager">
+            <div class="form-group">
+                <label>Add New Category:</label>
+                <div class="category-input-row">
+                    <input type="text" id="newCategoryInput" placeholder="Enter new category name..." maxlength="50">
+                    <button class="btn-primary" onclick="addNewCategory()">Add</button>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label>Existing Categories:</label>
+                <div id="categoryList" class="category-list">
+                    <!-- Categories will be loaded here -->
+                </div>
+            </div>
+            
+            <div id="categoryResults" class="results-section" style="display: none; margin-top: 15px;">
+            </div>
+        </div>
     </div>
 </div>
 
@@ -1056,6 +1093,222 @@ function openBulkImportModal() {
 
 function closeBulkImportModal() {
     document.getElementById('bulkImportModal').style.display = 'none';
+}
+
+// Category Manager Modal Functions
+function openCategoryManagerModal() {
+    document.getElementById('categoryManagerModal').style.display = 'block';
+    loadCategories();
+}
+
+function closeCategoryManagerModal() {
+    document.getElementById('categoryManagerModal').style.display = 'none';
+}
+
+async function loadCategories() {
+    try {
+        const response = await fetch('scriptes/ideas_manager.php?action=get_categories');
+        const data = await response.json();
+        
+        if (data.success) {
+            displayCategories(data.categories);
+        } else {
+            console.error('Error loading categories:', data.message);
+        }
+    } catch (error) {
+        console.error('Error loading categories:', error);
+    }
+}
+
+function displayCategories(categories) {
+    const categoryList = document.getElementById('categoryList');
+    categoryList.innerHTML = '';
+    
+    categories.forEach(category => {
+        const categoryDiv = document.createElement('div');
+        categoryDiv.className = 'category-item';
+        categoryDiv.innerHTML = `
+            <span class="category-name" data-original="${category.name}">${category.name}</span>
+            <span class="category-count">(${category.count} ideas)</span>
+            <div class="category-actions">
+                <button class="btn-edit" onclick="editCategory('${category.name}', this)">✏️ Edit</button>
+                <button class="btn-delete" onclick="deleteCategory('${category.name}', ${category.count})">🗑️ Delete</button>
+            </div>
+        `;
+        categoryList.appendChild(categoryDiv);
+    });
+}
+
+async function addNewCategory() {
+    const input = document.getElementById('newCategoryInput');
+    const categoryName = input.value.trim();
+    
+    if (!categoryName) {
+        alert('Please enter a category name.');
+        return;
+    }
+    
+    try {
+        const formData = new FormData();
+        formData.append('action', 'add_category');
+        formData.append('category_name', categoryName);
+        
+        const response = await fetch('scriptes/ideas_manager.php', {
+            method: 'POST',
+            body: formData
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            input.value = '';
+            loadCategories();
+            showCategoryResult('Category added successfully!', 'success');
+        } else {
+            showCategoryResult(data.message, 'error');
+        }
+    } catch (error) {
+        console.error('Error adding category:', error);
+        showCategoryResult('Error adding category. Please try again.', 'error');
+    }
+}
+
+function editCategory(originalName, buttonElement) {
+    const categoryItem = buttonElement.closest('.category-item');
+    const nameSpan = categoryItem.querySelector('.category-name');
+    const actionsDiv = categoryItem.querySelector('.category-actions');
+    
+    if (nameSpan.querySelector('input')) {
+        // Already in edit mode, cancel
+        cancelEditCategory(originalName, categoryItem);
+        return;
+    }
+    
+    // Create input field
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.value = originalName;
+    input.className = 'category-edit-input';
+    
+    // Replace span with input
+    nameSpan.innerHTML = '';
+    nameSpan.appendChild(input);
+    
+    // Update actions
+    actionsDiv.innerHTML = `
+        <button class="btn-save" onclick="saveCategory('${originalName}', this)">💾 Save</button>
+        <button class="btn-cancel" onclick="cancelEditCategory('${originalName}', this.closest('.category-item'))">❌ Cancel</button>
+    `;
+    
+    input.focus();
+    input.select();
+}
+
+function cancelEditCategory(originalName, categoryItem) {
+    const nameSpan = categoryItem.querySelector('.category-name');
+    const actionsDiv = categoryItem.querySelector('.category-actions');
+    const countSpan = categoryItem.querySelector('.category-count');
+    const count = countSpan.textContent.match(/\d+/)[0];
+    
+    // Restore original display
+    nameSpan.innerHTML = originalName;
+    actionsDiv.innerHTML = `
+        <button class="btn-edit" onclick="editCategory('${originalName}', this)">✏️ Edit</button>
+        <button class="btn-delete" onclick="deleteCategory('${originalName}', ${count})">🗑️ Delete</button>
+    `;
+}
+
+async function saveCategory(originalName, buttonElement) {
+    const categoryItem = buttonElement.closest('.category-item');
+    const input = categoryItem.querySelector('.category-edit-input');
+    const newName = input.value.trim();
+    
+    if (!newName) {
+        alert('Category name cannot be empty.');
+        return;
+    }
+    
+    if (newName === originalName) {
+        cancelEditCategory(originalName, categoryItem);
+        return;
+    }
+    
+    try {
+        const formData = new FormData();
+        formData.append('action', 'update_category');
+        formData.append('old_name', originalName);
+        formData.append('new_name', newName);
+        
+        const response = await fetch('scriptes/ideas_manager.php', {
+            method: 'POST',
+            body: formData
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            loadCategories();
+            showCategoryResult(`Category "${originalName}" updated to "${newName}" successfully!`, 'success');
+        } else {
+            showCategoryResult(data.message, 'error');
+            cancelEditCategory(originalName, categoryItem);
+        }
+    } catch (error) {
+        console.error('Error updating category:', error);
+        showCategoryResult('Error updating category. Please try again.', 'error');
+        cancelEditCategory(originalName, categoryItem);
+    }
+}
+
+async function deleteCategory(categoryName, ideaCount) {
+    let confirmMessage = `Are you sure you want to delete the category "${categoryName}"?`;
+    
+    if (ideaCount > 0) {
+        confirmMessage += `\n\nThis will affect ${ideaCount} idea(s). They will be moved to the "No Category" category.`;
+    }
+    
+    if (!confirm(confirmMessage)) {
+        return;
+    }
+    
+    try {
+        const formData = new FormData();
+        formData.append('action', 'delete_category');
+        formData.append('category_name', categoryName);
+        
+        const response = await fetch('scriptes/ideas_manager.php', {
+            method: 'POST',
+            body: formData
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            loadCategories();
+            if (ideaCount > 0) {
+                showCategoryResult(`Category "${categoryName}" deleted. ${ideaCount} idea(s) moved to "No Category".`, 'success');
+            } else {
+                showCategoryResult(`Category "${categoryName}" deleted successfully!`, 'success');
+            }
+        } else {
+            showCategoryResult(data.message, 'error');
+        }
+    } catch (error) {
+        console.error('Error deleting category:', error);
+        showCategoryResult('Error deleting category. Please try again.', 'error');
+    }
+}
+
+function showCategoryResult(message, type) {
+    const resultsDiv = document.getElementById('categoryResults');
+    resultsDiv.className = `results-section ${type}`;
+    resultsDiv.textContent = message;
+    resultsDiv.style.display = 'block';
+    
+    // Hide after 5 seconds
+    setTimeout(() => {
+        resultsDiv.style.display = 'none';
+    }, 5000);
 }
 
 // Load existing tags for display in forms

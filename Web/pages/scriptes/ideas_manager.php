@@ -80,6 +80,18 @@ try {
         case 'bulk_import':
             bulkImport();
             break;
+        case 'get_categories':
+            getCategories();
+            break;
+        case 'add_category':
+            addCategory();
+            break;
+        case 'update_category':
+            updateCategory();
+            break;
+        case 'delete_category':
+            deleteCategory();
+            break;
         default:
             throw new Exception('Invalid action specified');
     }
@@ -756,6 +768,208 @@ function getAllTags() {
         echo json_encode([
             'success' => false,
             'message' => 'Error fetching tags: ' . $e->getMessage()
+        ]);
+    }
+}
+
+/**
+ * Get all categories with their usage count
+ */
+function getCategories() {
+    global $pdo;
+    
+    try {
+        $query = "
+            SELECT 
+                COALESCE(category, 'No Category') as name,
+                COUNT(*) as count
+            FROM universe_ideas 
+            GROUP BY category 
+            ORDER BY 
+                CASE WHEN category IS NULL OR category = '' THEN 1 ELSE 0 END,
+                category ASC
+        ";
+        
+        $stmt = $pdo->prepare($query);
+        $stmt->execute();
+        $categories = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        
+        echo json_encode([
+            'success' => true,
+            'categories' => $categories
+        ]);
+    } catch (Exception $e) {
+        echo json_encode([
+            'success' => false,
+            'message' => 'Error fetching categories: ' . $e->getMessage()
+        ]);
+    }
+}
+
+/**
+ * Add a new category
+ */
+function addCategory() {
+    global $pdo;
+    
+    try {
+        $categoryName = trim($_POST['category_name'] ?? '');
+        
+        if (empty($categoryName)) {
+            throw new Exception('Category name is required');
+        }
+        
+        // Check if category already exists
+        $checkQuery = "SELECT COUNT(*) FROM universe_ideas WHERE category = ?";
+        $checkStmt = $pdo->prepare($checkQuery);
+        $checkStmt->execute([$categoryName]);
+        
+        if ($checkStmt->fetchColumn() > 0) {
+            throw new Exception('Category already exists');
+        }
+        
+        // Create a placeholder idea with the new category to ensure it exists
+        // This is a simple way to add the category to the system
+        $insertQuery = "
+            INSERT INTO universe_ideas (title, content, category, certainty_level, status, created_at, updated_at)
+            VALUES (?, ?, ?, 3, 'idea', NOW(), NOW())
+        ";
+        
+        $placeholderTitle = "[Category Placeholder] " . $categoryName;
+        $placeholderContent = "This is a placeholder to create the category '" . $categoryName . "'. You can delete this idea or modify it as needed.";
+        
+        $stmt = $pdo->prepare($insertQuery);
+        $stmt->execute([$placeholderTitle, $placeholderContent, $categoryName]);
+        
+        echo json_encode([
+            'success' => true,
+            'message' => "Category '$categoryName' added successfully with a placeholder idea"
+        ]);
+    } catch (Exception $e) {
+        echo json_encode([
+            'success' => false,
+            'message' => $e->getMessage()
+        ]);
+    }
+}
+
+/**
+ * Update/rename a category
+ */
+function updateCategory() {
+    global $pdo;
+    
+    try {
+        $oldName = trim($_POST['old_name'] ?? '');
+        $newName = trim($_POST['new_name'] ?? '');
+        
+        if (empty($oldName) || empty($newName)) {
+            throw new Exception('Both old and new category names are required');
+        }
+        
+        if ($oldName === $newName) {
+            throw new Exception('New name must be different from the old name');
+        }
+        
+        // Handle "No Category" case
+        if ($oldName === 'No Category') {
+            $oldName = null;
+        }
+        
+        // Check if new category name already exists
+        $checkQuery = "SELECT COUNT(*) FROM universe_ideas WHERE category = ?";
+        $checkStmt = $pdo->prepare($checkQuery);
+        $checkStmt->execute([$newName]);
+        
+        if ($checkStmt->fetchColumn() > 0) {
+            throw new Exception('A category with that name already exists');
+        }
+        
+        $pdo->beginTransaction();
+        
+        // Update all ideas with the old category name
+        $updateQuery = "UPDATE universe_ideas SET category = ?, updated_at = NOW() WHERE ";
+        
+        if ($oldName === null) {
+            $updateQuery .= "(category IS NULL OR category = '')";
+            $stmt = $pdo->prepare($updateQuery);
+            $stmt->execute([$newName]);
+        } else {
+            $updateQuery .= "category = ?";
+            $stmt = $pdo->prepare($updateQuery);
+            $stmt->execute([$newName, $oldName]);
+        }
+        
+        $affectedRows = $stmt->rowCount();
+        
+        if ($affectedRows === 0) {
+            throw new Exception('No ideas found with the specified category');
+        }
+        
+        $pdo->commit();
+        
+        echo json_encode([
+            'success' => true,
+            'message' => "Category updated successfully. $affectedRows idea(s) affected."
+        ]);
+    } catch (Exception $e) {
+        if ($pdo->inTransaction()) {
+            $pdo->rollback();
+        }
+        echo json_encode([
+            'success' => false,
+            'message' => $e->getMessage()
+        ]);
+    }
+}
+
+/**
+ * Delete a category (safely move ideas to "No Category")
+ */
+function deleteCategory() {
+    global $pdo;
+    
+    try {
+        $categoryName = trim($_POST['category_name'] ?? '');
+        
+        if (empty($categoryName)) {
+            throw new Exception('Category name is required');
+        }
+        
+        if ($categoryName === 'No Category') {
+            throw new Exception('Cannot delete the "No Category" category');
+        }
+        
+        $pdo->beginTransaction();
+        
+        // Count ideas in this category
+        $countQuery = "SELECT COUNT(*) FROM universe_ideas WHERE category = ?";
+        $countStmt = $pdo->prepare($countQuery);
+        $countStmt->execute([$categoryName]);
+        $ideaCount = $countStmt->fetchColumn();
+        
+        if ($ideaCount === 0) {
+            throw new Exception('Category not found or already empty');
+        }
+        
+        // Move all ideas in this category to "No Category" (null)
+        $updateQuery = "UPDATE universe_ideas SET category = NULL, updated_at = NOW() WHERE category = ?";
+        $updateStmt = $pdo->prepare($updateQuery);
+        $updateStmt->execute([$categoryName]);
+        
+        $pdo->commit();
+        
+        echo json_encode([
+            'success' => true,
+            'message' => "Category '$categoryName' deleted successfully. $ideaCount idea(s) moved to 'No Category'."
+        ]);
+    } catch (Exception $e) {
+        if ($pdo->inTransaction()) {
+            $pdo->rollback();
+        }
+        echo json_encode([
+            'success' => false,
+            'message' => $e->getMessage()
         ]);
     }
 }
