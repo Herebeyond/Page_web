@@ -83,6 +83,9 @@ try {
         case 'get_categories':
             getCategories();
             break;
+        case 'get_category_options':
+            getCategoryOptions();
+            break;
         case 'add_category':
             addCategory();
             break;
@@ -237,6 +240,23 @@ function getIdea() {
     ]);
 }
 
+/**
+ * Get valid categories from database ENUM definition
+ */
+function getValidCategories() {
+    global $pdo;
+    
+    $enumQuery = "SHOW COLUMNS FROM universe_ideas LIKE 'category'";
+    $enumStmt = $pdo->prepare($enumQuery);
+    $enumStmt->execute();
+    $enumResult = $enumStmt->fetch(PDO::FETCH_ASSOC);
+    
+    // Parse ENUM values from the Type column
+    $enumString = $enumResult['Type'];
+    preg_match_all("/'([^']+)'/", $enumString, $matches);
+    return $matches[1];
+}
+
 function createIdea() {
     global $pdo;
     
@@ -262,7 +282,7 @@ function createIdea() {
     ];
     
     // Validate enums
-    $validCategories = ['Magic_Systems', 'Creatures', 'Gods_Demons', 'Dimensions_Realms', 'Physics_Reality', 'Races_Beings', 'Items_Artifacts', 'Lore_History', 'Geography', 'Politics', 'Technology', 'Culture', 'Other'];
+    $validCategories = getValidCategories();
     $validCertainties = ['Idea', 'Not_Sure', 'Developing', 'Established', 'Canon'];
     $validStatuses = ['Draft', 'In_Progress', 'Review', 'Finalized', 'Archived', 'Need_Correction'];
     
@@ -693,7 +713,7 @@ function parseIdeaText($text, $defaultCategory, $defaultCertainty) {
                     $currentSection = 'tags';
                     break;
                 case 'category':
-                    $validCategories = ['Magic_Systems', 'Creatures', 'Gods_Demons', 'Dimensions_Realms', 'Physics_Reality', 'Races_Beings', 'Items_Artifacts', 'Lore_History', 'Geography', 'Politics', 'Technology', 'Culture', 'Other'];
+                    $validCategories = getValidCategories();
                     $value = str_replace(' ', '_', $value);
                     if (in_array($value, $validCategories)) {
                         $idea['category'] = $value;
@@ -773,26 +793,68 @@ function getAllTags() {
 }
 
 /**
+ * Get category options for forms (simplified version)
+ */
+function getCategoryOptions() {
+    global $pdo;
+    
+    try {
+        $categories = getValidCategories();
+        
+        echo json_encode([
+            'success' => true,
+            'categories' => $categories
+        ]);
+    } catch (Exception $e) {
+        echo json_encode([
+            'success' => false,
+            'message' => 'Error fetching category options: ' . $e->getMessage()
+        ]);
+    }
+}
+
+/**
  * Get all categories with their usage count
  */
 function getCategories() {
     global $pdo;
     
     try {
-        $query = "
-            SELECT 
-                COALESCE(category, 'No Category') as name,
-                COUNT(*) as count
-            FROM universe_ideas 
-            GROUP BY category 
-            ORDER BY 
-                CASE WHEN category IS NULL OR category = '' THEN 1 ELSE 0 END,
-                category ASC
-        ";
+        // Get all possible category values from the ENUM definition
+        $enumQuery = "SHOW COLUMNS FROM universe_ideas LIKE 'category'";
+        $enumStmt = $pdo->prepare($enumQuery);
+        $enumStmt->execute();
+        $enumResult = $enumStmt->fetch(PDO::FETCH_ASSOC);
         
-        $stmt = $pdo->prepare($query);
-        $stmt->execute();
-        $categories = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        // Parse ENUM values from the Type column
+        $enumString = $enumResult['Type'];
+        preg_match_all("/'([^']+)'/", $enumString, $matches);
+        $allCategories = $matches[1];
+        
+        // Get usage count for each category
+        $usageQuery = "
+            SELECT category, COUNT(*) as count 
+            FROM universe_ideas 
+            WHERE category IS NOT NULL 
+            GROUP BY category
+        ";
+        $usageStmt = $pdo->prepare($usageQuery);
+        $usageStmt->execute();
+        $usageCounts = $usageStmt->fetchAll(PDO::FETCH_KEY_PAIR);
+        
+        // Build result array with all categories
+        $categories = [];
+        foreach ($allCategories as $category) {
+            $categories[] = [
+                'name' => $category,
+                'count' => $usageCounts[$category] ?? 0
+            ];
+        }
+        
+        // Sort by name
+        usort($categories, function($a, $b) {
+            return strcmp($a['name'], $b['name']);
+        });
         
         echo json_encode([
             'success' => true,
@@ -819,31 +881,37 @@ function addCategory() {
             throw new Exception('Category name is required');
         }
         
-        // Check if category already exists
-        $checkQuery = "SELECT COUNT(*) FROM universe_ideas WHERE category = ?";
-        $checkStmt = $pdo->prepare($checkQuery);
-        $checkStmt->execute([$categoryName]);
+        // Validate category name format (alphanumeric, underscores only)
+        if (!preg_match('/^[a-zA-Z0-9_]+$/', $categoryName)) {
+            throw new Exception('Category name can only contain letters, numbers, and underscores');
+        }
         
-        if ($checkStmt->fetchColumn() > 0) {
+        // Get current ENUM values
+        $enumQuery = "SHOW COLUMNS FROM universe_ideas LIKE 'category'";
+        $enumStmt = $pdo->prepare($enumQuery);
+        $enumStmt->execute();
+        $enumResult = $enumStmt->fetch(PDO::FETCH_ASSOC);
+        
+        // Parse current ENUM values
+        $enumString = $enumResult['Type'];
+        preg_match_all("/'([^']+)'/", $enumString, $matches);
+        $currentCategories = $matches[1];
+        
+        // Check if category already exists
+        if (in_array($categoryName, $currentCategories)) {
             throw new Exception('Category already exists');
         }
         
-        // Create a placeholder idea with the new category to ensure it exists
-        // This is a simple way to add the category to the system
-        $insertQuery = "
-            INSERT INTO universe_ideas (title, content, category, certainty_level, status, created_at, updated_at)
-            VALUES (?, ?, ?, 3, 'idea', NOW(), NOW())
-        ";
+        // Add new category to ENUM
+        $currentCategories[] = $categoryName;
+        $newEnumValues = "'" . implode("','", $currentCategories) . "'";
         
-        $placeholderTitle = "[Category Placeholder] " . $categoryName;
-        $placeholderContent = "This is a placeholder to create the category '" . $categoryName . "'. You can delete this idea or modify it as needed.";
-        
-        $stmt = $pdo->prepare($insertQuery);
-        $stmt->execute([$placeholderTitle, $placeholderContent, $categoryName]);
+        $alterQuery = "ALTER TABLE universe_ideas MODIFY COLUMN category ENUM($newEnumValues) NOT NULL DEFAULT 'Other'";
+        $pdo->exec($alterQuery);
         
         echo json_encode([
             'success' => true,
-            'message' => "Category '$categoryName' added successfully with a placeholder idea"
+            'message' => "Category '$categoryName' added successfully"
         ]);
     } catch (Exception $e) {
         echo json_encode([
@@ -859,117 +927,212 @@ function addCategory() {
 function updateCategory() {
     global $pdo;
     
+    $oldName = trim($_POST['old_name'] ?? '');
+    $newName = trim($_POST['new_name'] ?? '');
+    
+    if (empty($oldName) || empty($newName)) {
+        echo json_encode([
+            'success' => false,
+            'message' => 'Both old and new category names are required'
+        ]);
+        return;
+    }
+    
+    if ($oldName === $newName) {
+        echo json_encode([
+            'success' => false,
+            'message' => 'New name must be different from the old name'
+        ]);
+        return;
+    }
+    
+    // Validate new category name format
+    if (!preg_match('/^[a-zA-Z0-9_]+$/', $newName)) {
+        echo json_encode([
+            'success' => false,
+            'message' => 'Category name can only contain letters, numbers, and underscores'
+        ]);
+        return;
+    }
+    
     try {
-        $oldName = trim($_POST['old_name'] ?? '');
-        $newName = trim($_POST['new_name'] ?? '');
+        // Get current ENUM values
+        $enumQuery = "SHOW COLUMNS FROM universe_ideas LIKE 'category'";
+        $enumStmt = $pdo->prepare($enumQuery);
+        $enumStmt->execute();
+        $enumResult = $enumStmt->fetch(PDO::FETCH_ASSOC);
         
-        if (empty($oldName) || empty($newName)) {
-            throw new Exception('Both old and new category names are required');
+        if (!$enumResult) {
+            throw new Exception('Could not retrieve category column information');
         }
         
-        if ($oldName === $newName) {
-            throw new Exception('New name must be different from the old name');
-        }
+        // Parse current ENUM values
+        $enumString = $enumResult['Type'];
+        preg_match_all("/'([^']+)'/", $enumString, $matches);
+        $currentCategories = $matches[1];
         
-        // Handle "No Category" case
-        if ($oldName === 'No Category') {
-            $oldName = null;
+        // Check if old category exists
+        if (!in_array($oldName, $currentCategories)) {
+            echo json_encode([
+                'success' => false,
+                'message' => 'Original category not found'
+            ]);
+            return;
         }
         
         // Check if new category name already exists
-        $checkQuery = "SELECT COUNT(*) FROM universe_ideas WHERE category = ?";
-        $checkStmt = $pdo->prepare($checkQuery);
-        $checkStmt->execute([$newName]);
-        
-        if ($checkStmt->fetchColumn() > 0) {
-            throw new Exception('A category with that name already exists');
+        if (in_array($newName, $currentCategories)) {
+            echo json_encode([
+                'success' => false,
+                'message' => 'A category with that name already exists'
+            ]);
+            return;
         }
         
-        $pdo->beginTransaction();
+        // Step 1: Add the new category to the ENUM
+        $newCategories = $currentCategories;
+        $newCategories[] = $newName;
+        $newEnumValues = "'" . implode("','", $newCategories) . "'";
         
-        // Update all ideas with the old category name
-        $updateQuery = "UPDATE universe_ideas SET category = ?, updated_at = NOW() WHERE ";
+        $alterAddQuery = "ALTER TABLE universe_ideas MODIFY COLUMN category ENUM($newEnumValues) NOT NULL DEFAULT 'Other'";
+        $addResult = $pdo->exec($alterAddQuery);
         
-        if ($oldName === null) {
-            $updateQuery .= "(category IS NULL OR category = '')";
-            $stmt = $pdo->prepare($updateQuery);
-            $stmt->execute([$newName]);
-        } else {
-            $updateQuery .= "category = ?";
-            $stmt = $pdo->prepare($updateQuery);
-            $stmt->execute([$newName, $oldName]);
+        if ($addResult === false) {
+            throw new Exception('Failed to add new category to database schema');
         }
         
-        $affectedRows = $stmt->rowCount();
+        // Step 2: Update all ideas with the old category to use the new category
+        $updateQuery = "UPDATE universe_ideas SET category = ?, updated_at = NOW() WHERE category = ?";
+        $updateStmt = $pdo->prepare($updateQuery);
+        $updateResult = $updateStmt->execute([$newName, $oldName]);
         
-        if ($affectedRows === 0) {
-            throw new Exception('No ideas found with the specified category');
+        if (!$updateResult) {
+            throw new Exception('Failed to update ideas with new category name');
         }
         
-        $pdo->commit();
+        $affectedRows = $updateStmt->rowCount();
         
+        // Step 3: Remove the old category from the ENUM
+        $finalCategories = array_filter($newCategories, function($cat) use ($oldName) {
+            return $cat !== $oldName;
+        });
+        $finalEnumValues = "'" . implode("','", $finalCategories) . "'";
+        
+        $alterRemoveQuery = "ALTER TABLE universe_ideas MODIFY COLUMN category ENUM($finalEnumValues) NOT NULL DEFAULT 'Other'";
+        $removeResult = $pdo->exec($alterRemoveQuery);
+        
+        if ($removeResult === false) {
+            throw new Exception('Failed to remove old category from database schema');
+        }
+        
+        // Success response
         echo json_encode([
             'success' => true,
             'message' => "Category updated successfully. $affectedRows idea(s) affected."
         ]);
+        
     } catch (Exception $e) {
-        if ($pdo->inTransaction()) {
-            $pdo->rollback();
-        }
         echo json_encode([
             'success' => false,
-            'message' => $e->getMessage()
+            'message' => 'Error updating category: ' . $e->getMessage()
         ]);
     }
 }
 
 /**
- * Delete a category (safely move ideas to "No Category")
+ * Delete a category (safely move ideas to "Other" and remove from ENUM)
  */
 function deleteCategory() {
     global $pdo;
     
+    $categoryName = trim($_POST['category_name'] ?? '');
+    
+    if (empty($categoryName)) {
+        echo json_encode([
+            'success' => false,
+            'message' => 'Category name is required'
+        ]);
+        return;
+    }
+    
+    if ($categoryName === 'Other') {
+        echo json_encode([
+            'success' => false,
+            'message' => 'Cannot delete the "Other" category as it serves as the default'
+        ]);
+        return;
+    }
+    
     try {
-        $categoryName = trim($_POST['category_name'] ?? '');
+        // Get current ENUM values
+        $enumQuery = "SHOW COLUMNS FROM universe_ideas LIKE 'category'";
+        $enumStmt = $pdo->prepare($enumQuery);
+        $enumStmt->execute();
+        $enumResult = $enumStmt->fetch(PDO::FETCH_ASSOC);
         
-        if (empty($categoryName)) {
-            throw new Exception('Category name is required');
+        if (!$enumResult) {
+            throw new Exception('Could not retrieve category column information');
         }
         
-        if ($categoryName === 'No Category') {
-            throw new Exception('Cannot delete the "No Category" category');
+        // Parse current ENUM values
+        $enumString = $enumResult['Type'];
+        preg_match_all("/'([^']+)'/", $enumString, $matches);
+        $currentCategories = $matches[1];
+        
+        // Check if category exists
+        if (!in_array($categoryName, $currentCategories)) {
+            echo json_encode([
+                'success' => false,
+                'message' => 'Category not found'
+            ]);
+            return;
         }
         
-        $pdo->beginTransaction();
-        
-        // Count ideas in this category
+        // Step 1: Count ideas in this category
         $countQuery = "SELECT COUNT(*) FROM universe_ideas WHERE category = ?";
         $countStmt = $pdo->prepare($countQuery);
         $countStmt->execute([$categoryName]);
         $ideaCount = $countStmt->fetchColumn();
         
-        if ($ideaCount === 0) {
-            throw new Exception('Category not found or already empty');
+        // Step 2: Move all ideas in this category to "Other" (if any)
+        if ($ideaCount > 0) {
+            $updateQuery = "UPDATE universe_ideas SET category = 'Other', updated_at = NOW() WHERE category = ?";
+            $updateStmt = $pdo->prepare($updateQuery);
+            $updateResult = $updateStmt->execute([$categoryName]);
+            
+            if (!$updateResult) {
+                throw new Exception('Failed to move ideas to "Other" category');
+            }
         }
         
-        // Move all ideas in this category to "No Category" (null)
-        $updateQuery = "UPDATE universe_ideas SET category = NULL, updated_at = NOW() WHERE category = ?";
-        $updateStmt = $pdo->prepare($updateQuery);
-        $updateStmt->execute([$categoryName]);
+        // Step 3: Remove category from ENUM
+        $newCategories = array_filter($currentCategories, function($cat) use ($categoryName) {
+            return $cat !== $categoryName;
+        });
+        $newEnumValues = "'" . implode("','", $newCategories) . "'";
         
-        $pdo->commit();
+        $alterQuery = "ALTER TABLE universe_ideas MODIFY COLUMN category ENUM($newEnumValues) NOT NULL DEFAULT 'Other'";
+        $alterResult = $pdo->exec($alterQuery);
+        
+        if ($alterResult === false) {
+            throw new Exception('Failed to remove category from database schema');
+        }
+        
+        // Success response
+        $message = "Category '$categoryName' deleted successfully.";
+        if ($ideaCount > 0) {
+            $message .= " $ideaCount idea(s) moved to 'Other'.";
+        }
         
         echo json_encode([
             'success' => true,
-            'message' => "Category '$categoryName' deleted successfully. $ideaCount idea(s) moved to 'No Category'."
+            'message' => $message
         ]);
+        
     } catch (Exception $e) {
-        if ($pdo->inTransaction()) {
-            $pdo->rollback();
-        }
         echo json_encode([
             'success' => false,
-            'message' => $e->getMessage()
+            'message' => 'Error deleting category: ' . $e->getMessage()
         ]);
     }
 }

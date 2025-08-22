@@ -3,6 +3,9 @@ require_once "./blueprints/page_init.php";
 require_once "./blueprints/gl_ap_start.php";
 ?>
 
+<!-- Notification Container -->
+<div id="notificationContainer" style="position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 10000; max-width: 500px; width: 90%;"></div>
+
 <div class="content-page">
     <div class="ideas-container">
         <div class="ideas-header">
@@ -43,19 +46,7 @@ require_once "./blueprints/gl_ap_start.php";
                 <label for="categoryFilter">Category</label>
                 <select id="categoryFilter">
                     <option value="">All Categories</option>
-                    <option value="Magic_Systems">Magic Systems</option>
-                    <option value="Creatures">Creatures</option>
-                    <option value="Gods_Demons">Gods & Demons</option>
-                    <option value="Dimensions_Realms">Dimensions & Realms</option>
-                    <option value="Physics_Reality">Physics & Reality</option>
-                    <option value="Races_Beings">Races & Beings</option>
-                    <option value="Items_Artifacts">Items & Artifacts</option>
-                    <option value="Lore_History">Lore & History</option>
-                    <option value="Geography">Geography</option>
-                    <option value="Politics">Politics</option>
-                    <option value="Technology">Technology</option>
-                    <option value="Culture">Culture</option>
-                    <option value="Other">Other</option>
+                    <!-- Categories will be loaded dynamically -->
                 </select>
             </div>
             
@@ -151,19 +142,7 @@ require_once "./blueprints/gl_ap_start.php";
                 <div class="form-group">
                     <label for="ideaCategory">Category *</label>
                     <select id="ideaCategory" name="category" required>
-                        <option value="Magic_Systems">Magic Systems</option>
-                        <option value="Creatures">Creatures</option>
-                        <option value="Gods_Demons">Gods & Demons</option>
-                        <option value="Dimensions_Realms">Dimensions & Realms</option>
-                        <option value="Physics_Reality">Physics & Reality</option>
-                        <option value="Races_Beings">Races & Beings</option>
-                        <option value="Items_Artifacts">Items & Artifacts</option>
-                        <option value="Lore_History">Lore & History</option>
-                        <option value="Geography">Geography</option>
-                        <option value="Politics">Politics</option>
-                        <option value="Technology">Technology</option>
-                        <option value="Culture">Culture</option>
-                        <option value="Other">Other</option>
+                        <!-- Categories will be loaded dynamically -->
                     </select>
                 </div>
                 
@@ -419,9 +398,6 @@ Tags: tag1, tag2, tag3</div>
                     <!-- Categories will be loaded here -->
                 </div>
             </div>
-            
-            <div id="categoryResults" class="results-section" style="display: none; margin-top: 15px;">
-            </div>
         </div>
     </div>
 </div>
@@ -437,6 +413,7 @@ let allIdeas = [];
 document.addEventListener('DOMContentLoaded', function() {
     loadIdeas();
     loadParentOptions();
+    loadCategoryOptions(); // Load dynamic category options
     setupEventListeners();
     setupNewModalListeners();
 });
@@ -460,8 +437,87 @@ function setupEventListeners() {
             closeIdeaModal();
             closeQuickAddModal();
             closeBulkImportModal();
+            closeCategoryManagerModal();
         }
     });
+}
+
+// Notification System
+function showNotification(message, type = 'success', duration = 4000) {
+    const container = document.getElementById('notificationContainer');
+    
+    // Create notification element
+    const notification = document.createElement('div');
+    notification.className = `notification-banner ${type === 'success' ? 'success' : 'error'}`;
+    notification.style.cssText = `
+        margin-bottom: 10px;
+        padding: 15px 20px;
+        border-radius: 6px;
+        color: white;
+        font-weight: 500;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        transform: translateY(-20px);
+        opacity: 0;
+        transition: all 0.3s ease;
+        cursor: pointer;
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        background: ${type === 'success' ? 'linear-gradient(135deg, #28a745, #20c997)' : 'linear-gradient(135deg, #dc3545, #e74c3c)'};
+    `;
+    
+    // Create message content
+    const messageEl = document.createElement('span');
+    messageEl.textContent = message;
+    notification.appendChild(messageEl);
+    
+    // Create close button
+    const closeBtn = document.createElement('span');
+    closeBtn.innerHTML = '×';
+    closeBtn.style.cssText = `
+        margin-left: 15px;
+        font-size: 20px;
+        cursor: pointer;
+        opacity: 0.8;
+        transition: opacity 0.2s ease;
+    `;
+    closeBtn.onmouseover = () => closeBtn.style.opacity = '1';
+    closeBtn.onmouseout = () => closeBtn.style.opacity = '0.8';
+    notification.appendChild(closeBtn);
+    
+    // Add to container
+    container.appendChild(notification);
+    
+    // Animate in
+    setTimeout(() => {
+        notification.style.transform = 'translateY(0)';
+        notification.style.opacity = '1';
+    }, 10);
+    
+    // Auto-dismiss after duration
+    const dismissTimer = setTimeout(() => {
+        dismissNotification(notification);
+    }, duration);
+    
+    // Manual dismiss on click
+    const dismiss = () => {
+        clearTimeout(dismissTimer);
+        dismissNotification(notification);
+    };
+    
+    closeBtn.onclick = dismiss;
+    notification.onclick = dismiss;
+}
+
+function dismissNotification(notification) {
+    notification.style.transform = 'translateY(-20px)';
+    notification.style.opacity = '0';
+    setTimeout(() => {
+        if (notification.parentNode) {
+            notification.parentNode.removeChild(notification);
+        }
+    }, 300);
 }
 
 function setupNewModalListeners() {
@@ -828,17 +884,17 @@ function createIdeaCard(idea, hasChildren = false, isSubIdea = false) {
             }
         </div>
         
-        <div class="idea-content">${highlightSearchTerms(idea.content, getSearchTerms())}</div>
+        <div class="idea-content">${formatTextWithLineBreaks(highlightSearchTerms(idea.content, getSearchTerms()))}</div>
         
         ${idea.inspiration_source ? 
             `<div class="idea-inspiration">
-                <strong>💡 Inspiration Source:</strong> ${highlightSearchTerms(idea.inspiration_source, getSearchTerms())}
+                <strong>💡 Inspiration Source:</strong> ${formatTextWithLineBreaks(highlightSearchTerms(idea.inspiration_source, getSearchTerms()))}
             </div>` : ''
         }
         
         ${idea.comments ? 
             `<div class="idea-comments">
-                <strong>💬 Comments:</strong> ${highlightSearchTerms(idea.comments, getSearchTerms())}
+                <strong>💬 Comments:</strong> ${formatTextWithLineBreaks(highlightSearchTerms(idea.comments, getSearchTerms()))}
             </div>` : ''
         }
         
@@ -955,13 +1011,13 @@ async function handleFormSubmit(event) {
         if (data.success) {
             closeIdeaModal();
             loadIdeas();
-            alert(ideaId ? 'Idea updated successfully!' : 'Idea created successfully!');
+            showNotification(ideaId ? 'Idea updated successfully!' : 'Idea created successfully!', 'success');
         } else {
-            alert('Error: ' + data.message);
+            showNotification('Error: ' + data.message, 'error');
         }
     } catch (error) {
         console.error('Error saving idea:', error);
-        alert('Error saving idea. Please try again.');
+        showNotification('Error saving idea. Please try again.', 'error');
     } finally {
         // Restore button state
         submitBtn.disabled = false;
@@ -988,6 +1044,74 @@ async function loadParentOptions() {
     } catch (error) {
         console.error('Error loading parent options:', error);
     }
+}
+
+// Load category options for all dropdowns
+async function loadCategoryOptions() {
+    try {
+        const response = await fetch('scriptes/ideas_manager.php?action=get_category_options');
+        const data = await response.json();
+        
+        if (data.success) {
+            // Update main filter dropdown
+            const filterSelect = document.getElementById('categoryFilter');
+            const currentFilterValue = filterSelect.value; // Preserve current selection
+            filterSelect.innerHTML = '<option value="">All Categories</option>';
+            
+            data.categories.forEach(category => {
+                const option = document.createElement('option');
+                option.value = category;
+                option.textContent = formatCategoryName(category);
+                filterSelect.appendChild(option);
+            });
+            
+            // Restore previous selection if it still exists
+            if (currentFilterValue && data.categories.includes(currentFilterValue)) {
+                filterSelect.value = currentFilterValue;
+            }
+            
+            // Update idea form dropdown
+            const formSelect = document.getElementById('ideaCategory');
+            const currentFormValue = formSelect.value; // Preserve current selection
+            formSelect.innerHTML = '';
+            
+            data.categories.forEach(category => {
+                const option = document.createElement('option');
+                option.value = category;
+                option.textContent = formatCategoryName(category);
+                formSelect.appendChild(option);
+            });
+            
+            // Restore previous selection if it still exists
+            if (currentFormValue && data.categories.includes(currentFormValue)) {
+                formSelect.value = currentFormValue;
+            }
+        }
+    } catch (error) {
+        console.error('Error loading category options:', error);
+    }
+}
+
+// Helper function to format category names for display
+function formatCategoryName(category) {
+    return category.replace(/_/g, ' ').replace(/&/g, ' & ');
+}
+
+// Helper function to format text with proper line breaks
+function formatTextWithLineBreaks(text) {
+    if (!text) return '';
+    
+    // Convert newlines to <br> tags and preserve double newlines as paragraph breaks
+    return text
+        .replace(/\r\n/g, '\n') // Normalize Windows line endings
+        .replace(/\r/g, '\n')   // Normalize Mac line endings
+        .replace(/\n\n+/g, '</p><p>') // Double+ newlines become paragraph breaks
+        .replace(/\n/g, '<br>')       // Single newlines become <br> tags
+        .replace(/^/, '<p>')          // Add opening paragraph tag
+        .replace(/$/, '</p>')         // Add closing paragraph tag
+        .replace(/<p><\/p>/g, '')     // Remove empty paragraphs
+        .replace(/<p><br>/g, '<p>')   // Clean up paragraph starts
+        .replace(/<br><\/p>/g, '</p>'); // Clean up paragraph ends
 }
 
 // Action functions
@@ -1046,13 +1170,13 @@ async function deleteIdea(ideaId) {
         
         if (data.success) {
             loadIdeas();
-            alert('Idea deleted successfully!');
+            showNotification('Idea deleted successfully!', 'success');
         } else {
-            alert('Error deleting idea: ' + data.message);
+            showNotification('Error deleting idea: ' + data.message, 'error');
         }
     } catch (error) {
         console.error('Error deleting idea:', error);
-        alert('Error deleting idea. Please try again.');
+        showNotification('Error deleting idea. Please try again.', 'error');
     }
 }
 
@@ -1144,7 +1268,7 @@ async function addNewCategory() {
     const categoryName = input.value.trim();
     
     if (!categoryName) {
-        alert('Please enter a category name.');
+        showNotification('Please enter a category name.', 'error');
         return;
     }
     
@@ -1162,14 +1286,15 @@ async function addNewCategory() {
         
         if (data.success) {
             input.value = '';
-            loadCategories();
-            showCategoryResult('Category added successfully!', 'success');
+            loadCategories(); // Refresh category management modal
+            loadCategoryOptions(); // Refresh all category dropdowns
+            showNotification('Category added successfully!', 'success');
         } else {
-            showCategoryResult(data.message, 'error');
+            showNotification(data.message, 'error');
         }
     } catch (error) {
         console.error('Error adding category:', error);
-        showCategoryResult('Error adding category. Please try again.', 'error');
+        showNotification('Error adding category. Please try again.', 'error');
     }
 }
 
@@ -1224,7 +1349,7 @@ async function saveCategory(originalName, buttonElement) {
     const newName = input.value.trim();
     
     if (!newName) {
-        alert('Category name cannot be empty.');
+        showNotification('Category name cannot be empty.', 'error');
         return;
     }
     
@@ -1247,15 +1372,16 @@ async function saveCategory(originalName, buttonElement) {
         const data = await response.json();
         
         if (data.success) {
-            loadCategories();
-            showCategoryResult(`Category "${originalName}" updated to "${newName}" successfully!`, 'success');
+            loadCategories(); // Refresh category management modal
+            loadCategoryOptions(); // Refresh all category dropdowns
+            showNotification(`Category "${originalName}" updated to "${newName}" successfully!`, 'success');
         } else {
-            showCategoryResult(data.message, 'error');
+            showNotification(data.message, 'error');
             cancelEditCategory(originalName, categoryItem);
         }
     } catch (error) {
         console.error('Error updating category:', error);
-        showCategoryResult('Error updating category. Please try again.', 'error');
+        showNotification('Error updating category. Please try again.', 'error');
         cancelEditCategory(originalName, categoryItem);
     }
 }
@@ -1284,31 +1410,20 @@ async function deleteCategory(categoryName, ideaCount) {
         const data = await response.json();
         
         if (data.success) {
-            loadCategories();
+            loadCategories(); // Refresh category management modal
+            loadCategoryOptions(); // Refresh all category dropdowns
             if (ideaCount > 0) {
-                showCategoryResult(`Category "${categoryName}" deleted. ${ideaCount} idea(s) moved to "No Category".`, 'success');
+                showNotification(`Category "${categoryName}" deleted. ${ideaCount} idea(s) moved to "No Category".`, 'success');
             } else {
-                showCategoryResult(`Category "${categoryName}" deleted successfully!`, 'success');
+                showNotification(`Category "${categoryName}" deleted successfully!`, 'success');
             }
         } else {
-            showCategoryResult(data.message, 'error');
+            showNotification(data.message, 'error');
         }
     } catch (error) {
         console.error('Error deleting category:', error);
-        showCategoryResult('Error deleting category. Please try again.', 'error');
+        showNotification('Error deleting category. Please try again.', 'error');
     }
-}
-
-function showCategoryResult(message, type) {
-    const resultsDiv = document.getElementById('categoryResults');
-    resultsDiv.className = `results-section ${type}`;
-    resultsDiv.textContent = message;
-    resultsDiv.style.display = 'block';
-    
-    // Hide after 5 seconds
-    setTimeout(() => {
-        resultsDiv.style.display = 'none';
-    }, 5000);
 }
 
 // Load existing tags for display in forms
@@ -1383,7 +1498,6 @@ async function editIdea(ideaId) {
             document.getElementById('ideaStatus').value = idea.status || '';
             document.getElementById('ideaComments').value = idea.comments || '';
             document.getElementById('ideaSource').value = idea.inspiration_source || '';
-            document.getElementById('ideaParent').value = idea.parent_idea_id || '';
             
             // Handle tags
             if (idea.tags) {
@@ -1396,12 +1510,13 @@ async function editIdea(ideaId) {
             // Load existing tags
             await loadExistingTags();
             
-            // Load parent options
+            // Load parent options first, then set the parent value
             await loadParentOptions();
+            document.getElementById('ideaParent').value = idea.parent_idea_id || '';
         }
     } catch (error) {
         console.error('Error loading idea for editing:', error);
-        alert('Error loading idea data');
+        showNotification('Error loading idea data', 'error');
     }
 }
 
@@ -1428,15 +1543,15 @@ async function processAllEntityLinks() {
         const data = await response.json();
         
         if (data.success) {
-            alert(`Entity links processed successfully!\n${data.message}`);
+            showNotification(`Entity links processed successfully! ${data.message}`, 'success');
             // Reload ideas to show the updated content with links
             loadIdeas(1, false);
         } else {
-            alert('Error processing entity links: ' + data.message);
+            showNotification('Error processing entity links: ' + data.message, 'error');
         }
     } catch (error) {
         console.error('Error processing entity links:', error);
-        alert('Error processing entity links. Please try again.');
+        showNotification('Error processing entity links. Please try again.', 'error');
     } finally {
         btn.disabled = false;
         btn.textContent = originalText;

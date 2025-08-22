@@ -2882,8 +2882,6 @@ html body {
     display: flex;
     flex-wrap: wrap;
     gap: 5px;
-    max-height: 120px;
-    overflow-y: auto;
 }
 
 .existing-tag {
@@ -2917,6 +2915,26 @@ html body {
     font-size: 14px;
     box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.05);
     transition: all 0.2s ease;
+}
+
+.idea-content p {
+    margin: 0 0 10px 0;
+    line-height: 1.6;
+}
+
+.idea-content p:last-child {
+    margin-bottom: 0;
+}
+
+.idea-inspiration p,
+.idea-comments p {
+    margin: 0 0 8px 0;
+    line-height: 1.5;
+}
+
+.idea-inspiration p:last-child,
+.idea-comments p:last-child {
+    margin-bottom: 0;
 }
 
 .idea-content:hover {

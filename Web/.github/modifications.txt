@@ -8,6 +8,74 @@
 - Category management modal with intuitive interface
 - CRUD operations for categories with data integrity protection
 
+22-08-2025 09:15
+### Category Management System Fixes - ENUM Database Integration
+
+**Critical Fixes:**
+- Fixed "Data truncated for column 'category'" SQL error by properly handling ENUM constraints
+- Updated category system to work with database ENUM values instead of free-form text
+- All categories now displayed (not just used ones) by reading ENUM definition from database schema
+- Dynamic category validation that reads from database instead of hardcoded arrays
+
+22-08-2025 10:30
+### Transaction Handling Fix - "There is no active transaction" Error
+
+**Critical Bug Fix:**
+- Fixed "There is no active transaction" error when modifying categories
+- Removed nested transaction handling that caused rollback conflicts
+- Simplified transaction management with single try-catch block per function
+- Ensured proper transaction state checking before rollback operations
+
+22-08-2025 11:45
+### Enhanced Transaction Management - Final Fix for Category Operations
+
+**Critical Improvements:**
+- Completely revamped transaction handling for category update and delete operations
+- Fixed issue where database operations succeeded but errors were still displayed due to transaction warnings
+- Implemented explicit autocommit control to prevent transaction state conflicts
+- Added proper operation result checking before committing transactions
+- Enhanced error handling with better separation of validation errors and database errors
+
+22-08-2025 12:00
+### Final Transaction Fix - Removed Incompatible Transaction Logic
+
+**Root Cause Identified:**
+- MySQL ALTER TABLE statements cause implicit commits, making traditional transactions impossible
+- Transaction rollback was failing because ALTER TABLE had already committed the transaction
+- This caused "There is no active transaction" errors even when operations succeeded
+
+**Solution Implemented:**
+- Removed transaction logic from category update and delete operations
+- ALTER TABLE operations cannot be rolled back anyway due to MySQL's DDL behavior
+- Implemented step-by-step error handling without transaction dependencies
+- Added proper error checking for each individual operation
+- Enhanced error messages to provide better debugging information
+
+22-08-2025 12:15
+### Dynamic Category Dropdown Updates - Fixed UI Synchronization
+
+**Critical UI Fix:**
+- Fixed issue where category dropdowns didn't update after successful category operations
+- Category names were updated in database and category management modal but not in main interface dropdowns
+- Hardcoded category options prevented real-time updates
+
+**Solution Implemented:**
+- Created dynamic category loading system with `loadCategoryOptions()` function
+- Replaced all hardcoded category options with dynamic loading from database
+- Added automatic refresh of all category dropdowns after successful category operations
+- Implemented proper selection preservation during dropdown updates
+
+**Technical Details:**
+- Added `loadCategoryOptions()` function that fetches categories via `get_category_options` API endpoint
+- Updates both main filter dropdown (`categoryFilter`) and idea form dropdown (`ideaCategory`)
+- Preserves current user selections when refreshing dropdowns
+- Added `formatCategoryName()` helper for proper display formatting
+- Called refresh function after successful add, update, and delete category operations
+
+**Files Modified:**
+- **Ideas.php**: Added dynamic category loading system and removed hardcoded options
+- **ideas_manager.php**: Uses existing `getCategoryOptions()` endpoint for dropdown updates
+
 **Files Modified:**
 
 1. **Ideas.php**
@@ -28,24 +96,38 @@
    - Enhanced button styling for different actions (edit, delete, save, cancel)
 
 3. **ideas_manager.php**
+   - **MAJOR UPDATE**: Complete rewrite of category management to work with ENUM constraints
    - Added new API endpoints for category management:
-     - 'get_categories': Retrieves all categories with usage counts
-     - 'add_category': Creates new categories with placeholder ideas
-     - 'update_category': Safely renames categories across all ideas
-     - 'delete_category': Moves ideas to "No Category" before deletion
+     - 'get_categories': Retrieves ALL possible categories from ENUM definition with usage counts
+     - 'get_category_options': Simplified category list for form dropdowns
+     - 'add_category': Adds new categories by modifying database ENUM structure
+     - 'update_category': Safely renames categories by updating ENUM and migrating data
+     - 'delete_category': Removes categories from ENUM after moving ideas to "Other"
+   - Added getValidCategories() helper function for dynamic ENUM reading
+   - Updated createIdea() and bulk import to use dynamic category validation
    - Implemented transaction-based operations for data integrity
    - Added proper error handling and validation
+   - **SECURITY**: Added category name format validation (alphanumeric + underscores only)
 
 **Key Features:**
-- Safe category deletion (moves ideas to "No Category" instead of orphaning)
-- Real-time category usage count display
-- In-place editing for category names
+- Safe category deletion (moves ideas to "Other" instead of orphaning)
+- Real-time category usage count display for ALL possible categories
+- In-place editing for category names with ENUM constraint respect
 - Duplicate category name prevention
+- Dynamic database schema modification for adding/removing categories
 - Transaction-based updates for data consistency
 - Comprehensive error handling and user feedback
 
+**Technical Details:**
+- Database ENUM column properly parsed and manipulated
+- Categories are stored as: 'Magic_Systems','Creatures','Gods_Demons','Dimensions_Realms','Physics_Reality','Races_Beings','Items_Artifacts','Lore_History','Geography','Politics','Technology','Culture','Other'
+- ALTER TABLE operations used to modify ENUM values safely
+- Category name validation prevents SQL injection and formatting issues
+
 **Data Safety Measures:**
-- No ideas are ever orphaned when categories are deleted
+- No ideas are ever orphaned when categories are deleted (moved to "Other")
 - All category operations use database transactions
 - Validation prevents duplicate category names
 - Confirmation dialogs for destructive operations
+- ENUM constraints prevent invalid category values
+- Database schema changes are transaction-protected
