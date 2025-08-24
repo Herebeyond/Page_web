@@ -111,11 +111,25 @@ require_once "./blueprints/gl_ap_start.php";
             <!-- Ideas will be loaded here via JavaScript -->
         </div>
 
-        <!-- Load More Button -->
-        <div style="text-align: center; margin-top: 30px;">
-            <button class="btn-secondary" id="loadMoreBtn" onclick="loadMoreIdeas()" style="display: none;">
-                Load More Ideas
-            </button>
+        <!-- Pagination Controls -->
+        <div class="pagination-container" id="paginationContainer" style="text-align: center; margin-top: 30px; display: none;">
+            <div class="pagination-controls" id="paginationControls">
+                <button class="btn-secondary pagination-btn" id="firstPageBtn" onclick="goToPage(1)" title="First Page">
+                    ⟪
+                </button>
+                <button class="btn-secondary pagination-btn" id="prevPageBtn" onclick="goToPage(currentPage - 1)" title="Previous Page">
+                    ⟨
+                </button>
+                <div class="page-numbers" id="pageNumbers">
+                    <!-- Page numbers will be generated here -->
+                </div>
+                <button class="btn-secondary pagination-btn" id="nextPageBtn" onclick="goToPage(currentPage + 1)" title="Next Page">
+                    ⟩
+                </button>
+                <button class="btn-secondary pagination-btn" id="lastPageBtn" onclick="goToPage(totalPages)" title="Last Page">
+                    ⟫
+                </button>
+            </div>
         </div>
     </div>
 </div>
@@ -668,21 +682,13 @@ async function loadIdeas(page = 1, append = false) {
         const data = await response.json();
         
         if (data.success) {
-            if (!append) {
-                allIdeas = data.ideas;
-                currentPage = 1;
-            } else {
-                allIdeas = [...allIdeas, ...data.ideas];
-                currentPage = page;
-            }
-            
+            allIdeas = data.ideas;
+            currentPage = data.current_page;
             totalPages = data.total_pages;
-            displayIdeas(append);
-            updateStats(data.stats);
             
-            // Show/hide load more button
-            const loadMoreBtn = document.getElementById('loadMoreBtn');
-            loadMoreBtn.style.display = currentPage < totalPages ? 'block' : 'none';
+            displayIdeas();
+            updateStats(data.stats);
+            updatePagination();
         } else {
             console.error('Error loading ideas:', data.message);
         }
@@ -691,20 +697,70 @@ async function loadIdeas(page = 1, append = false) {
     }
 }
 
-function displayIdeas(append = false) {
+function displayIdeas() {
     const grid = document.getElementById('ideasGrid');
-    
-    if (!append) {
-        grid.innerHTML = '';
-    }
+    grid.innerHTML = '';
     
     // Group ideas by parent-child relationships
-    const ideaGroups = organizeIdeasByHierarchy(allIdeas.slice(append ? -20 : 0));
+    const ideaGroups = organizeIdeasByHierarchy(allIdeas);
     
     ideaGroups.forEach(group => {
         const groupElement = createIdeaGroup(group);
         grid.appendChild(groupElement);
     });
+}
+
+// New pagination functions
+function updatePagination() {
+    const paginationContainer = document.getElementById('paginationContainer');
+    const paginationControls = document.getElementById('paginationControls');
+    
+    if (totalPages <= 1) {
+        paginationContainer.style.display = 'none';
+        return;
+    }
+    
+    paginationContainer.style.display = 'block';
+    
+    // Update button states
+    document.getElementById('firstPageBtn').disabled = currentPage === 1;
+    document.getElementById('prevPageBtn').disabled = currentPage === 1;
+    document.getElementById('nextPageBtn').disabled = currentPage === totalPages;
+    document.getElementById('lastPageBtn').disabled = currentPage === totalPages;
+    
+    // Generate page numbers
+    generatePageNumbers();
+}
+
+function generatePageNumbers() {
+    const pageNumbersContainer = document.getElementById('pageNumbers');
+    pageNumbersContainer.innerHTML = '';
+    
+    const maxVisiblePages = 5;
+    let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
+    let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+    
+    // Adjust if we're near the end
+    if (endPage - startPage < maxVisiblePages - 1) {
+        startPage = Math.max(1, endPage - maxVisiblePages + 1);
+    }
+    
+    for (let i = startPage; i <= endPage; i++) {
+        const pageBtn = document.createElement('button');
+        pageBtn.className = `btn-secondary pagination-btn page-number ${i === currentPage ? 'active' : ''}`;
+        pageBtn.textContent = i;
+        pageBtn.onclick = () => goToPage(i);
+        pageNumbersContainer.appendChild(pageBtn);
+    }
+}
+
+function goToPage(page) {
+    if (page < 1 || page > totalPages || page === currentPage) {
+        return;
+    }
+    
+    currentPage = page;
+    loadIdeas(page);
 }
 
 function organizeIdeasByHierarchy(ideas) {
@@ -944,11 +1000,7 @@ function applyFilters() {
         }
     });
     
-    loadIdeas(1, false);
-}
-
-function loadMoreIdeas() {
-    loadIdeas(currentPage + 1, true);
+    loadIdeas(1);
 }
 
 // Modal functions
