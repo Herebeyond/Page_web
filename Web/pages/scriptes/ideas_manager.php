@@ -110,13 +110,14 @@ function getIdeas() {
     global $pdo;
     
     $page = max(1, intval($_GET['page'] ?? 1));
-    $limit = 10; // Limit for parent ideas only
+    $limit = 10; // Items per page
     $offset = ($page - 1) * $limit;
     
     // Build WHERE clause based on filters
     $where = [];
     $params = [];
     
+    // Handle search - when searching, show ONLY matching ideas (not hierarchies)
     if (!empty($_GET['search'])) {
         $searchTerms = preg_split('/\s+/', trim($_GET['search']));
         $searchTerms = array_filter($searchTerms); // Remove empty terms
@@ -135,6 +136,7 @@ function getIdeas() {
         }
     }
     
+    // Add other filters
     if (!empty($_GET['category'])) {
         $where[] = 'ui.category = ?';
         $params[] = $_GET['category'];
@@ -155,62 +157,117 @@ function getIdeas() {
         $params[] = $_GET['parent_id'];
     }
     
-    $whereClause = !empty($where) ? implode(' AND ', $where) : '1=1';
+    // When searching, show ALL matching ideas (parents AND children)
+    // When NOT searching, show only parent ideas with their hierarchies
+    if (empty($_GET['search']) && empty($_GET['parent_id'])) {
+        // No search - show only parent ideas (for hierarchy display)
+        $where[] = 'ui.parent_idea_id IS NULL';
+    }
     
-    // Count only parent ideas (ideas without parent_idea_id)
-    $parentWhereClause = $whereClause . ' AND ui.parent_idea_id IS NULL';
-    $countQuery = "SELECT COUNT(*) FROM universe_ideas ui WHERE $parentWhereClause";
+    // Build final query
+    $whereClause = !empty($where) ? 'WHERE ' . implode(' AND ', $where) : '';
+    
+    // Count total matching ideas
+    $countQuery = "SELECT COUNT(*) FROM universe_ideas ui $whereClause";
     $countStmt = $pdo->prepare($countQuery);
     $countStmt->execute($params);
-    $totalParentCount = $countStmt->fetchColumn();
+    $totalCount = $countStmt->fetchColumn();
     
-    // Get parent ideas with pagination
-    $parentQuery = "
-        SELECT ui.id_idea
-        FROM universe_ideas ui
-        WHERE $parentWhereClause
-        ORDER BY ui.created_at DESC
-        LIMIT $limit OFFSET $offset
-    ";
-    
-    $parentStmt = $pdo->prepare($parentQuery);
-    $parentStmt->execute($params);
-    $parentIdeaIds = $parentStmt->fetchAll(PDO::FETCH_COLUMN);
-    
-    // If no parent ideas found, return empty result
-    if (empty($parentIdeaIds)) {
+    if ($totalCount == 0) {
         echo json_encode([
             'success' => true,
             'ideas' => [],
-            'total_count' => $totalParentCount,
-            'total_pages' => ceil($totalParentCount / $limit),
+            'total_count' => 0,
+            'total_pages' => 0,
             'current_page' => $page,
             'stats' => getStatistics()
         ]);
         return;
     }
     
-    // Fetch complete hierarchies for these parent ideas (parent + all children)
-    $parentIdPlaceholders = str_repeat('?,', count($parentIdeaIds) - 1) . '?';
-    $hierarchyQuery = "
-        SELECT ui.id_idea, ui.title, ui.content, ui.category, ui.certainty_level, 
-               ui.status, ui.tags, ui.parent_idea_id, ui.comments, ui.inspiration_source,
-               ui.created_at, ui.updated_at,
-               COALESCE(parent.title, 'Root Idea') as parent_title,
-               (SELECT COUNT(*) FROM universe_ideas WHERE parent_idea_id = ui.id_idea) as child_count
-        FROM universe_ideas ui
-        LEFT JOIN universe_ideas parent ON ui.parent_idea_id = parent.id_idea
-        WHERE ui.id_idea IN ($parentIdPlaceholders) 
-           OR ui.parent_idea_id IN ($parentIdPlaceholders)
-        ORDER BY COALESCE(ui.parent_idea_id, ui.id_idea), ui.parent_idea_id IS NOT NULL, ui.created_at
-    ";
-    
-    // Prepare parameters: parent IDs twice (for the two IN clauses)
-    $hierarchyParams = array_merge($parentIdeaIds, $parentIdeaIds);
-    
-    $stmt = $pdo->prepare($hierarchyQuery);
-    $stmt->execute($hierarchyParams);
-    $ideas = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    // When searching, return only the matching ideas
+    if (!empty($_GET['search'])) {
+        // Simple query - return only matching ideas with pagination
+        $query = "
+            SELECT ui.id_idea, ui.parent_idea_id, ui.title, ui.content, ui.category, 
+                   ui.certainty_level, ui.status, ui.tags, ui.comments, ui.inspiration_source,
+                   ui.created_at, ui.updated_at, ui.priority,
+                   (SELECT COUNT(*) FROM universe_ideas sub WHERE sub.parent_idea_id = ui.id_idea) as child_count,
+                   CASE WHEN ui.parent_idea_id IS NULL THEN NULL ELSE 
+                       (SELECT title FROM universe_ideas p WHERE p.id_idea = ui.parent_idea_id) 
+                   END as parent_title
+            FROM universe_ideas ui
+            $whereClause
+            ORDER BY ui.created_at DESC
+            LIMIT $limit OFFSET $offset
+        ";
+        
+        $stmt = $pdo->prepare($query);
+        $stmt->execute($params);
+        $ideas = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        
+    } else {
+        // No search - get parent ideas and their complete hierarchies
+        $parentQuery = "
+            SELECT ui.id_idea
+            FROM universe_ideas ui
+            $whereClause
+            ORDER BY ui.created_at DESC
+            LIMIT $limit OFFSET $offset
+        ";
+        
+        $parentStmt = $pdo->prepare($parentQuery);
+        $parentStmt->execute($params);
+        $parentIds = $parentStmt->fetchAll(PDO::FETCH_COLUMN);
+        
+        if (empty($parentIds)) {
+            echo json_encode([
+                'success' => true,
+                'ideas' => [],
+                'total_count' => 0,
+                'total_pages' => 0,
+                'current_page' => $page,
+                'stats' => getStatistics()
+            ]);
+            return;
+        }
+        
+        // Get complete hierarchies for these parent ideas
+        $parentIdPlaceholders = str_repeat('?,', count($parentIds) - 1) . '?';
+        $hierarchyQuery = "
+            WITH RECURSIVE idea_hierarchy AS (
+                -- Base case: Get the selected parent ideas
+                SELECT ui.id_idea, ui.parent_idea_id, ui.title, ui.content, ui.category, 
+                       ui.certainty_level, ui.status, ui.tags, ui.comments, ui.inspiration_source,
+                       ui.created_at, ui.updated_at, ui.priority,
+                       (SELECT COUNT(*) FROM universe_ideas sub WHERE sub.parent_idea_id = ui.id_idea) as child_count,
+                       CASE WHEN ui.parent_idea_id IS NULL THEN NULL ELSE 
+                           (SELECT title FROM universe_ideas p WHERE p.id_idea = ui.parent_idea_id) 
+                       END as parent_title
+                FROM universe_ideas ui
+                WHERE ui.id_idea IN ($parentIdPlaceholders)
+                
+                UNION ALL
+                
+                -- Recursive case: Get all children
+                SELECT ui.id_idea, ui.parent_idea_id, ui.title, ui.content, ui.category, 
+                       ui.certainty_level, ui.status, ui.tags, ui.comments, ui.inspiration_source,
+                       ui.created_at, ui.updated_at, ui.priority,
+                       (SELECT COUNT(*) FROM universe_ideas sub WHERE sub.parent_idea_id = ui.id_idea) as child_count,
+                       CASE WHEN ui.parent_idea_id IS NULL THEN NULL ELSE 
+                           (SELECT title FROM universe_ideas p WHERE p.id_idea = ui.parent_idea_id) 
+                       END as parent_title
+                FROM universe_ideas ui
+                INNER JOIN idea_hierarchy ih ON ui.parent_idea_id = ih.id_idea
+            )
+            SELECT * FROM idea_hierarchy
+            ORDER BY COALESCE(parent_idea_id, id_idea), parent_idea_id IS NOT NULL, created_at
+        ";
+        
+        $stmt = $pdo->prepare($hierarchyQuery);
+        $stmt->execute($parentIds);
+        $ideas = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
     
     // Process entity links for each idea's content before returning
     foreach ($ideas as &$idea) {
@@ -226,8 +283,8 @@ function getIdeas() {
     echo json_encode([
         'success' => true,
         'ideas' => $ideas,
-        'total_count' => $totalParentCount,
-        'total_pages' => ceil($totalParentCount / $limit),
+        'total_count' => $totalCount,
+        'total_pages' => ceil($totalCount / $limit),
         'current_page' => $page,
         'stats' => $stats
     ]);
