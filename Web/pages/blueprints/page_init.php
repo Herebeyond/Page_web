@@ -33,7 +33,7 @@ if (!isset($_SESSION['initiated'])) {
 }
 
 // Implement session timeout
-$timeout_duration = 3600; // 60 minutes
+$timeout_duration = 14400; // 4 hours
 if (isset($_SESSION['LAST_ACTIVITY']) && (time() - $_SESSION['LAST_ACTIVITY']) > $timeout_duration) {
     session_unset();
     session_destroy();
