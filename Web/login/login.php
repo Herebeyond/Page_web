@@ -96,10 +96,35 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') { // Check if the form has been submi
                 <label for="Identification">Identification</label>
                 <input type="text" name="Identification" required><br>
                 <label for="psw">Password</label>
-                <input type="password" name="psw" required><br>
+                <div class="password-container">
+                    <input type="password" name="psw" id="password" required>
+                    <button type="button" class="password-toggle" onclick="togglePassword()" aria-label="Toggle password visibility">
+                        <img class="eye-icon" src="../images/small_img/eye_show.png" alt="Show password">
+                    </button>
+                </div><br>
                 <button type="submit">Sign In</button><br>
                 <span><a href="register.php">Not registered ? Do it here</a>  ||  <a href="../pages/Homepage.php">Homepage</a></span>
             </form><br>
         </div>
+        
+        <script>
+            function togglePassword() {
+                const passwordInput = document.getElementById('password');
+                const toggleButton = document.querySelector('.password-toggle');
+                const eyeIcon = toggleButton.querySelector('.eye-icon');
+                
+                if (passwordInput.type === 'password') {
+                    passwordInput.type = 'text';
+                    // Change to eye-hide icon (password is now visible)
+                    eyeIcon.src = '../images/small_img/eye_hide.png';
+                    eyeIcon.alt = 'Hide password';
+                } else {
+                    passwordInput.type = 'password';
+                    // Change back to eye-show icon (password is now hidden)
+                    eyeIcon.src = '../images/small_img/eye_show.png';
+                    eyeIcon.alt = 'Show password';
+                }
+            }
+        </script>
     </body>
 </html>

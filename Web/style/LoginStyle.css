@@ -48,3 +48,99 @@ body { /* Body of the page */
     font-weight: bold;
     margin-top: 10px;
 }
+
+/* Password visibility toggle styles */
+.password-container {
+    position: relative;
+    display: inline-block;
+    width: 100%;
+}
+
+.password-toggle {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    cursor: pointer;
+    user-select: none;
+    background: none;
+    border: none;
+    padding: 4px;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: opacity 0.2s ease;
+}
+
+.password-toggle:hover {
+    opacity: 0.7;
+}
+
+.password-toggle:focus {
+    outline: 2px solid #4CAF50;
+    outline-offset: 2px;
+    border-radius: 2px;
+}
+
+/* Eye icon image styling */
+.eye-icon {
+    width: 20px;
+    height: 20px;
+    display: block;
+}
+
+/* Adjust input padding to make room for the eye icon */
+input[type="password"], 
+input[name="psw"] {
+    padding-right: 45px !important;
+}
+
+/* Form styling improvements */
+#formLogin input {
+    width: 100%;
+    padding: 12px;
+    margin: 8px 0;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    box-sizing: border-box;
+    font-size: 16px;
+}
+
+#formLogin input:focus {
+    border-color: #4CAF50;
+    outline: none;
+    box-shadow: 0 0 5px rgba(76, 175, 80, 0.3);
+}
+
+#formLogin label {
+    display: block;
+    margin-top: 10px;
+    margin-bottom: 5px;
+    font-weight: bold;
+    color: #333;
+}
+
+#formLogin h2 {
+    text-align: center;
+    margin-bottom: 20px;
+    color: #333;
+}
+
+#formLogin button[type="submit"] {
+    width: 100%;
+    padding: 12px;
+    margin: 15px 0;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background-color 0.3s ease;
+}
+
+#formLogin button[type="submit"]:hover {
+    background-color: #45a049;
+}
