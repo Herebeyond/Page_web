@@ -20,15 +20,22 @@ $error_msg = ""; // initialize the error message variable
 if (isset($_GET['specie'])) {
     // Retrieve and sanitize the 'race' and 'specie' parameters
     $specie = sanitize_output($_GET['specie']);
+    // Convert underscores back to spaces for database lookup
+    $specieForDB = str_replace("_", " ", $specie);
 
     // Prepare and execute the query to retrieve specie information
     try {
         $stmt = $pdo->prepare("SELECT * FROM species WHERE specie_name = ?");
-        $stmt->execute([$specie]);
+        $stmt->execute([$specieForDB]);
         $specieInfo = $stmt->fetch(PDO::FETCH_ASSOC);
-        $id_specie = $specieInfo['id_specie']; // retrieve the id_specie of the specie
+        
+        if (!$specieInfo) {
+            $error_msg = "Specie '$specieForDB' not found.";
+        } else {
+            $id_specie = $specieInfo['id_specie']; // retrieve the id_specie of the specie
+        }
 
-        if (isset($_GET['race'])) {
+        if (isset($_GET['race']) && $specieInfo) {
             $race = sanitize_output($_GET['race']);
 
             // Prepare and execute the query to retrieve race information
@@ -85,31 +92,44 @@ if (isset($_GET['specie'])) {
         echo "<span class='title'>" . sanitize_output($error_msg) . "</span>";
         exit; // exit the script if there is an error message
     }?>
-    <span class='title'> <?php echo sanitize_output($specie); ?> </span> <!-- display the specie name as header -->
+    <span class='title'> <?php echo sanitize_output(str_replace("_", " ", $specie)); ?> </span> <!-- display the specie name as header -->
     <?php
+        if (isset($id_specie)) { // Only proceed if specie was found
         try {
             // Retrieve data from the races table
             $stmt = $pdo->prepare("SELECT * FROM races as r JOIN species as s ON r.correspondence = s.id_specie WHERE id_specie = ? ORDER BY r.id_race;");
             $stmt->execute([$id_specie]);
             $queryR = $pdo->prepare("SELECT * FROM species WHERE specie_name = ?");
-            $queryR->execute([$specie]);
+            $queryR->execute([$specieForDB]);
 
 
 
             // Generate the main text of the page
             $rowR = $queryR->fetch(PDO::FETCH_ASSOC);
             if ($rowR) { // the if instead of while allows retrieving a single row
-                if ($rowR['content_specie'] != '' && $rowR['content_specie'] != null) {
-                    echo "<p>" . nl2br(sanitize_output($rowR['content_specie'])) . "</p>";
+                // Try different possible column names for content
+                $content = null;
+                if (isset($rowR['content_specie'])) {
+                    $content = $rowR['content_specie'];
+                } elseif (isset($rowR['content_Specie'])) {
+                    $content = $rowR['content_Specie'];
+                } elseif (isset($rowR['specie_content'])) {
+                    $content = $rowR['specie_content'];
+                } elseif (isset($rowR['content'])) {
+                    $content = $rowR['content'];
+                }
+                
+                if ($content != '' && $content != null) {
+                    echo "<p>" . nl2br(sanitize_output($content)) . "</p>";
                 } else {
-                    echo "No content found for the $specie Specie.";
+                    echo "No content found for the " . str_replace("_", " ", $specie) . " Specie.";
                 }
             } else {
-                echo "No data found for the $specie Specie.";
+                echo "No data found for the " . str_replace("_", " ", $specie) . " Specie.";
             }
 
             // If the user is logged and is an admin, display the edit button
-            if (isset($_SESSION['user']) && $user && $user['role_id'] == 1) { // if the user is logged and is an admin (role_id = 1)
+            if (isset($_SESSION['user']) && $user && $user['role_id'] == 1 && $rowR) { // if the user is logged and is an admin (role_id = 1) and specie found
                 echo "<div class='editButton'>
                         <a href='Specie_add.php?specie_id=" . sanitize_output($rowR['id_specie']) . "'>Edit</a>
                     </div>";
@@ -208,6 +228,7 @@ if (isset($_GET['specie'])) {
         echo '<div class=sous_section>';
         echo $divsSelec;
         echo '</div>';
+        } // End of if (isset($id_specie)) condition
     ?>
 </div>
 

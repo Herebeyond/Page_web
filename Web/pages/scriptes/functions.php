@@ -253,11 +253,14 @@ function validateInput($input, $type = 'string', $options = []) {
 
 /**
  * Sanitizes output for safe HTML display
- * @param string $data The data to sanitize
- * @return string The sanitized data
+ * @param string|null $data The data to sanitize
+ * @return string The sanitized data (empty string if null)
  */
 function sanitize_output($data) {
-    return htmlspecialchars($data, ENT_QUOTES, 'UTF-8');
+    if ($data === null) {
+        return '';
+    }
+    return htmlspecialchars((string)$data, ENT_QUOTES, 'UTF-8');
 }
 
 /**
