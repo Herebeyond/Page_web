@@ -17,30 +17,28 @@ if (isset($_SESSION['user'])) {
 
 $error_msg = ""; // initialize the error message variable
 
-if (isset($_GET['specie'])) {
-    // Retrieve and sanitize the 'race' and 'specie' parameters
-    $specie = sanitize_output($_GET['specie']);
-    // Convert underscores back to spaces for database lookup
-    $specieForDB = str_replace("_", " ", $specie);
+if (isset($_GET['specie_id'])) {
+    // Retrieve and sanitize the specie_id parameter
+    $specie_id = (int)$_GET['specie_id'];
 
     // Prepare and execute the query to retrieve specie information
     try {
-        $stmt = $pdo->prepare("SELECT * FROM species WHERE specie_name = ?");
-        $stmt->execute([$specieForDB]);
+        $stmt = $pdo->prepare("SELECT * FROM species WHERE id_specie = ?");
+        $stmt->execute([$specie_id]);
         $specieInfo = $stmt->fetch(PDO::FETCH_ASSOC);
         
         if (!$specieInfo) {
-            $error_msg = "Specie '$specieForDB' not found.";
+            $error_msg = "Species not found.";
         } else {
             $id_specie = $specieInfo['id_specie']; // retrieve the id_specie of the specie
         }
 
-        if (isset($_GET['race']) && $specieInfo) {
-            $race = sanitize_output($_GET['race']);
+        if (isset($_GET['race_id']) && $specieInfo) {
+            $race_id = (int)$_GET['race_id'];
 
             // Prepare and execute the query to retrieve race information
-            $stmt = $pdo->prepare("SELECT * FROM races WHERE race_name = ?");
-            $stmt->execute([$race]);
+            $stmt = $pdo->prepare("SELECT * FROM races WHERE id_race = ?");
+            $stmt->execute([$race_id]);
             $raceInfo = $stmt->fetch(PDO::FETCH_ASSOC);
         }
     } catch (PDOException $e) {
@@ -48,7 +46,7 @@ if (isset($_GET['specie'])) {
         $error_msg = "Connection error: " . $e->getMessage();
     }
 } else {
-    $error_msg = "No specie selected.";
+    $error_msg = "No species selected.";
 }
 ?>
 
@@ -56,9 +54,9 @@ if (isset($_GET['specie'])) {
     // scroll to the race selected if selected in the URL
     document.addEventListener("DOMContentLoaded", function() { // wait for the document to load before executing the script
         const urlParams = new URLSearchParams(window.location.search);
-        const race = urlParams.get('race'); 
-        if (race) { // if the race variable is in the URL
-            const raceElement = document.getElementById(race);
+        const race_id = urlParams.get('race_id'); 
+        if (race_id) { // if the race_id variable is in the URL
+            const raceElement = document.getElementById('race-' + race_id);
             if (raceElement) { // find the div with the id
                 raceElement.scrollIntoView({ behavior: 'smooth' }); // scroll to the div with the race id
             }
@@ -92,15 +90,15 @@ if (isset($_GET['specie'])) {
         echo "<span class='title'>" . sanitize_output($error_msg) . "</span>";
         exit; // exit the script if there is an error message
     }?>
-    <span class='title'> <?php echo sanitize_output(str_replace("_", " ", $specie)); ?> </span> <!-- display the specie name as header -->
+    <span class='title'> <?php echo sanitize_output($specieInfo['specie_name']); ?> </span> <!-- display the specie name as header -->
     <?php
         if (isset($id_specie)) { // Only proceed if specie was found
         try {
             // Retrieve data from the races table
             $stmt = $pdo->prepare("SELECT * FROM races as r JOIN species as s ON r.correspondence = s.id_specie WHERE id_specie = ? ORDER BY r.id_race;");
             $stmt->execute([$id_specie]);
-            $queryR = $pdo->prepare("SELECT * FROM species WHERE specie_name = ?");
-            $queryR->execute([$specieForDB]);
+            $queryR = $pdo->prepare("SELECT * FROM species WHERE id_specie = ?");
+            $queryR->execute([$id_specie]);
 
 
 
@@ -122,10 +120,10 @@ if (isset($_GET['specie'])) {
                 if ($content != '' && $content != null) {
                     echo "<p>" . nl2br(sanitize_output($content)) . "</p>";
                 } else {
-                    echo "No content found for the " . str_replace("_", " ", $specie) . " Specie.";
+                    echo "No content found for the " . sanitize_output($specieInfo['specie_name']) . " Species.";
                 }
             } else {
-                echo "No data found for the " . str_replace("_", " ", $specie) . " Specie.";
+                echo "No data found for the " . sanitize_output($specieInfo['specie_name']) . " Species.";
             }
 
             // If the user is logged and is an admin, display the edit button
@@ -179,7 +177,7 @@ if (isset($_GET['specie'])) {
                 // Create a div for each race
                 // The id is important for the Intersection Observer to work (scroll to the div when a race selected in the URL)
                 $divsSelec .= " 
-                        <div class='selectionRace fadeIn' id=" . str_replace(" ", "_", sanitize_output($rowF['race_name'])) . ">
+                        <div class='selectionRace fadeIn' id='race-" . $rowF['id_race'] . "'>
                             <div class=infobox>
                                 <div class='infosTitle'>
                                     <img class='imgSelectionRace' src='" . $imgPath . "'>

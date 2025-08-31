@@ -3678,3 +3678,433 @@ html body {
     color: #721c24;
     border: 1px solid #f1b0b7;
 }
+
+/* Beings Page Styles */
+.beings-header {
+    text-align: center;
+    margin-bottom: 2rem;
+    position: relative;
+}
+
+.beings-header h1 {
+    color: #222088;
+    margin-bottom: 0.5rem;
+    font-size: 2.5rem;
+}
+
+.beings-header p {
+    color: #666;
+    font-size: 1.1rem;
+    margin-bottom: 1rem;
+}
+
+.admin-tools {
+    position: absolute;
+    top: 0;
+    right: 0;
+}
+
+.admin-btn {
+    background: #222088;
+    color: white;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: all 0.3s ease;
+}
+
+.admin-btn:hover {
+    background: #1a1066;
+    transform: translateY(-2px);
+}
+
+.beings-controls {
+    margin-bottom: 2rem;
+    background: #f8f9fa;
+    padding: 1.5rem;
+    border-radius: 12px;
+    border: 1px solid #e9ecef;
+}
+
+.search-form {
+    display: flex;
+    gap: 1rem;
+    align-items: end;
+    flex-wrap: wrap;
+}
+
+.search-group {
+    display: flex;
+    gap: 1rem;
+    flex: 1;
+    min-width: 300px;
+}
+
+.search-input, .filter-select {
+    padding: 0.75rem;
+    border: 2px solid #ddd;
+    border-radius: 8px;
+    font-size: 1rem;
+    transition: border-color 0.3s ease;
+}
+
+.search-input {
+    flex: 2;
+}
+
+.filter-select {
+    flex: 1;
+}
+
+.search-input:focus, .filter-select:focus {
+    outline: none;
+    border-color: #222088;
+}
+
+.search-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.search-btn, .clear-btn {
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    text-decoration: none;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.search-btn {
+    background: #222088;
+    color: white;
+    border: none;
+}
+
+.search-btn:hover {
+    background: #1a1066;
+}
+
+.clear-btn {
+    background: #6c757d;
+    color: white;
+}
+
+.clear-btn:hover {
+    background: #545b62;
+}
+
+.results-summary {
+    margin-bottom: 1.5rem;
+    padding: 1rem;
+    background: #e3f2fd;
+    border-radius: 8px;
+    border-left: 4px solid #2196f3;
+}
+
+.beings-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+    gap: 2rem;
+    margin-bottom: 2rem;
+}
+
+.species-card {
+    background: white;
+    border: 2px solid #e9ecef;
+    border-radius: 16px;
+    overflow: hidden;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+.species-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+    border-color: #222088;
+}
+
+.species-header {
+    display: flex;
+    align-items: center;
+    padding: 1.5rem;
+    cursor: pointer;
+    background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+    border-bottom: 1px solid #e9ecef;
+}
+
+.species-header:hover {
+    background: linear-gradient(135deg, #e9ecef 0%, #f8f9fa 100%);
+}
+
+.species-image {
+    width: 80px;
+    height: 80px;
+    border-radius: 12px;
+    overflow: hidden;
+    margin-right: 1.5rem;
+    flex-shrink: 0;
+    border: 2px solid #e9ecef;
+}
+
+.species-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.species-info {
+    flex: 1;
+}
+
+.species-name {
+    font-size: 1.5rem;
+    color: #222088;
+    margin: 0 0 0.5rem 0;
+    font-weight: 600;
+}
+
+.species-race-count {
+    color: #6c757d;
+    font-size: 0.9rem;
+    margin: 0 0 0.5rem 0;
+    font-weight: 500;
+}
+
+.species-description {
+    color: #495057;
+    font-size: 0.95rem;
+    line-height: 1.4;
+    margin: 0;
+}
+
+.species-toggle {
+    margin-left: 1rem;
+    font-size: 1.5rem;
+    color: #6c757d;
+    transition: transform 0.3s ease;
+}
+
+.species-card.expanded .species-toggle .toggle-icon {
+    transform: rotate(180deg);
+}
+
+.races-section {
+    padding: 0 1.5rem 1.5rem 1.5rem;
+}
+
+.no-races {
+    text-align: center;
+    padding: 2rem;
+    color: #6c757d;
+}
+
+.btn-add-race {
+    background: #28a745;
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    cursor: pointer;
+    margin-top: 1rem;
+}
+
+.races-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.race-card {
+    background: #f8f9fa;
+    border: 1px solid #e9ecef;
+    border-radius: 12px;
+    padding: 1rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.race-card:hover {
+    background: white;
+    border-color: #222088;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.race-image {
+    width: 60px;
+    height: 60px;
+    border-radius: 8px;
+    overflow: hidden;
+    margin: 0 auto 1rem auto;
+    border: 1px solid #dee2e6;
+}
+
+.race-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.race-name {
+    font-size: 1.1rem;
+    color: #222088;
+    text-align: center;
+    margin: 0 0 0.5rem 0;
+    font-weight: 600;
+}
+
+.race-stats {
+    font-size: 0.8rem;
+    color: #6c757d;
+    margin-bottom: 0.5rem;
+}
+
+.race-stat {
+    display: block;
+    margin-bottom: 0.2rem;
+}
+
+.race-description {
+    font-size: 0.85rem;
+    color: #495057;
+    line-height: 1.3;
+    text-align: center;
+    margin: 0;
+}
+
+.species-admin-actions {
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid #e9ecef;
+    display: flex;
+    gap: 0.5rem;
+    justify-content: center;
+}
+
+.btn-edit, .btn-add {
+    padding: 0.5rem 1rem;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: all 0.3s ease;
+}
+
+.btn-edit {
+    background: #007bff;
+    color: white;
+}
+
+.btn-edit:hover {
+    background: #0056b3;
+}
+
+.btn-add {
+    background: #28a745;
+    color: white;
+}
+
+.btn-add:hover {
+    background: #1e7e34;
+}
+
+.pagination {
+    display: flex;
+    justify-content: center;
+    gap: 0.5rem;
+    margin-top: 2rem;
+}
+
+.page-link {
+    padding: 0.75rem 1rem;
+    border: 1px solid #dee2e6;
+    background: white;
+    color: #222088;
+    text-decoration: none;
+    border-radius: 6px;
+    transition: all 0.3s ease;
+}
+
+.page-link:hover, .page-link.active {
+    background: #222088;
+    color: white;
+    border-color: #222088;
+}
+
+.error-message {
+    background: #f8d7da;
+    color: #721c24;
+    padding: 1rem;
+    border-radius: 8px;
+    border: 1px solid #f5c6cb;
+    text-align: center;
+}
+
+/* Modal Styles */
+.modal {
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.5);
+}
+
+.modal-content {
+    background-color: white;
+    margin: 5% auto;
+    padding: 1%;
+    border-radius: 12px;
+    width: 90%;
+    max-width: 800px;
+    max-height: 80vh;
+    overflow-y: auto;
+}
+
+.close {
+    color: #aaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+    padding: 1rem;
+    cursor: pointer;
+}
+
+.close:hover {
+    color: #000;
+}
+
+/* Responsive Design for Beings Page */
+@media (max-width: 768px) {
+    .beings-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .search-form {
+        flex-direction: column;
+    }
+    
+    .search-group {
+        min-width: auto;
+        flex-direction: column;
+    }
+    
+    .species-header {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .species-image {
+        margin: 0 0 1rem 0;
+    }
+    
+    .admin-tools {
+        position: static;
+        margin-top: 1rem;
+    }
+}
