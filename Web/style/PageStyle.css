@@ -4014,7 +4014,11 @@ html body {
 }
 
 .races-section {
-    position: relative;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    z-index: 100;
     background: linear-gradient(135deg, rgba(34, 32, 136, 0.95), rgba(161, 171, 255, 0.95));
     border: 2px solid #222088;
     border-radius: 12px;
