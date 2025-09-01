@@ -10,8 +10,9 @@ if (!$pdo) {
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') { // Check if the form has been submitted
-    $username = trim($_POST['Identification']); // Sanitize user input
-    $password = trim($_POST['psw']); 
+    // Support both old and new field names for backward compatibility
+    $username = trim($_POST['username'] ?? $_POST['Identification'] ?? ''); // Sanitize user input
+    $password = trim($_POST['password'] ?? $_POST['psw'] ?? ''); 
 
     // Check if fields are not empty
     if (empty($username) || empty($password)) {
@@ -85,7 +86,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') { // Check if the form has been submi
     </head>
     <body id="bodyLogin">
         <div id="globalLogin">
-            <form method="POST" action="login.php" id="formLogin">
+            <form method="POST" action="login.php" id="formLogin" autocomplete="on">
                 <?php
                 if (isset($_SESSION['error'])) { // display an error message if the user did not fill in the fields
                     echo '<p style="color:red;">' . htmlspecialchars($_SESSION['error'], ENT_QUOTES, 'UTF-8') . '</p>';
@@ -93,11 +94,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') { // Check if the form has been submi
                 }
                 ?>
                 <h2> Login </h2>
-                <label for="Identification">Identification</label>
-                <input type="text" name="Identification" required><br>
-                <label for="psw">Password</label>
+                <label for="username">Username</label>
+                <input type="text" name="username" id="username" autocomplete="username" required><br>
+                <label for="password">Password</label>
                 <div class="password-container">
-                    <input type="password" name="psw" id="password" required>
+                    <input type="password" name="password" id="password" autocomplete="current-password" required>
                     <button type="button" class="password-toggle" onclick="togglePassword()" aria-label="Toggle password visibility">
                         <img class="eye-icon" src="../images/small_img/eye_show.png" alt="Show password">
                     </button>

@@ -366,6 +366,542 @@ function isImageLinkValid($url) {
     return false;
 }
 
+// ============================================================================
+// JAVASCRIPT UTILITIES
+// ============================================================================
+
+/**
+ * Generate shared JavaScript utility functions
+ * @return string JavaScript utility functions as string
+ */
+function generateSharedJavaScriptUtilities() {
+    return "
+    // Shared utility functions
+    function showSuccessMessage(message) {
+        const notification = document.createElement('div');
+        notification.className = 'notification-banner success-notification';
+        notification.style.cssText = `
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 10000;
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+            border-radius: 4px;
+            padding: 15px 20px;
+            max-width: 500px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            opacity: 1;
+            transition: opacity 0.3s ease;
+        `;
+        notification.innerHTML = '<span>' + message + '</span><button style=\"margin-left: 15px; background: none; border: none; font-size: 18px; cursor: pointer; color: #155724;\" onclick=\"this.parentElement.remove()\">&times;</button>';
+        document.body.appendChild(notification);
+        
+        // Auto-hide after 5 seconds
+        setTimeout(() => {
+            if (notification && notification.parentElement) {
+                notification.style.opacity = '0';
+                setTimeout(() => {
+                    if (notification && notification.parentElement) {
+                        notification.remove();
+                    }
+                }, 300);
+            }
+        }, 5000);
+    }
+    
+    function showErrorMessage(message) {
+        const notification = document.createElement('div');
+        notification.className = 'notification-banner error-notification';
+        notification.style.cssText = `
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 10000;
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+            border-radius: 4px;
+            padding: 15px 20px;
+            max-width: 500px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            opacity: 1;
+            transition: opacity 0.3s ease;
+        `;
+        notification.innerHTML = '<span>' + message + '</span><button style=\"margin-left: 15px; background: none; border: none; font-size: 18px; cursor: pointer; color: #721c24;\" onclick=\"this.parentElement.remove()\">&times;</button>';
+        document.body.appendChild(notification);
+        
+        // Auto-hide after 8 seconds (errors shown longer)
+        setTimeout(() => {
+            if (notification && notification.parentElement) {
+                notification.style.opacity = '0';
+                setTimeout(() => {
+                    if (notification && notification.parentElement) {
+                        notification.remove();
+                    }
+                }, 300);
+            }
+        }, 8000);
+    }
+    
+    function showLoadingIndicator() {
+        if (!document.getElementById('loadingIndicator')) {
+            const loader = document.createElement('div');
+            loader.id = 'loadingIndicator';
+            loader.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0,0,0,0.5);
+                z-index: 9999;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+            `;
+            
+            const spinner = document.createElement('div');
+            spinner.style.cssText = `
+                width: 50px;
+                height: 50px;
+                border: 5px solid #f3f3f3;
+                border-top: 5px solid #3498db;
+                border-radius: 50%;
+                animation: spin 1s linear infinite;
+            `;
+            
+            // Add keyframe animation
+            if (!document.getElementById('spinKeyframes')) {
+                const style = document.createElement('style');
+                style.id = 'spinKeyframes';
+                style.textContent = '@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }';
+                document.head.appendChild(style);
+            }
+            
+            loader.appendChild(spinner);
+            document.body.appendChild(loader);
+        }
+    }
+    
+    function hideLoadingIndicator() {
+        const loader = document.getElementById('loadingIndicator');
+        if (loader) {
+            loader.remove();
+        }
+    }
+    
+    function updateEntityCount(type) {
+        // Update count displays if they exist
+        const countElements = document.querySelectorAll('[data-count-type=\"' + type + '\"]');
+        countElements.forEach(element => {
+            const currentCount = parseInt(element.textContent) || 0;
+            element.textContent = Math.max(0, currentCount - 1);
+        });
+    }";
+}
+
+/**
+ * Generate JavaScript functions for entity deletion with confirmation
+ * @param string $entityType Type of entity (species, race, character, etc.)
+ * @param string $apiEndpoint API endpoint for deletion
+ * @param bool $dynamicUpdate Whether to update DOM dynamically instead of page reload
+ * @return string JavaScript functions as string for inclusion in pages
+ */
+function generateEntityDeleteFunctions($entityType, $apiEndpoint = null, $dynamicUpdate = true) {
+    if ($apiEndpoint === null) {
+        $apiEndpoint = './scriptes/Beings_admin_interface.php';
+    }
+    
+    $entityCapitalized = ucfirst($entityType);
+    
+    $updateCode = $dynamicUpdate ? 
+        "// Dynamic update - remove the entity from DOM
+                console.log('Looking for entity with ID:', id);
+                const entityCard = document.querySelector('[data-{$entityType}-id=\"' + id + '\"]') || 
+                                 document.querySelector('.{$entityType}-card[data-id=\"' + id + '\"]') ||
+                                 document.querySelector('#{$entityType}-' + id);
+                console.log('Found entity card:', entityCard);
+                if (entityCard) {
+                    entityCard.style.transition = 'opacity 0.3s ease';
+                    entityCard.style.opacity = '0';
+                    setTimeout(() => {
+                        entityCard.remove();
+                        console.log('Entity removed from DOM');
+                        // Update count if exists
+                        updateEntityCount(type);
+                        // Show success message with fade effect
+                        showSuccessMessage(data.message);
+                    }, 300);
+                } else {
+                    console.log('Entity card not found, showing success message and reloading');
+                    showSuccessMessage(data.message);
+                    setTimeout(() => location.reload(), 1000);
+                }" : 
+        "location.reload(); // Refresh the page";
+    
+    return "
+    function confirmDelete{$entityCapitalized}(id, name) {
+        if (confirm('Are you sure you want to delete the {$entityType} \"' + name + '\"? This action cannot be undone.')) {
+            deleteEntity('{$entityType}', id, '{$apiEndpoint}');
+        }
+    }
+    
+    function deleteEntity(type, id, endpoint = '{$apiEndpoint}') {
+        // Show loading indicator
+        showLoadingIndicator();
+        
+        fetch(endpoint + '?action=delete_' + type, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({id: id})
+        })
+        .then(response => response.json())
+        .then(data => {
+            hideLoadingIndicator();
+            if (data.success) {
+                {$updateCode}
+            } else {
+                showErrorMessage('Error: ' + data.message);
+            }
+        })
+        .catch(error => {
+            hideLoadingIndicator();
+            console.error('Error:', error);
+            showErrorMessage('An error occurred while deleting the ' + type);
+        });
+    }";
+}
+
+/**
+ * Output JavaScript entity deletion functions for inclusion in page
+ * @param array $entityTypes Array of entity types to generate functions for
+ * @param string $apiEndpoint API endpoint for deletion operations
+ * @param bool $dynamicUpdate Whether to update DOM dynamically instead of page reload
+ */
+function outputEntityDeleteFunctions($entityTypes, $apiEndpoint = null, $dynamicUpdate = true) {
+    echo "<script>\n";
+    
+    // Only output utilities once
+    static $utilitiesOutput = false;
+    if (!$utilitiesOutput) {
+        echo generateSharedJavaScriptUtilities() . "\n";
+        $utilitiesOutput = true;
+    }
+    
+    foreach ($entityTypes as $entityType) {
+        echo generateEntityDeleteFunctions($entityType, $apiEndpoint, $dynamicUpdate) . "\n";
+    }
+    echo "</script>\n";
+}
+
+/**
+ * Generate JavaScript functions for Beings page functionality
+ * @param string $apiEndpoint API endpoint for admin operations
+ * @return string JavaScript functions for Beings page
+ */
+function generateBeingsPageFunctions($apiEndpoint = './scriptes/Beings_admin_interface.php') {
+    return "
+    function toggleSpeciesRaces(speciesId) {
+        const racesSection = document.getElementById('races-' + speciesId);
+        const speciesCard = racesSection.closest('.species-card');
+        
+        // Close all other expanded species first
+        document.querySelectorAll('.species-card.expanded').forEach(card => {
+            if (card !== speciesCard) {
+                const otherRacesSection = card.querySelector('.races-section');
+                otherRacesSection.classList.remove('show');
+                card.classList.remove('expanded');
+            }
+        });
+        
+        // Toggle the current species
+        if (racesSection.classList.contains('show')) {
+            racesSection.classList.remove('show');
+            speciesCard.classList.remove('expanded');
+        } else {
+            racesSection.classList.add('show');
+            speciesCard.classList.add('expanded');
+        }
+    }
+
+    function viewRaceDetails(speciesId, raceId) {
+        // Navigate to race details page with both species and race IDs
+        window.location.href = `./Beings_display.php?specie_id=\${speciesId}&race_id=\${raceId}`;
+    }
+
+    function openAdminModal() {
+        document.getElementById('adminModal').style.display = 'block';
+        // Load admin interface via AJAX
+        fetch('{$apiEndpoint}')
+            .then(response => response.text())
+            .then(html => {
+                document.getElementById('adminModalContent').innerHTML = html;
+            })
+            .catch(error => {
+                console.error('Error loading admin interface:', error);
+                document.getElementById('adminModalContent').innerHTML = 
+                    '<div class=\"error-message\">Failed to load admin interface</div>';
+            });
+    }
+
+    function closeAdminModal() {
+        document.getElementById('adminModal').style.display = 'none';
+    }
+
+    function editSpecies(speciesId) {
+        openAdminModal();
+        // Load edit form after modal is open
+        setTimeout(() => {
+            loadEditSpeciesForm(speciesId);
+        }, 100);
+    }
+
+    function addRaceToSpecies(speciesId) {
+        openAdminModal();
+        // Load add race form after modal is open
+        setTimeout(() => {
+            loadAddRaceForm(speciesId);
+        }, 100);
+    }
+
+    function loadEditSpeciesForm(speciesId) {
+        fetch(`{$apiEndpoint}?action=edit_species&id=\${speciesId}`)
+            .then(response => response.text())
+            .then(html => {
+                document.getElementById('adminModalContent').innerHTML = html;
+                // Add dynamic save handler
+                setupDynamicFormHandler('species', speciesId);
+            });
+    }
+
+    function loadAddRaceForm(speciesId) {
+        fetch(`{$apiEndpoint}?action=add_race&species_id=\${speciesId}`)
+            .then(response => response.text())
+            .then(html => {
+                document.getElementById('adminModalContent').innerHTML = html;
+                // Add dynamic save handler
+                setupDynamicFormHandler('race', null, speciesId);
+            });
+    }
+
+    function setupDynamicFormHandler(entityType, entityId = null, parentId = null) {
+        const form = document.querySelector('#adminModalContent form');
+        if (form) {
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+                handleDynamicFormSubmit(this, entityType, entityId, parentId);
+            });
+        }
+    }
+
+    function handleDynamicFormSubmit(form, entityType, entityId = null, parentId = null) {
+        const formData = new FormData(form);
+        
+        showLoadingIndicator();
+        
+        fetch('{$apiEndpoint}', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            hideLoadingIndicator();
+            if (data.success) {
+                showSuccessMessage(data.message);
+                closeAdminModal();
+                
+                if (entityType === 'species' && entityId) {
+                    // Update existing species card
+                    updateSpeciesCard(entityId, data.species);
+                } else if (entityType === 'race' && parentId) {
+                    // Add new race to species or update existing
+                    if (data.race) {
+                        if (entityId) {
+                            updateRaceCard(entityId, data.race);
+                        } else {
+                            addRaceToSpeciesCard(parentId, data.race);
+                        }
+                    }
+                }
+            } else {
+                showErrorMessage('Error: ' + data.message);
+            }
+        })
+        .catch(error => {
+            hideLoadingIndicator();
+            console.error('Error:', error);
+            showErrorMessage('An error occurred while saving');
+        });
+    }
+
+    function updateSpeciesCard(speciesId, speciesData) {
+        const speciesCard = document.querySelector(`[data-species-id=\"\${speciesId}\"]`);
+        if (speciesCard) {
+            // Update species name
+            const nameElement = speciesCard.querySelector('.species-name');
+            if (nameElement && speciesData.specie_name) {
+                nameElement.textContent = speciesData.specie_name;
+            }
+            
+            // Update species description
+            const descElement = speciesCard.querySelector('.species-description');
+            if (descElement && speciesData.content_specie) {
+                const truncated = speciesData.content_specie.length > 150 ? 
+                    speciesData.content_specie.substring(0, 150) + '...' : 
+                    speciesData.content_specie;
+                descElement.textContent = truncated;
+            }
+            
+            // Update species image if changed
+            const imgElement = speciesCard.querySelector('.species-image img');
+            if (imgElement && speciesData.icon_specie) {
+                const imgPath = '../images/' + speciesData.icon_specie.replace(' ', '_');
+                imgElement.src = imgPath;
+            }
+            
+            // Add update animation
+            speciesCard.style.transition = 'transform 0.3s ease';
+            speciesCard.style.transform = 'scale(1.02)';
+            setTimeout(() => {
+                speciesCard.style.transform = 'scale(1)';
+            }, 300);
+        }
+    }
+
+    function addRaceToSpeciesCard(speciesId, raceData) {
+        const speciesCard = document.querySelector(`[data-species-id=\"\${speciesId}\"]`);
+        if (speciesCard) {
+            const racesGrid = speciesCard.querySelector('.races-grid');
+            const noRacesDiv = speciesCard.querySelector('.no-races');
+            
+            // Remove \"no races\" message if it exists
+            if (noRacesDiv) {
+                noRacesDiv.remove();
+            }
+            
+            // Create races grid if it doesn't exist
+            if (!racesGrid) {
+                const racesSection = speciesCard.querySelector('.races-section');
+                const newRacesGrid = document.createElement('div');
+                newRacesGrid.className = 'races-grid';
+                racesSection.appendChild(newRacesGrid);
+            }
+            
+            // Create new race card
+            const raceCard = createRaceCardElement(raceData, speciesId);
+            racesGrid.appendChild(raceCard);
+            
+            // Update race count
+            const countElement = speciesCard.querySelector('[data-count-type=\"race\"]');
+            if (countElement) {
+                const currentCount = parseInt(countElement.textContent) || 0;
+                countElement.textContent = (currentCount + 1) + ' race(s)';
+            }
+            
+            // Animation
+            raceCard.style.opacity = '0';
+            raceCard.style.transform = 'translateY(20px)';
+            setTimeout(() => {
+                raceCard.style.transition = 'all 0.3s ease';
+                raceCard.style.opacity = '1';
+                raceCard.style.transform = 'translateY(0)';
+            }, 100);
+        }
+    }
+
+    function createRaceCardElement(raceData, speciesId) {
+        const raceCard = document.createElement('div');
+        raceCard.className = 'race-card';
+        raceCard.setAttribute('data-race-id', raceData.id_race);
+        raceCard.onclick = () => viewRaceDetails(speciesId, raceData.id_race);
+        
+        const imgPath = raceData.icon_race ? 
+            '../images/' + raceData.icon_race.replace(' ', '_') : 
+            '../images/icon_default.png';
+        
+        raceCard.innerHTML = `
+            <div class=\"race-image\">
+                <img src=\"\${imgPath}\" alt=\"\${raceData.race_name}\" onerror=\"this.src='../images/icon_default.png'\">
+            </div>
+            <div class=\"race-info\">
+                <h3 class=\"race-name\">\${raceData.race_name}</h3>
+                <div class=\"race-stats\">
+                    \${raceData.lifespan ? `<span class=\"race-stat\"><strong>Lifespan:</strong> \${raceData.lifespan}</span>` : ''}
+                    \${raceData.homeworld ? `<span class=\"race-stat\"><strong>Homeworld:</strong> \${raceData.homeworld}</span>` : ''}
+                </div>
+                \${raceData.content_race ? `<p class=\"race-description\">\${raceData.content_race.substring(0, 100)}\${raceData.content_race.length > 100 ? '...' : ''}</p>` : ''}
+            </div>
+        `;
+        
+        return raceCard;
+    }
+
+    function showTab(tabName) {
+        // Hide all tab contents
+        const tabContents = document.querySelectorAll('.tab-content');
+        tabContents.forEach(content => {
+            content.style.display = 'none';
+            content.classList.remove('active');
+        });
+        
+        // Remove active class from all tab buttons (support both .tab-button and .tab-btn)
+        const tabButtons = document.querySelectorAll('.tab-button, .tab-btn');
+        tabButtons.forEach(button => {
+            button.classList.remove('active');
+        });
+        
+        // Show the selected tab content (support both direct ID and ID with -tab suffix)
+        let selectedTab = document.getElementById(tabName);
+        if (!selectedTab) {
+            selectedTab = document.getElementById(tabName + '-tab');
+        }
+        
+        if (selectedTab) {
+            selectedTab.style.display = 'block';
+            selectedTab.classList.add('active');
+        }
+        
+        // Add active class to the clicked button
+        const activeButton = document.querySelector(`[onclick*=\"showTab('\${tabName}')\"]`);
+        if (activeButton) {
+            activeButton.classList.add('active');
+        }
+    }
+
+    // Close modal when clicking outside
+    window.onclick = function(event) {
+        const modal = document.getElementById('adminModal');
+        if (event.target === modal) {
+            closeAdminModal();
+        }
+    }";
+}
+
+/**
+ * Output JavaScript functions for Beings page
+ * @param string $apiEndpoint API endpoint for admin operations
+ * @param bool $includeAdminFunctions Whether to include admin-only functions
+ */
+function outputBeingsPageFunctions($apiEndpoint = './scriptes/Beings_admin_interface.php', $includeAdminFunctions = true) {
+    echo "<script>\n";
+    
+    // Only output utilities once
+    static $utilitiesOutput = false;
+    if (!$utilitiesOutput) {
+        echo generateSharedJavaScriptUtilities() . "\n";
+        $utilitiesOutput = true;
+    }
+    
+    echo generateBeingsPageFunctions($apiEndpoint) . "\n";
+    echo "</script>\n";
+}
+
 // Note: JavaScript functions were moved to appropriate frontend files
 // to prevent HTML contamination in JSON API responses
 ?>

@@ -4,7 +4,7 @@ ini_set('display_errors', 0);
 ini_set('log_errors', 1);
 error_reporting(E_ALL);
 
-require_once '../login/db.php';
+require_once __DIR__ . '/../../login/db.php';
 
 // Verify database connection was successful  
 if (!isset($pdo) || !$pdo) {
@@ -71,41 +71,42 @@ function renderMainInterface() {
         <div id="species-tab" class="tab-content active">
             <div class="tab-header">
                 <h3>Species Management</h3>
-                <button class="btn-primary" onclick="addNewSpecies()">+ Add New Species</button>
+                <button class="btn-primary" onclick="addNewSpecies()">Add New Species</button>
             </div>
             
             <div class="entities-list">
                 <?php
-                $stmt = $pdo->prepare("SELECT s.*, COUNT(r.id_race) as race_count 
-                                     FROM species s 
-                                     LEFT JOIN races r ON s.id_specie = r.correspondence 
-                                     GROUP BY s.id_specie 
-                                     ORDER BY s.specie_name");
-                $stmt->execute();
-                
-                while ($species = $stmt->fetch(PDO::FETCH_ASSOC)) {
-                    $imgPath = empty($species['icon_specie']) ? '../images/icon_default.png' : 
-                              '../images/' . str_replace(' ', '_', $species['icon_specie']);
-                    ?>
-                    <div class="entity-item">
-                        <div class="entity-info">
-                            <img src="<?php echo htmlspecialchars($imgPath); ?>" alt="Species icon" class="entity-icon">
-                            <div class="entity-details">
-                                <h4><?php echo htmlspecialchars($species['specie_name']); ?></h4>
-                                <p><?php echo $species['race_count']; ?> race(s)</p>
-                                <?php if (!empty($species['content_specie'])): ?>
-                                <p class="entity-description">
-                                    <?php echo htmlspecialchars(substr($species['content_specie'], 0, 100)); ?>...
-                                </p>
-                                <?php endif; ?>
+                try {
+                    $stmt = $pdo->prepare("SELECT s.*, COUNT(r.id_race) as race_count 
+                                          FROM species s 
+                                          LEFT JOIN races r ON s.id_specie = r.correspondence 
+                                          GROUP BY s.id_specie 
+                                          ORDER BY s.specie_name");
+                    $stmt->execute();
+                    
+                    while ($species = $stmt->fetch(PDO::FETCH_ASSOC)) {
+                        $iconPath = !empty($species['icon_specie']) ? '../images/' . $species['icon_specie'] : '../images/icon_default.png';
+                        ?>
+                        <div class="entity-item">
+                            <div class="entity-info">
+                                <img src="<?php echo htmlspecialchars($iconPath); ?>" alt="Species Icon" class="entity-icon" onerror="this.src='../images/icon_default.png'">
+                                <div class="entity-details">
+                                    <h4><?php echo htmlspecialchars($species['specie_name']); ?></h4>
+                                    <p><?php echo $species['race_count']; ?> race(s)</p>
+                                    <?php if (!empty($species['content_specie'])): ?>
+                                    <p class="entity-description"><?php echo htmlspecialchars(substr($species['content_specie'], 0, 100)); ?>...</p>
+                                    <?php endif; ?>
+                                </div>
+                            </div>
+                            <div class="entity-actions">
+                                <button class="btn-edit" onclick="editSpecies(<?php echo $species['id_specie']; ?>)">Edit</button>
+                                <button class="btn-danger" onclick="confirmDeleteSpecies(<?php echo $species['id_specie']; ?>, '<?php echo htmlspecialchars($species['specie_name']); ?>')">Delete</button>
                             </div>
                         </div>
-                        <div class="entity-actions">
-                            <button class="btn-edit" onclick="editSpecies(<?php echo $species['id_specie']; ?>)">Edit</button>
-                            <button class="btn-danger" onclick="confirmDeleteSpecies(<?php echo $species['id_specie']; ?>, '<?php echo htmlspecialchars($species['specie_name']); ?>')">Delete</button>
-                        </div>
-                    </div>
-                    <?php
+                        <?php
+                    }
+                } catch (PDOException $e) {
+                    echo '<div class="error-message">Error loading species: ' . htmlspecialchars($e->getMessage()) . '</div>';
                 }
                 ?>
             </div>
@@ -115,46 +116,49 @@ function renderMainInterface() {
         <div id="races-tab" class="tab-content">
             <div class="tab-header">
                 <h3>Race Management</h3>
-                <button class="btn-primary" onclick="addNewRace()">+ Add New Race</button>
+                <button class="btn-primary" onclick="addNewRace()">Add New Race</button>
             </div>
             
             <div class="entities-list">
                 <?php
-                $stmt = $pdo->prepare("SELECT r.*, s.specie_name, COUNT(c.id_character) as character_count 
-                                     FROM races r 
-                                     JOIN species s ON r.correspondence = s.id_specie 
-                                     LEFT JOIN characters c ON r.id_race = c.correspondence 
-                                     GROUP BY r.id_race 
-                                     ORDER BY s.specie_name, r.race_name");
-                $stmt->execute();
-                
-                while ($race = $stmt->fetch(PDO::FETCH_ASSOC)) {
-                    $imgPath = empty($race['icon_race']) ? '../images/icon_default.png' : 
-                              '../images/' . str_replace(' ', '_', $race['icon_race']);
-                    ?>
-                    <div class="entity-item">
-                        <div class="entity-info">
-                            <img src="<?php echo htmlspecialchars($imgPath); ?>" alt="Race icon" class="entity-icon">
-                            <div class="entity-details">
-                                <h4><?php echo htmlspecialchars($race['race_name']); ?></h4>
-                                <p><strong>Species:</strong> <?php echo htmlspecialchars($race['specie_name']); ?></p>
-                                <p><?php echo $race['character_count']; ?> character(s)</p>
-                                <div class="race-stats">
-                                    <?php if (!empty($race['lifespan'])): ?>
-                                    <span>Lifespan: <?php echo htmlspecialchars($race['lifespan']); ?></span>
-                                    <?php endif; ?>
-                                    <?php if (!empty($race['homeworld'])): ?>
-                                    <span>Homeworld: <?php echo htmlspecialchars($race['homeworld']); ?></span>
+                try {
+                    $stmt = $pdo->prepare("SELECT r.*, s.specie_name 
+                                          FROM races r 
+                                          JOIN species s ON r.correspondence = s.id_specie 
+                                          ORDER BY s.specie_name, r.race_name");
+                    $stmt->execute();
+                    
+                    while ($race = $stmt->fetch(PDO::FETCH_ASSOC)) {
+                        $iconPath = !empty($race['icon_race']) ? '../images/' . $race['icon_race'] : '../images/icon_default.png';
+                        ?>
+                        <div class="entity-item">
+                            <div class="entity-info">
+                                <img src="<?php echo htmlspecialchars($iconPath); ?>" alt="Race Icon" class="entity-icon" onerror="this.src='../images/icon_default.png'">
+                                <div class="entity-details">
+                                    <h4><?php echo htmlspecialchars($race['race_name']); ?></h4>
+                                    <p>Species: <?php echo htmlspecialchars($race['specie_name']); ?></p>
+                                    <div class="race-stats">
+                                        <?php if (!empty($race['lifespan'])): ?>
+                                        <span>Lifespan: <?php echo htmlspecialchars($race['lifespan']); ?></span>
+                                        <?php endif; ?>
+                                        <?php if (!empty($race['homeworld'])): ?>
+                                        <span>Homeworld: <?php echo htmlspecialchars($race['homeworld']); ?></span>
+                                        <?php endif; ?>
+                                    </div>
+                                    <?php if (!empty($race['content_race'])): ?>
+                                    <p class="entity-description"><?php echo htmlspecialchars(substr($race['content_race'], 0, 100)); ?>...</p>
                                     <?php endif; ?>
                                 </div>
                             </div>
+                            <div class="entity-actions">
+                                <button class="btn-edit" onclick="editRace(<?php echo $race['id_race']; ?>)">Edit</button>
+                                <button class="btn-danger" onclick="confirmDeleteRace(<?php echo $race['id_race']; ?>, '<?php echo htmlspecialchars($race['race_name']); ?>')">Delete</button>
+                            </div>
                         </div>
-                        <div class="entity-actions">
-                            <button class="btn-edit" onclick="editRace(<?php echo $race['id_race']; ?>)">Edit</button>
-                            <button class="btn-danger" onclick="confirmDeleteRace(<?php echo $race['id_race']; ?>, '<?php echo htmlspecialchars($race['race_name']); ?>')">Delete</button>
-                        </div>
-                    </div>
-                    <?php
+                        <?php
+                    }
+                } catch (PDOException $e) {
+                    echo '<div class="error-message">Error loading races: ' . htmlspecialchars($e->getMessage()) . '</div>';
                 }
                 ?>
             </div>
@@ -162,61 +166,67 @@ function renderMainInterface() {
 
         <!-- Statistics Tab -->
         <div id="statistics-tab" class="tab-content">
-            <div class="tab-header">
-                <h3>Beings Statistics</h3>
-            </div>
+            <h3>Beings Statistics</h3>
             
-            <div class="stats-grid">
-                <?php
-                // Get statistics
-                $statsQueries = [
-                    'Total Species' => "SELECT COUNT(*) FROM species",
-                    'Total Races' => "SELECT COUNT(*) FROM races",
-                    'Total Characters' => "SELECT COUNT(*) FROM characters",
-                    'Species with Races' => "SELECT COUNT(DISTINCT s.id_specie) FROM species s JOIN races r ON s.id_specie = r.correspondence"
-                ];
+            <?php
+            try {
+                // Get basic counts
+                $speciesCount = $pdo->query("SELECT COUNT(*) FROM species")->fetchColumn();
+                $racesCount = $pdo->query("SELECT COUNT(*) FROM races")->fetchColumn();
+                $charactersCount = $pdo->query("SELECT COUNT(*) FROM characters")->fetchColumn();
                 
-                foreach ($statsQueries as $label => $query) {
-                    $stmt = $pdo->prepare($query);
-                    $stmt->execute();
-                    $count = $stmt->fetchColumn();
-                    ?>
-                    <div class="stat-card">
-                        <h4><?php echo $label; ?></h4>
-                        <div class="stat-number"><?php echo $count; ?></div>
-                    </div>
-                    <?php
-                }
+                // Get species with most races
+                $stmt = $pdo->prepare("SELECT s.specie_name, COUNT(r.id_race) as race_count 
+                                      FROM species s 
+                                      LEFT JOIN races r ON s.id_specie = r.correspondence 
+                                      GROUP BY s.id_specie 
+                                      ORDER BY race_count DESC");
+                $stmt->execute();
+                $speciesStats = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                $maxRaces = $speciesStats[0]['race_count'] ?? 1;
                 ?>
-            </div>
-            
-            <!-- Top Species by Race Count -->
-            <div class="chart-section">
-                <h4>Species by Race Count</h4>
-                <div class="chart-list">
-                    <?php
-                    $stmt = $pdo->prepare("SELECT s.specie_name, COUNT(r.id_race) as race_count 
-                                         FROM species s 
-                                         LEFT JOIN races r ON s.id_specie = r.correspondence 
-                                         GROUP BY s.id_specie 
-                                         ORDER BY race_count DESC 
-                                         LIMIT 10");
-                    $stmt->execute();
-                    
-                    while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+                
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <h4>Total Species</h4>
+                        <div class="stat-number"><?php echo $speciesCount; ?></div>
+                    </div>
+                    <div class="stat-card">
+                        <h4>Total Races</h4>
+                        <div class="stat-number"><?php echo $racesCount; ?></div>
+                    </div>
+                    <div class="stat-card">
+                        <h4>Total Characters</h4>
+                        <div class="stat-number"><?php echo $charactersCount; ?></div>
+                    </div>
+                    <div class="stat-card">
+                        <h4>Avg Races/Species</h4>
+                        <div class="stat-number"><?php echo $speciesCount > 0 ? round($racesCount / $speciesCount, 1) : 0; ?></div>
+                    </div>
+                </div>
+                
+                <div class="chart-section">
+                    <h4>Races per Species</h4>
+                    <div class="chart-list">
+                        <?php foreach ($speciesStats as $stat): 
+                            $percentage = $maxRaces > 0 ? min(100, ($stat['race_count'] / $maxRaces) * 100) : 0;
                         ?>
                         <div class="chart-item">
-                            <span class="chart-label"><?php echo htmlspecialchars($row['specie_name']); ?></span>
+                            <div class="chart-label"><?php echo htmlspecialchars($stat['specie_name']); ?></div>
                             <div class="chart-bar">
-                                <div class="chart-fill" style="width: <?php echo $row['race_count'] * 20; ?>%"></div>
-                                <span class="chart-value"><?php echo $row['race_count']; ?></span>
+                                <div class="chart-fill" style="width: <?php echo $percentage; ?>%"></div>
+                                <div class="chart-value"><?php echo $stat['race_count']; ?></div>
                             </div>
                         </div>
-                        <?php
-                    }
-                    ?>
+                        <?php endforeach; ?>
+                    </div>
                 </div>
-            </div>
+                
+                <?php
+            } catch (PDOException $e) {
+                echo '<div class="error-message">Error loading statistics: ' . htmlspecialchars($e->getMessage()) . '</div>';
+            }
+            ?>
         </div>
     </div>
 
@@ -472,34 +482,50 @@ function renderMainInterface() {
     }
 
     function addNewSpecies() {
-        fetch('./Beings_admin_interface.php?action=add_species')
+        fetch('./scriptes/Beings_admin_interface.php?action=add_species')
             .then(response => response.text())
-            .then(html => {
-                document.getElementById('adminModalContent').innerHTML = html;
+            .then(data => {
+                document.getElementById('adminModalContent').innerHTML = data;
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Error loading add species form');
             });
     }
 
     function addNewRace() {
-        fetch('./Beings_admin_interface.php?action=add_race')
+        fetch('./scriptes/Beings_admin_interface.php?action=add_race')
             .then(response => response.text())
-            .then(html => {
-                document.getElementById('adminModalContent').innerHTML = html;
+            .then(data => {
+                document.getElementById('adminModalContent').innerHTML = data;
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Error loading add race form');
             });
     }
 
     function editSpecies(id) {
-        fetch('./Beings_admin_interface.php?action=edit_species&id=' + id)
+        fetch('./scriptes/Beings_admin_interface.php?action=edit_species&id=' + id)
             .then(response => response.text())
-            .then(html => {
-                document.getElementById('adminModalContent').innerHTML = html;
+            .then(data => {
+                document.getElementById('adminModalContent').innerHTML = data;
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Error loading edit species form');
             });
     }
 
     function editRace(id) {
-        fetch('./Beings_admin_interface.php?action=edit_race&id=' + id)
+        fetch('./scriptes/Beings_admin_interface.php?action=edit_race&id=' + id)
             .then(response => response.text())
-            .then(html => {
-                document.getElementById('adminModalContent').innerHTML = html;
+            .then(data => {
+                document.getElementById('adminModalContent').innerHTML = data;
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Error loading edit race form');
             });
     }
 
@@ -516,7 +542,7 @@ function renderMainInterface() {
     }
 
     function deleteEntity(type, id) {
-        fetch('./Beings_admin_interface.php?action=delete_' + type, {
+        fetch('./scriptes/Beings_admin_interface.php?action=delete_' + type, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -527,7 +553,12 @@ function renderMainInterface() {
         .then(data => {
             if (data.success) {
                 alert(data.message);
-                location.reload(); // Refresh the page
+                // Reload the main interface
+                fetch('./scriptes/Beings_admin_interface.php?action=main')
+                    .then(response => response.text())
+                    .then(data => {
+                        document.getElementById('adminModalContent').innerHTML = data;
+                    });
             } else {
                 alert('Error: ' + data.message);
             }
@@ -546,8 +577,6 @@ function renderAddSpeciesForm() {
     <div class="form-container">
         <h3>Add New Species</h3>
         <form id="speciesForm" enctype="multipart/form-data">
-            <input type="hidden" name="action" value="save_species">
-            
             <div class="form-group">
                 <label for="specie_name">Species Name *</label>
                 <input type="text" id="specie_name" name="specie_name" required>
@@ -556,17 +585,17 @@ function renderAddSpeciesForm() {
             <div class="form-group">
                 <label for="specie_icon">Species Icon</label>
                 <input type="file" id="specie_icon" name="specie_icon" accept="image/*">
-                <small>Max 5MB - JPG, PNG, GIF, WebP</small>
+                <small>Upload an image file (JPG, PNG, GIF, WebP). Max size: 5MB</small>
             </div>
             
             <div class="form-group">
                 <label for="specie_content">Description</label>
-                <textarea id="specie_content" name="specie_content" rows="4"></textarea>
+                <textarea id="specie_content" name="specie_content" rows="5" placeholder="Enter species description..."></textarea>
             </div>
             
             <div class="form-actions">
-                <button type="submit" class="btn-primary">Create Species</button>
                 <button type="button" class="btn-secondary" onclick="closeAdminModal()">Cancel</button>
+                <button type="submit" class="btn-primary">Save Species</button>
             </div>
         </form>
     </div>
@@ -574,6 +603,8 @@ function renderAddSpeciesForm() {
     <style>
     .form-container {
         padding: 2rem;
+        max-width: 600px;
+        margin: 0 auto;
     }
     
     .form-group {
@@ -639,16 +670,16 @@ function renderAddSpeciesForm() {
         
         const formData = new FormData(this);
         
-        fetch('./Beings_admin_interface.php?action=save_species', {
+        fetch('./scriptes/Beings_admin_interface.php?action=save_species', {
             method: 'POST',
             body: formData
         })
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                alert('Species created successfully!');
+                alert(data.message);
                 closeAdminModal();
-                location.reload();
+                location.reload(); // Refresh the page to show the new species
             } else {
                 alert('Error: ' + data.message);
             }
@@ -678,36 +709,33 @@ function renderEditSpeciesForm($id) {
     <div class="form-container">
         <h3>Edit Species: <?php echo htmlspecialchars($species['specie_name']); ?></h3>
         <form id="speciesForm" enctype="multipart/form-data">
-            <input type="hidden" name="action" value="save_species">
             <input type="hidden" name="id" value="<?php echo $species['id_specie']; ?>">
             
             <div class="form-group">
                 <label for="specie_name">Species Name *</label>
-                <input type="text" id="specie_name" name="specie_name" 
-                       value="<?php echo htmlspecialchars($species['specie_name']); ?>" required>
+                <input type="text" id="specie_name" name="specie_name" value="<?php echo htmlspecialchars($species['specie_name']); ?>" required>
             </div>
             
             <div class="form-group">
                 <label for="specie_icon">Species Icon</label>
                 <?php if (!empty($species['icon_specie'])): ?>
-                <div class="current-image">
-                    <img src="../images/<?php echo htmlspecialchars($species['icon_specie']); ?>" 
-                         alt="Current icon" style="max-width: 100px; max-height: 100px; object-fit: cover; border-radius: 8px;">
+                <div style="margin-bottom: 0.5rem;">
+                    <img src="../images/<?php echo htmlspecialchars($species['icon_specie']); ?>" alt="Current Icon" style="width: 50px; height: 50px; border-radius: 4px;">
                     <small>Current icon</small>
                 </div>
                 <?php endif; ?>
                 <input type="file" id="specie_icon" name="specie_icon" accept="image/*">
-                <small>Max 5MB - JPG, PNG, GIF, WebP (leave empty to keep current icon)</small>
+                <small>Upload a new image to replace the current one (JPG, PNG, GIF, WebP). Max size: 5MB</small>
             </div>
             
             <div class="form-group">
                 <label for="specie_content">Description</label>
-                <textarea id="specie_content" name="specie_content" rows="4"><?php echo htmlspecialchars($species['content_specie']); ?></textarea>
+                <textarea id="specie_content" name="specie_content" rows="5"><?php echo htmlspecialchars($species['content_specie']); ?></textarea>
             </div>
             
             <div class="form-actions">
-                <button type="submit" class="btn-primary">Update Species</button>
                 <button type="button" class="btn-secondary" onclick="closeAdminModal()">Cancel</button>
+                <button type="submit" class="btn-primary">Update Species</button>
             </div>
         </form>
     </div>
@@ -718,16 +746,16 @@ function renderEditSpeciesForm($id) {
         
         const formData = new FormData(this);
         
-        fetch('./Beings_admin_interface.php?action=save_species', {
+        fetch('./scriptes/Beings_admin_interface.php?action=save_species', {
             method: 'POST',
             body: formData
         })
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                alert('Species updated successfully!');
+                alert(data.message);
                 closeAdminModal();
-                location.reload();
+                location.reload(); // Refresh the page to show the updated species
             } else {
                 alert('Error: ' + data.message);
             }
@@ -744,12 +772,15 @@ function renderEditSpeciesForm($id) {
 function renderAddRaceForm($speciesId = 0) {
     global $pdo;
     
+    // Get all species for the dropdown
+    $speciesQuery = $pdo->prepare("SELECT id_specie, specie_name FROM species ORDER BY specie_name");
+    $speciesQuery->execute();
+    $allSpecies = $speciesQuery->fetchAll(PDO::FETCH_ASSOC);
+    
     ?>
     <div class="form-container">
         <h3>Add New Race</h3>
         <form id="raceForm" enctype="multipart/form-data">
-            <input type="hidden" name="action" value="save_race">
-            
             <div class="form-group">
                 <label for="race_name">Race Name *</label>
                 <input type="text" id="race_name" name="race_name" required>
@@ -758,53 +789,49 @@ function renderAddRaceForm($speciesId = 0) {
             <div class="form-group">
                 <label for="correspondence">Species *</label>
                 <select id="correspondence" name="correspondence" required>
-                    <option value="">Select a species</option>
-                    <?php
-                    $stmt = $pdo->prepare("SELECT * FROM species ORDER BY specie_name");
-                    $stmt->execute();
-                    while ($species = $stmt->fetch(PDO::FETCH_ASSOC)) {
-                        $selected = $speciesId == $species['id_specie'] ? 'selected' : '';
-                        echo "<option value='{$species['id_specie']}' $selected>" . 
-                             htmlspecialchars($species['specie_name']) . "</option>";
-                    }
-                    ?>
+                    <option value="">Select a species...</option>
+                    <?php foreach ($allSpecies as $species): ?>
+                    <option value="<?php echo $species['id_specie']; ?>" <?php echo $speciesId == $species['id_specie'] ? 'selected' : ''; ?>>
+                        <?php echo htmlspecialchars($species['specie_name']); ?>
+                    </option>
+                    <?php endforeach; ?>
                 </select>
             </div>
             
             <div class="form-group">
                 <label for="race_icon">Race Icon</label>
                 <input type="file" id="race_icon" name="race_icon" accept="image/*">
-                <small>Max 5MB - JPG, PNG, GIF, WebP</small>
+                <small>Upload an image file (JPG, PNG, GIF, WebP). Max size: 5MB</small>
             </div>
             
             <div class="form-group">
                 <label for="lifespan">Lifespan</label>
-                <input type="text" id="lifespan" name="lifespan" placeholder="e.g., 100 years, Immortal">
+                <input type="text" id="lifespan" name="lifespan" placeholder="e.g., 100-150 years">
             </div>
             
             <div class="form-group">
                 <label for="homeworld">Homeworld</label>
-                <input type="text" id="homeworld" name="homeworld">
+                <input type="text" id="homeworld" name="homeworld" placeholder="e.g., Earth, Pandora">
             </div>
             
             <div class="form-group">
-                <label for="country">Country</label>
-                <input type="text" id="country" name="country">
+                <label for="country">Country/Region</label>
+                <input type="text" id="country" name="country" placeholder="e.g., Northern Kingdoms">
             </div>
             
             <div class="form-group">
                 <label for="habitat">Habitat</label>
-                <input type="text" id="habitat" name="habitat">
+                <input type="text" id="habitat" name="habitat" placeholder="e.g., Forests, Mountains">
             </div>
             
             <div class="form-group">
                 <label for="race_content">Description</label>
-                <textarea id="race_content" name="race_content" rows="4"></textarea>
+                <textarea id="race_content" name="race_content" rows="5" placeholder="Enter race description..."></textarea>
             </div>
             
             <div class="form-actions">
-                <button type="submit" class="btn-primary">Create Race</button>
                 <button type="button" class="btn-secondary" onclick="closeAdminModal()">Cancel</button>
+                <button type="submit" class="btn-primary">Save Race</button>
             </div>
         </form>
     </div>
@@ -815,16 +842,16 @@ function renderAddRaceForm($speciesId = 0) {
         
         const formData = new FormData(this);
         
-        fetch('./Beings_admin_interface.php?action=save_race', {
+        fetch('./scriptes/Beings_admin_interface.php?action=save_race', {
             method: 'POST',
             body: formData
         })
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                alert('Race created successfully!');
+                alert(data.message);
                 closeAdminModal();
-                location.reload();
+                location.reload(); // Refresh the page to show the new race
             } else {
                 alert('Error: ' + data.message);
             }
@@ -852,79 +879,73 @@ function renderEditRaceForm($id) {
         return;
     }
     
+    // Get all species for the dropdown
+    $speciesQuery = $pdo->prepare("SELECT id_specie, specie_name FROM species ORDER BY specie_name");
+    $speciesQuery->execute();
+    $allSpecies = $speciesQuery->fetchAll(PDO::FETCH_ASSOC);
+    
     ?>
     <div class="form-container">
         <h3>Edit Race: <?php echo htmlspecialchars($race['race_name']); ?></h3>
         <form id="raceForm" enctype="multipart/form-data">
-            <input type="hidden" name="action" value="save_race">
             <input type="hidden" name="id" value="<?php echo $race['id_race']; ?>">
             
             <div class="form-group">
                 <label for="race_name">Race Name *</label>
-                <input type="text" id="race_name" name="race_name" 
-                       value="<?php echo htmlspecialchars($race['race_name']); ?>" required>
+                <input type="text" id="race_name" name="race_name" value="<?php echo htmlspecialchars($race['race_name']); ?>" required>
             </div>
             
             <div class="form-group">
                 <label for="correspondence">Species *</label>
                 <select id="correspondence" name="correspondence" required>
-                    <?php
-                    $stmt = $pdo->prepare("SELECT * FROM species ORDER BY specie_name");
-                    $stmt->execute();
-                    while ($species = $stmt->fetch(PDO::FETCH_ASSOC)) {
-                        $selected = $race['correspondence'] == $species['id_specie'] ? 'selected' : '';
-                        echo "<option value='{$species['id_specie']}' $selected>" . 
-                             htmlspecialchars($species['specie_name']) . "</option>";
-                    }
-                    ?>
+                    <?php foreach ($allSpecies as $species): ?>
+                    <option value="<?php echo $species['id_specie']; ?>" <?php echo $race['correspondence'] == $species['id_specie'] ? 'selected' : ''; ?>>
+                        <?php echo htmlspecialchars($species['specie_name']); ?>
+                    </option>
+                    <?php endforeach; ?>
                 </select>
             </div>
             
             <div class="form-group">
                 <label for="race_icon">Race Icon</label>
                 <?php if (!empty($race['icon_race'])): ?>
-                <div class="current-image">
-                    <img src="../images/<?php echo htmlspecialchars($race['icon_race']); ?>" 
-                         alt="Current icon" style="max-width: 100px; max-height: 100px; object-fit: cover; border-radius: 8px;">
+                <div style="margin-bottom: 0.5rem;">
+                    <img src="../images/<?php echo htmlspecialchars($race['icon_race']); ?>" alt="Current Icon" style="width: 50px; height: 50px; border-radius: 4px;">
                     <small>Current icon</small>
                 </div>
                 <?php endif; ?>
                 <input type="file" id="race_icon" name="race_icon" accept="image/*">
-                <small>Max 5MB - JPG, PNG, GIF, WebP (leave empty to keep current icon)</small>
+                <small>Upload a new image to replace the current one (JPG, PNG, GIF, WebP). Max size: 5MB</small>
             </div>
             
             <div class="form-group">
                 <label for="lifespan">Lifespan</label>
-                <input type="text" id="lifespan" name="lifespan" 
-                       value="<?php echo htmlspecialchars($race['lifespan']); ?>">
+                <input type="text" id="lifespan" name="lifespan" value="<?php echo htmlspecialchars($race['lifespan']); ?>">
             </div>
             
             <div class="form-group">
                 <label for="homeworld">Homeworld</label>
-                <input type="text" id="homeworld" name="homeworld" 
-                       value="<?php echo htmlspecialchars($race['homeworld']); ?>">
+                <input type="text" id="homeworld" name="homeworld" value="<?php echo htmlspecialchars($race['homeworld']); ?>">
             </div>
             
             <div class="form-group">
-                <label for="country">Country</label>
-                <input type="text" id="country" name="country" 
-                       value="<?php echo htmlspecialchars($race['country']); ?>">
+                <label for="country">Country/Region</label>
+                <input type="text" id="country" name="country" value="<?php echo htmlspecialchars($race['country']); ?>">
             </div>
             
             <div class="form-group">
                 <label for="habitat">Habitat</label>
-                <input type="text" id="habitat" name="habitat" 
-                       value="<?php echo htmlspecialchars($race['habitat']); ?>">
+                <input type="text" id="habitat" name="habitat" value="<?php echo htmlspecialchars($race['habitat']); ?>">
             </div>
             
             <div class="form-group">
                 <label for="race_content">Description</label>
-                <textarea id="race_content" name="race_content" rows="4"><?php echo htmlspecialchars($race['content_race']); ?></textarea>
+                <textarea id="race_content" name="race_content" rows="5"><?php echo htmlspecialchars($race['content_race']); ?></textarea>
             </div>
             
             <div class="form-actions">
-                <button type="submit" class="btn-primary">Update Race</button>
                 <button type="button" class="btn-secondary" onclick="closeAdminModal()">Cancel</button>
+                <button type="submit" class="btn-primary">Update Race</button>
             </div>
         </form>
     </div>
@@ -935,16 +956,16 @@ function renderEditRaceForm($id) {
         
         const formData = new FormData(this);
         
-        fetch('./Beings_admin_interface.php?action=save_race', {
+        fetch('./scriptes/Beings_admin_interface.php?action=save_race', {
             method: 'POST',
             body: formData
         })
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                alert('Race updated successfully!');
+                alert(data.message);
                 closeAdminModal();
-                location.reload();
+                location.reload(); // Refresh the page to show the updated race
             } else {
                 alert('Error: ' + data.message);
             }
@@ -980,30 +1001,25 @@ function saveSpecies() {
         
         if ($id > 0) {
             // Update existing species
-            $fields = ['specie_name = ?'];
-            $params = [$name];
-            
-            if (!empty($content)) {
-                $fields[] = 'content_specie = ?';
-                $params[] = $content;
-            }
+            $sql = "UPDATE species SET specie_name = ?, content_specie = ?";
+            $params = [$name, $content];
             
             if ($iconPath) {
-                $fields[] = 'icon_specie = ?';
+                $sql .= ", icon_specie = ?";
                 $params[] = $iconPath;
             }
             
+            $sql .= " WHERE id_specie = ?";
             $params[] = $id;
             
-            $sql = "UPDATE species SET " . implode(', ', $fields) . " WHERE id_specie = ?";
             $stmt = $pdo->prepare($sql);
             $stmt->execute($params);
             
             echo json_encode(['success' => true, 'message' => 'Species updated successfully']);
         } else {
             // Create new species
-            $stmt = $pdo->prepare("INSERT INTO species (specie_name, icon_specie, content_specie) VALUES (?, ?, ?)");
-            $stmt->execute([$name, $iconPath, $content]);
+            $stmt = $pdo->prepare("INSERT INTO species (specie_name, content_specie, icon_specie) VALUES (?, ?, ?)");
+            $stmt->execute([$name, $content, $iconPath]);
             
             echo json_encode(['success' => true, 'message' => 'Species created successfully']);
         }
@@ -1044,26 +1060,25 @@ function saveRace() {
         
         if ($id > 0) {
             // Update existing race
-            $fields = ['race_name = ?', 'correspondence = ?', 'content_race = ?', 'lifespan = ?', 
-                      'homeworld = ?', 'country = ?', 'habitat = ?'];
+            $sql = "UPDATE races SET race_name = ?, correspondence = ?, content_race = ?, lifespan = ?, homeworld = ?, country = ?, habitat = ?";
             $params = [$name, $correspondence, $content, $lifespan, $homeworld, $country, $habitat];
             
             if ($iconPath) {
-                $fields[] = 'icon_race = ?';
+                $sql .= ", icon_race = ?";
                 $params[] = $iconPath;
             }
             
+            $sql .= " WHERE id_race = ?";
             $params[] = $id;
             
-            $sql = "UPDATE races SET " . implode(', ', $fields) . " WHERE id_race = ?";
             $stmt = $pdo->prepare($sql);
             $stmt->execute($params);
             
             echo json_encode(['success' => true, 'message' => 'Race updated successfully']);
         } else {
             // Create new race
-            $stmt = $pdo->prepare("INSERT INTO races (race_name, correspondence, icon_race, content_race, lifespan, homeworld, country, habitat) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
-            $stmt->execute([$name, $correspondence, $iconPath, $content, $lifespan, $homeworld, $country, $habitat]);
+            $stmt = $pdo->prepare("INSERT INTO races (race_name, correspondence, content_race, lifespan, homeworld, country, habitat, icon_race) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
+            $stmt->execute([$name, $correspondence, $content, $lifespan, $homeworld, $country, $habitat, $iconPath]);
             
             echo json_encode(['success' => true, 'message' => 'Race created successfully']);
         }
@@ -1085,7 +1100,7 @@ function handleFileUpload($file) {
         throw new Exception('File size exceeds 5MB limit.');
     }
     
-    $uploadDir = __DIR__ . '/../images/';
+    $uploadDir = __DIR__ . '/../../images/';
     if (!is_dir($uploadDir)) {
         mkdir($uploadDir, 0777, true);
     }

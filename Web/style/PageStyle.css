@@ -380,7 +380,7 @@ html body {
     margin-inline: 2%; /* Margin between elements */
     padding: 20px;
     color: white;
-    background-color: rgba(0, 0, 0, 0.9); /* Black background for homepage */
+    background-color: rgba(0, 0, 0, 1); /* Black background for homepage */
     border-radius: 8px 8px 8px 8px;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Add shadow for consistency */
     height: fit-content;
@@ -423,12 +423,14 @@ html body {
 }
 
 .raceNameMulti {
-    color: blue;
+    color: #00d4ff; /* Bright cyan instead of blue for better contrast */
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8); /* Add shadow for readability */
 }
 
 .raceNameUnique {
-    color: red;
+    color: #ff4444; /* Brighter red for better contrast */
     font-size: 22px;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8); /* Add shadow for readability */
 }
 
 .raceNameUnique, .raceNameMulti {
@@ -440,12 +442,39 @@ html body {
 }
 
 #Return {
-    background: none;
-    border: none;
-    color: blue; /* Text color */
-    text-decoration: underline; /* Underline */
-    cursor: pointer; /* Pointer cursor */
+    display: inline-flex;
+    align-items: center;
     width: fit-content;
+    gap: 8px;
+    background: linear-gradient(135deg, #1e90ff, #4169e1);
+    border: none;
+    color: white;
+    padding: 12px 20px;
+    border-radius: 25px;
+    font-weight: bold;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-decoration: none;
+    box-shadow: 0 4px 12px rgba(30, 144, 255, 0.3);
+    margin-bottom: 20px;
+}
+
+#Return::before {
+    content: "←";
+    font-size: 16px;
+    font-weight: bold;
+}
+
+#Return:hover {
+    background: linear-gradient(135deg, #4169e1, #6495ed);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(30, 144, 255, 0.4);
+}
+
+#Return:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 8px rgba(30, 144, 255, 0.3);
 }
 
 .sous_section { /* Encapsulate and limit classimgSelection and texteSelection */
@@ -686,17 +715,33 @@ html body {
 }
 
 .content-page #mainText #Return {
-    display: inline-block;
-    margin-bottom: 20px;
-    color: #1e90ff;
-    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: linear-gradient(135deg, #1e90ff, #4169e1);
+    border: none;
+    color: white;
+    padding: 12px 20px;
+    border-radius: 25px;
     font-weight: bold;
-    font-size: 1.2rem;
-    transition: color 0.3s;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-decoration: none;
+    box-shadow: 0 4px 12px rgba(30, 144, 255, 0.3);
+    margin-bottom: 20px;
+}
+
+.content-page #mainText #Return::before {
+    content: "←";
+    font-size: 16px;
+    font-weight: bold;
 }
 
 .content-page #mainText #Return:hover {
-    color: #87cefa;
+    background: linear-gradient(135deg, #4169e1, #6495ed);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(30, 144, 255, 0.4);
 }
 
 .homepageList {
@@ -3684,48 +3729,60 @@ html body {
     text-align: center;
     margin-bottom: 2rem;
     position: relative;
+    padding: 2rem;
+    background: linear-gradient(135deg, #222088, #4444aa);
+    color: white;
+    border-radius: 16px;
+    box-shadow: 0 4px 15px rgba(34, 32, 136, 0.3);
 }
 
 .beings-header h1 {
-    color: #222088;
+    color: white;
     margin-bottom: 0.5rem;
     font-size: 2.5rem;
+    font-family: 'Cinzel', serif;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
 }
 
 .beings-header p {
-    color: #666;
+    color: rgba(255, 255, 255, 0.9);
     font-size: 1.1rem;
     margin-bottom: 1rem;
 }
 
 .admin-tools {
     position: absolute;
-    top: 0;
-    right: 0;
+    top: 1rem;
+    right: 1rem;
 }
 
 .admin-btn {
-    background: #222088;
-    color: white;
+    background: linear-gradient(135deg, #d4af37, #f4cf47);
+    color: #222088;
     border: none;
     padding: 0.75rem 1.5rem;
     border-radius: 8px;
     cursor: pointer;
     font-size: 0.9rem;
+    font-weight: 600;
     transition: all 0.3s ease;
+    box-shadow: 0 2px 10px rgba(212, 175, 55, 0.3);
 }
 
 .admin-btn:hover {
-    background: #1a1066;
+    background: linear-gradient(135deg, #f4cf47, #ffffff);
     transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(212, 175, 55, 0.4);
 }
 
 .beings-controls {
     margin-bottom: 2rem;
-    background: #f8f9fa;
+    background: linear-gradient(135deg, rgba(34, 32, 136, 0.15), rgba(161, 171, 255, 0.15));
     padding: 1.5rem;
     border-radius: 12px;
-    border: 1px solid #e9ecef;
+    border: 2px solid rgba(34, 32, 136, 0.2);
+    backdrop-filter: blur(3px);
+    box-shadow: 0 4px 15px rgba(34, 32, 136, 0.1);
 }
 
 .search-form {
@@ -3744,10 +3801,18 @@ html body {
 
 .search-input, .filter-select {
     padding: 0.75rem;
-    border: 2px solid #ddd;
+    border: 2px solid rgba(34, 32, 136, 0.3);
     border-radius: 8px;
     font-size: 1rem;
-    transition: border-color 0.3s ease;
+    transition: all 0.3s ease;
+    background: rgba(255, 255, 255, 0.9); /* More opaque white background */
+    color: #1a1a1a; /* Dark text for better contrast */
+    font-weight: 500;
+    backdrop-filter: blur(2px);
+}
+
+.search-input::placeholder {
+    color: rgba(26, 26, 26, 0.6); /* Dark placeholder for better readability */
 }
 
 .search-input {
@@ -3761,6 +3826,8 @@ html body {
 .search-input:focus, .filter-select:focus {
     outline: none;
     border-color: #222088;
+    background: rgba(255, 255, 255, 0.2);
+    box-shadow: 0 0 0 3px rgba(34, 32, 136, 0.15);
 }
 
 .search-actions {
@@ -3774,34 +3841,45 @@ html body {
     text-decoration: none;
     font-size: 1rem;
     cursor: pointer;
+    font-weight: 600;
     transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .search-btn {
-    background: #222088;
+    background: linear-gradient(135deg, #222088, #4444aa);
     color: white;
     border: none;
 }
 
 .search-btn:hover {
-    background: #1a1066;
+    background: linear-gradient(135deg, #a1abff, #c5ccff);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(34, 32, 136, 0.3);
 }
 
 .clear-btn {
-    background: #6c757d;
+    background: linear-gradient(135deg, #6c757d, #8a9098);
     color: white;
+    border: none;
 }
 
 .clear-btn:hover {
-    background: #545b62;
+    background: linear-gradient(135deg, #8a9098, #adb5bd);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(108, 117, 125, 0.3);
 }
 
 .results-summary {
     margin-bottom: 1.5rem;
     padding: 1rem;
-    background: #e3f2fd;
+    background: linear-gradient(135deg, rgba(34, 32, 136, 0.12), rgba(161, 171, 255, 0.12));
     border-radius: 8px;
-    border-left: 4px solid #2196f3;
+    border-left: 4px solid #222088;
+    backdrop-filter: blur(1px);
+    border: 1px solid rgba(34, 32, 136, 0.2);
+    color: #222088;
+    font-weight: 500;
 }
 
 .beings-grid {
@@ -3809,34 +3887,53 @@ html body {
     grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
     gap: 2rem;
     margin-bottom: 2rem;
+    padding: 1.5rem;
+    background: linear-gradient(135deg, rgba(34, 32, 136, 0.05), rgba(161, 171, 255, 0.05));
+    border-radius: 12px;
+    border: 1px solid rgba(34, 32, 136, 0.1);
+    backdrop-filter: blur(1px);
+    position: relative;
+    overflow: visible;
 }
 
 .species-card {
-    background: white;
-    border: 2px solid #e9ecef;
+    position: relative;
+    background: linear-gradient(135deg, rgba(34, 32, 136, 0.08), rgba(161, 171, 255, 0.08));
+    border: 2px solid rgba(34, 32, 136, 0.2);
     border-radius: 16px;
-    overflow: hidden;
+    overflow: visible;
     transition: all 0.3s ease;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    box-shadow: 0 4px 15px rgba(34, 32, 136, 0.15);
+    z-index: 1;
+    backdrop-filter: blur(2px);
 }
 
 .species-card:hover {
     transform: translateY(-4px);
-    box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+    box-shadow: 0 8px 25px rgba(34, 32, 136, 0.25);
     border-color: #222088;
+    z-index: 2;
+    background: linear-gradient(135deg, rgba(34, 32, 136, 0.12), rgba(161, 171, 255, 0.12));
+}
+
+.species-card.expanded {
+    z-index: 1001;
+    border-color: #222088;
+    background: linear-gradient(135deg, rgba(34, 32, 136, 0.15), rgba(161, 171, 255, 0.15));
 }
 
 .species-header {
     display: flex;
     align-items: center;
+    border-radius: 16px;
+    height: calc(100% - 3rem); /* -3rem for padding */
     padding: 1.5rem;
-    cursor: pointer;
-    background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
-    border-bottom: 1px solid #e9ecef;
+    background: linear-gradient(135deg, rgba(34, 32, 136, 0.05), rgba(161, 171, 255, 0.05));
+    border-bottom: 1px solid rgba(34, 32, 136, 0.15);
 }
 
 .species-header:hover {
-    background: linear-gradient(135deg, #e9ecef 0%, #f8f9fa 100%);
+    background: linear-gradient(135deg, rgba(34, 32, 136, 0.1), rgba(161, 171, 255, 0.1));
 }
 
 .species-image {
@@ -3846,7 +3943,8 @@ html body {
     overflow: hidden;
     margin-right: 1.5rem;
     flex-shrink: 0;
-    border: 2px solid #e9ecef;
+    border: 2px solid rgba(34, 32, 136, 0.1);
+    transition: border-color 0.3s ease;
 }
 
 .species-image img {
@@ -3857,24 +3955,36 @@ html body {
 
 .species-info {
     flex: 1;
+    cursor: pointer;
+    transition: color 0.3s ease;
+}
+
+.species-info:hover {
+    color: #222088;
+}
+
+.species-info:hover .species-name {
+    color: #222088;
+    text-decoration: underline;
 }
 
 .species-name {
     font-size: 1.5rem;
-    color: #222088;
+    color: #d4af37;
     margin: 0 0 0.5rem 0;
     font-weight: 600;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
 }
 
 .species-race-count {
-    color: #6c757d;
+    color: rgba(255, 255, 255, 0.7);
     font-size: 0.9rem;
     margin: 0 0 0.5rem 0;
     font-weight: 500;
 }
 
 .species-description {
-    color: #495057;
+    color: rgba(255, 255, 255, 0.8);
     font-size: 0.95rem;
     line-height: 1.4;
     margin: 0;
@@ -3883,8 +3993,20 @@ html body {
 .species-toggle {
     margin-left: 1rem;
     font-size: 1.5rem;
-    color: #6c757d;
-    transition: transform 0.3s ease;
+    color: rgba(255, 0, 0, 0.6);
+    transition: all 0.3s ease;
+    cursor: pointer;
+    padding: 0.5rem;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.species-toggle:hover {
+    background: linear-gradient(135deg, rgba(34, 32, 136, 0.1), rgba(161, 171, 255, 0.1));
+    color: rgb(255, 0, 0);
+    transform: translateY(-1px);
 }
 
 .species-card.expanded .species-toggle .toggle-icon {
@@ -3892,46 +4014,76 @@ html body {
 }
 
 .races-section {
-    padding: 0 1.5rem 1.5rem 1.5rem;
+    position: relative;
+    background: linear-gradient(135deg, rgba(34, 32, 136, 0.95), rgba(161, 171, 255, 0.95));
+    border: 2px solid #222088;
+    border-radius: 12px;
+    box-shadow: 0 8px 25px rgba(34, 32, 136, 0.3);
+    max-height: 0;
+    overflow: hidden;
+    transform: translateY(-10px);
+    transition: all 0.3s ease;
+    backdrop-filter: blur(2px);
+    padding: 0 1.5rem;
+    margin-top: 5px;
+    opacity: 0;
+}
+
+.races-section.show {
+    max-height: 400px;
+    opacity: 1;
+    transform: translateY(0);
+    padding: 1.5rem;
+    overflow-y: auto;
 }
 
 .no-races {
     text-align: center;
     padding: 2rem;
-    color: #6c757d;
+    color: rgba(255, 255, 255, 0.8);
 }
 
 .btn-add-race {
-    background: #28a745;
-    color: white;
+    background: #d4af37;
+    color: #222088;
     border: none;
     padding: 0.5rem 1rem;
     border-radius: 6px;
     cursor: pointer;
     margin-top: 1rem;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.btn-add-race:hover {
+    background: #ffffff;
+    color: #222088;
+    transform: translateY(-1px);
 }
 
 .races-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
     gap: 1rem;
-    margin-top: 1rem;
+    margin-top: 0;
 }
 
 .race-card {
-    background: #f8f9fa;
-    border: 1px solid #e9ecef;
+    background: rgba(255, 255, 255, 0.15);
+    border: 1px solid rgba(212, 175, 55, 0.4);
     border-radius: 12px;
     padding: 1rem;
     cursor: pointer;
     transition: all 0.3s ease;
+    backdrop-filter: blur(3px);
+    color: white;
 }
 
 .race-card:hover {
-    background: white;
-    border-color: #222088;
+    background: rgba(255, 255, 255, 0.25);
+    border-color: #d4af37;
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    box-shadow: 0 4px 15px rgba(212, 175, 55, 0.3);
 }
 
 .race-image {
@@ -3940,7 +4092,7 @@ html body {
     border-radius: 8px;
     overflow: hidden;
     margin: 0 auto 1rem auto;
-    border: 1px solid #dee2e6;
+    border: 1px solid rgba(212, 175, 55, 0.5);
 }
 
 .race-image img {
@@ -3951,15 +4103,16 @@ html body {
 
 .race-name {
     font-size: 1.1rem;
-    color: #222088;
+    color: #d4af37;
     text-align: center;
     margin: 0 0 0.5rem 0;
     font-weight: 600;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
 }
 
 .race-stats {
     font-size: 0.8rem;
-    color: #6c757d;
+    color: rgba(255, 255, 255, 0.8);
     margin-bottom: 0.5rem;
 }
 
@@ -3968,9 +4121,13 @@ html body {
     margin-bottom: 0.2rem;
 }
 
+.race-stat strong {
+    color: rgba(212, 175, 55, 0.9);
+}
+
 .race-description {
     font-size: 0.85rem;
-    color: #495057;
+    color: rgba(255, 255, 255, 0.9);
     line-height: 1.3;
     text-align: center;
     margin: 0;
@@ -3979,7 +4136,7 @@ html body {
 .species-admin-actions {
     margin-top: 1rem;
     padding-top: 1rem;
-    border-top: 1px solid #e9ecef;
+    border-top: 1px solid rgba(212, 175, 55, 0.3);
     display: flex;
     gap: 0.5rem;
     justify-content: center;
@@ -3992,24 +4149,31 @@ html body {
     cursor: pointer;
     font-size: 0.9rem;
     transition: all 0.3s ease;
+    font-weight: 600;
 }
 
 .btn-edit {
-    background: #007bff;
-    color: white;
+    background: rgba(255, 255, 255, 0.9);
+    color: #222088;
+    border: 1px solid rgba(212, 175, 55, 0.3);
 }
 
 .btn-edit:hover {
-    background: #0056b3;
+    background: #d4af37;
+    color: #222088;
+    transform: translateY(-1px);
 }
 
 .btn-add {
-    background: #28a745;
-    color: white;
+    background: rgba(212, 175, 55, 0.9);
+    color: #222088;
+    border: 1px solid rgba(255, 255, 255, 0.3);
 }
 
 .btn-add:hover {
-    background: #1e7e34;
+    background: #ffffff;
+    color: #222088;
+    transform: translateY(-1px);
 }
 
 .pagination {
@@ -4021,18 +4185,23 @@ html body {
 
 .page-link {
     padding: 0.75rem 1rem;
-    border: 1px solid #dee2e6;
-    background: white;
+    border: 2px solid rgba(34, 32, 136, 0.3);
+    background: linear-gradient(135deg, rgba(34, 32, 136, 0.1), rgba(161, 171, 255, 0.1));
     color: #222088;
     text-decoration: none;
-    border-radius: 6px;
+    border-radius: 8px;
     transition: all 0.3s ease;
+    font-weight: 500;
+    box-shadow: 0 2px 8px rgba(34, 32, 136, 0.15);
+    backdrop-filter: blur(2px);
 }
 
 .page-link:hover, .page-link.active {
-    background: #222088;
+    background: linear-gradient(135deg, #222088, #4444aa);
     color: white;
     border-color: #222088;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(34, 32, 136, 0.3);
 }
 
 .error-message {
@@ -4107,4 +4276,32 @@ html body {
         position: static;
         margin-top: 1rem;
     }
+}
+
+/* ========================================
+   BEINGS PAGE - HEIGHT FIX
+   Fix for body extending beyond global container
+   ======================================== */
+
+/* Force body to match global container height exactly for Beings page */
+body {
+    overflow-x: hidden !important; /* Prevent horizontal overflow only */
+    overflow-y: auto !important; /* Allow vertical scrolling */
+    height: fit-content !important; /* Force body to be exactly content height */
+}
+
+/* Override global CSS height issues */
+#global {
+    min-height: auto !important; /* Remove forced viewport height */
+    height: auto !important; /* Let content determine height */
+    padding-bottom: 20px !important; /* Reduce bottom padding from 50px */
+}
+
+/* Remove pseudo-elements that might create space */
+body::after, 
+#global::after,
+html::after {
+    display: none !important;
+    content: none !important;
+    height: 0 !important;
 }
