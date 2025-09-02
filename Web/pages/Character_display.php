@@ -1,43 +1,41 @@
 <?php
-require_once "./blueprints/page_init.php"; // includes the page initialization file
-require_once "./blueprints/gl_ap_start.php"; // includes the start of the general page file
+require_once "./blueprints/page_init.php";
+require_once "./blueprints/gl_ap_start.php";
 
-// Retrieve the user role from the database to check if the user is an admin
-if (isset($_SESSION['user'])) {
-    $stmt = $pdo->prepare("SELECT r.id as role_id, r.name as role_name FROM users u 
-                          LEFT JOIN user_roles ur ON u.id = ur.user_id 
-                          LEFT JOIN roles r ON ur.role_id = r.id 
-                          WHERE u.id = ?");
-    $stmt->execute([$_SESSION['user']]);
-    $user = $stmt->fetch();
-} else {
-    $user = null; // if the user is not logged in, set user to null
-}
+$error_msg = "";
 
-$error_msg = ""; // initialize the error message variable
-
-if (isset($_GET['race'])) {
-    // Retrieve and sanitize the 'race' parameter
-    $race = sanitize_output($_GET['race']);
-
-    // Prepare and execute the query to retrieve race information
+if (isset($_GET['specie_id'])) {
+    $specie_id = (int)$_GET['specie_id'];
+    
     try {
-        $stmt = $pdo->prepare("SELECT * FROM races WHERE race_name = ?");
-        $stmt->execute([$race]);
-        $raceInfo = $stmt->fetch(PDO::FETCH_ASSOC);
-        $id_race = $raceInfo['id_race']; // retrieve the id_race of the race
-
-        // Fetch characters of the selected race
-        $stmt = $pdo->prepare("SELECT * FROM characters WHERE correspondence = ?");
-        $stmt->execute([$id_race]);
-        $characters = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        // Get species information
+        $stmt = $pdo->prepare("SELECT * FROM species WHERE id_specie = ?");
+        $stmt->execute([$specie_id]);
+        $speciesInfo = $stmt->fetch(PDO::FETCH_ASSOC);
+        
+        if (!$speciesInfo) {
+            $error_msg = "Species not found.";
+        } else {
+            // Get all races for this species with their characters
+            $stmt = $pdo->prepare("
+                SELECT r.*, 
+                       COUNT(c.id_character) as character_count
+                FROM races r 
+                LEFT JOIN characters c ON r.id_race = c.correspondence 
+                WHERE r.correspondence = ? 
+                GROUP BY r.id_race 
+                ORDER BY r.race_name
+            ");
+            $stmt->execute([$specie_id]);
+            $races = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        }
     } catch (PDOException $e) {
-        // Error handling
-        $error_msg = "Connection error: " . $e->getMessage();
+        $error_msg = "Database error: " . $e->getMessage();
     }
 } else {
-    $error_msg = "No race selected.";
+    $error_msg = "No species selected.";
 }
+?>
 ?>
 
 <script>
@@ -58,105 +56,222 @@ if (isset($_GET['race'])) {
     });
 </script>
 
-<div id='mainText'> <!-- Right div -->
-    <button id="Return" onclick="window.history.back()">Return</button><br><br>
-    <?php if ($error_msg) { // display the error message if there is one
-        echo "<span class='title'>" . sanitize_output($error_msg) . "</span>";
-        exit; // exit the script if there is an error message
-    }?>
-    <span class='title'> <?php echo sanitize_output($race); ?> </span> <!-- display the race name as header -->
-    <?php
-        try {
-            // Generate the main text of the page
-            if ($raceInfo['content_race'] != '' && $raceInfo['content_race'] != null) {
-                echo "<p>" . nl2br(sanitize_output($raceInfo['content_race'])) . "</p>";
-            } else {
-                echo "No content found for the $race Race.";
-            }
-
-            echo '<br><br>';
-
-            // Generate the divs for each character
-            $divsSelec = '';
-            foreach ($characters as $character) {
-                $imgPath = isset($character['icon_character']) ? $character['icon_character'] : null; // check if the image exists
-                if ($imgPath == null || $imgPath == '') { // if the image doesn't exist or is empty, use a default image
-                    $imgPath = '../images/icon_default.png'; // path to the default image
-                } else { // if the image exists, use it
-                    $imgPath = str_replace(" ", "_", "$imgPath"); // replace spaces with underscores for file names
-                    $imgPath = "../images/" . sanitize_output($imgPath)."<br>"; // path to the image, sanitize_output escapes special characters in the string (such as ' and ") and prevents them from closing strings
-                }
-
-                if (!isImageLinkValid($imgPath)) { // if the image is not valid
-                    $imgPath = '../images/icon_invalide.png'; // path to the invalid image
-                }
-
-                $age = $character['age'];
-                if ($age == null || $age == '') {
-                    $age = 'Not specified';
-                } else {
-                    $age = $age . ' years'; // add 'years' to the end of the age
-                }
-
-                $habitat = $character['habitat'];
-                if ($habitat == null || $habitat == '') {
-                    $habitat = 'Not specified';
-                }
-
-                $country = $character['country'];
-                if ($country == null || $country == '') {
-                    $country = 'Not specified';
-                }
-
-                // Create a div for each character
-                $divsSelec .= " 
-                        <div class='selectionRace fadeIn' id=" . str_replace(" ", "_", sanitize_output($character['character_name'])) . ">
-                            <div class=infobox>
-                                <div class='infosTitle'>
-                                    <img class='imgSelectionRace' src='" . $imgPath . "'>
-                                    <span class='
-                                    '>" . sanitize_output($character['character_name']) . "</span>
-                                </div>
-                                <div class=infos>
-                                    <div>
-                                        <p class=infosP> Age: </p>
-                                        <p class=infosT>" . sanitize_output($age) . "</p>
-                                    </div>
-                                    <div>
-                                        <p class=infosP> Origin: </p>
-                                        <p class=infosT>" . sanitize_output($habitat) . "</p>
-                                    </div>
-                                    <div>
-                                        <p class=infosP> Origin: </p>
-                                        <p class=infosT>" . sanitize_output($country) . "</p>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class='texteSelection'>
-                                <p>" . nl2br(sanitize_output($character['content_character'] ?? '')) . "</p>
-                            </div>";
-                            // If the user is logged and is an admin, display the edit button
-                            if (isset($_SESSION['user']) && $user && $user['role_id'] == 1) {
-                                $divsSelec .= "
-                                    <div class='editButton'>
-                                        <a href='Character_add.php?character_id=" . $character['id_character'] . "'>Edit</a>
-                                    </div>";
-                            }
-                        
-                        $divsSelec .= " 
-                        </div>
-                ";
-            }
-            
-        } catch (PDOException $e) {
-            $divsSelec = "Connection error: " . $e->getMessage();
-        }
+<div id='mainText'>
+    <button id="Return" onclick="window.history.back()">Return</button>
+    
+    <?php if ($error_msg): ?>
+        <div class="error-message">
+            <span class='title'><?php echo htmlspecialchars($error_msg); ?></span>
+        </div>
+    <?php 
+        require_once "./blueprints/gl_ap_end.php"; 
+        exit; 
+    endif; ?>
+    
+    <!-- Header Section -->
+    <div class="beings-header">
+        <h1><?php echo htmlspecialchars($speciesInfo['specie_name']); ?> Characters</h1>
+        <p>All characters belonging to the <?php echo htmlspecialchars($speciesInfo['specie_name']); ?> species</p>
         
-        echo '<div class=sous_section>';
-        echo $divsSelec;
-        echo '</div>';
-    ?>
+        <!-- Admin Tools -->
+        <?php if (isset($_SESSION['user']) && in_array('admin', $user_roles)): ?>
+        <div class="admin-tools">
+            <button class="admin-btn" onclick="openCharacterAdminModal()">
+                <span>⚙️</span> Manage Characters
+            </button>
+        </div>
+        <?php endif; ?>
+    </div>
+    <!-- Characters organized by Race -->
+    <div class="characters-by-race">
+        <?php if (empty($races)): ?>
+            <div class="no-races-message">
+                <p>No races found for this species.</p>
+                <?php if (isset($_SESSION['user']) && in_array('admin', $user_roles)): ?>
+                    <button class="btn-add" onclick="addRaceToSpecies(<?php echo $specie_id; ?>)">
+                        Add First Race
+                    </button>
+                <?php endif; ?>
+            </div>
+        <?php else: ?>
+            <?php foreach ($races as $race): 
+                // Get characters for this race
+                $charactersQuery = $pdo->prepare("SELECT * FROM characters WHERE correspondence = ? ORDER BY character_name");
+                $charactersQuery->execute([$race['id_race']]);
+                $characters = $charactersQuery->fetchAll(PDO::FETCH_ASSOC);
+            ?>
+            
+            <div class="race-section" data-race-id="<?php echo $race['id_race']; ?>">
+                <!-- Race Header -->
+                <div class="race-header-section">
+                    <div class="race-title-info">
+                        <?php 
+                        $raceImg = $race['icon_race'];
+                        if (empty($raceImg)) {
+                            $raceImgPath = '../images/icon_default.png';
+                        } else {
+                            $raceImgPath = '../images/' . str_replace(' ', '_', $raceImg);
+                            if (!isImageLinkValid($raceImgPath)) {
+                                $raceImgPath = '../images/icon_invalide.png';
+                            }
+                        }
+                        ?>
+                        <img src="<?php echo htmlspecialchars($raceImgPath); ?>" 
+                             alt="<?php echo htmlspecialchars($race['race_name']); ?>"
+                             class="race-icon"
+                             onerror="this.src='../images/icon_default.png'">
+                        <h2 class="race-title"><?php echo htmlspecialchars($race['race_name']); ?></h2>
+                        <span class="character-count">(<?php echo count($characters); ?> character<?php echo count($characters) !== 1 ? 's' : ''; ?>)</span>
+                    </div>
+                    
+                    <?php if (isset($_SESSION['user']) && in_array('admin', $user_roles)): ?>
+                    <div class="race-admin-actions">
+                        <button class="btn-add-character" onclick="addCharacterToRace(<?php echo $race['id_race']; ?>)">
+                            Add Character
+                        </button>
+                    </div>
+                    <?php endif; ?>
+                </div>
+                
+                <!-- Race Description -->
+                <?php if (!empty($race['content_race'])): ?>
+                <div class="race-description">
+                    <p><?php echo nl2br(htmlspecialchars($race['content_race'])); ?></p>
+                </div>
+                <?php endif; ?>
+                
+                <!-- Characters Grid -->
+                <?php if (empty($characters)): ?>
+                    <div class="no-characters-message">
+                        <p>No characters defined for the <?php echo htmlspecialchars($race['race_name']); ?> race yet.</p>
+                        <?php if (isset($_SESSION['user']) && in_array('admin', $user_roles)): ?>
+                            <button class="btn-add" onclick="addCharacterToRace(<?php echo $race['id_race']; ?>)">
+                                Add First Character
+                            </button>
+                        <?php endif; ?>
+                    </div>
+                <?php else: ?>
+                    <div class="characters-grid">
+                        <?php foreach ($characters as $character): 
+                            // Character image handling
+                            $characterImg = $character['icon_character'];
+                            if (empty($characterImg)) {
+                                $characterImgPath = '../images/icon_default.png';
+                            } else {
+                                $characterImgPath = '../images/' . str_replace(' ', '_', $characterImg);
+                                if (!isImageLinkValid($characterImgPath)) {
+                                    $characterImgPath = '../images/icon_invalide.png';
+                                }
+                            }
+                            
+                            $age = $character['age'];
+                            if ($age == null || $age == '') {
+                                $age = NOT_SPECIFIED;
+                            } else {
+                                $age = $age . ' years';
+                            }
+                            
+                            $habitat = $character['habitat'] ?? NOT_SPECIFIED;
+                            $country = $character['country'] ?? NOT_SPECIFIED;
+                        ?>
+                        
+                        <div class="character-card fadeIn" data-character-id="<?php echo $character['id_character']; ?>">
+                            <div class="character-content">
+                                <div class="character-header">
+                                    <div class="character-image">
+                                        <img src="<?php echo htmlspecialchars($characterImgPath); ?>" 
+                                             alt="<?php echo htmlspecialchars($character['character_name']); ?>"
+                                             onerror="this.src='../images/icon_default.png'">
+                                    </div>
+                                    <div class="character-info">
+                                        <h3 class="character-name"><?php echo htmlspecialchars($character['character_name']); ?></h3>
+                                        <div class="character-stats">
+                                            <div class="stat-item">
+                                                <span class="stat-label">Age:</span>
+                                                <span class="stat-value"><?php echo htmlspecialchars($age); ?></span>
+                                            </div>
+                                            <div class="stat-item">
+                                                <span class="stat-label">Origin:</span>
+                                                <span class="stat-value"><?php echo htmlspecialchars($habitat); ?></span>
+                                            </div>
+                                            <div class="stat-item">
+                                                <span class="stat-label">Country:</span>
+                                                <span class="stat-value"><?php echo htmlspecialchars($country); ?></span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <?php if (isset($_SESSION['user']) && in_array('admin', $user_roles)): ?>
+                                    <div class="character-admin-actions">
+                                        <button class="btn-edit-character" onclick="editCharacter(<?php echo $character['id_character']; ?>)" title="Edit Character">
+                                            ✏️
+                                        </button>
+                                        <button class="btn-delete-character" onclick="confirmDeleteCharacter(<?php echo $character['id_character']; ?>, '<?php echo htmlspecialchars($character['character_name']); ?>')" title="Delete Character">
+                                            🗑️
+                                        </button>
+                                    </div>
+                                    <?php endif; ?>
+                                </div>
+                                
+                                <!-- Character Description -->
+                                <?php if (!empty($character['content_character'])): ?>
+                                <div class="character-description">
+                                    <p><?php echo nl2br(htmlspecialchars($character['content_character'])); ?></p>
+                                </div>
+                                <?php endif; ?>
+                            </div>
+                        </div>
+                        
+                        <?php endforeach; ?>
+                    </div>
+                <?php endif; ?>
+            </div>
+            
+            <?php endforeach; ?>
+        <?php endif; ?>
+    </div>
 </div>
+
+<!-- Admin Modal for Character Management -->
+<?php if (isset($_SESSION['user']) && in_array('admin', $user_roles)): ?>
+<div id="characterAdminModal" class="modal" style="display: none; position: fixed; top: 0; left: 0; z-index: 9999;">
+    <div class="modal-content">
+        <span class="close" onclick="closeCharacterAdminModal()">&times;</span>
+        <div id="characterAdminModalContent">
+            <!-- Character admin interface will be loaded here -->
+        </div>
+    </div>
+</div>
+<?php endif; ?>
+
+<script>
+// Intersection Observer for fade-in animations
+document.addEventListener("DOMContentLoaded", function() {
+    const observer = new IntersectionObserver((entries, observer) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add("visible");
+                observer.unobserve(entry.target);
+            }
+        });
+    });
+
+    document.querySelectorAll(".fadeIn").forEach(element => {
+        observer.observe(element);
+    });
+});
+</script>
+
+<?php
+// Output JavaScript functions for character management
+if (isset($_SESSION['user']) && in_array('admin', $user_roles)) {
+    echo "<script>\n";
+    echo generateSharedJavaScriptUtilities() . "\n";
+    echo generateCharacterPageFunctions('./scriptes/Character_admin_interface.php') . "\n";
+    echo generateEntityDeleteFunctions('character', './scriptes/Character_admin_interface.php') . "\n";
+    echo "</script>\n";
+}
+?>
 
 <?php
 require_once "./blueprints/gl_ap_end.php"; // includes the end of the general page file

@@ -4,12 +4,30 @@ ini_set('display_errors', 0);
 ini_set('log_errors', 1);
 error_reporting(E_ALL);
 
+// Set error handler for JSON responses
+set_error_handler(function($severity, $message, $file, $line) {
+    if (!(error_reporting() & $severity)) {
+        return false;
+    }
+    header('Content-Type: application/json');
+    echo json_encode(['success' => false, 'message' => 'PHP Error: ' . $message]);
+    exit;
+});
+
+// Set exception handler for JSON responses
+set_exception_handler(function($exception) {
+    header('Content-Type: application/json');
+    echo json_encode(['success' => false, 'message' => 'Exception: ' . $exception->getMessage()]);
+    exit;
+});
+
 require_once __DIR__ . '/../../login/db.php';
 
 // Verify database connection was successful  
 if (!isset($pdo) || !$pdo) {
+    header('Content-Type: application/json');
     http_response_code(500);
-    echo '<div class="error-message">Database connection failed</div>';
+    echo json_encode(['success' => false, 'message' => 'Database connection failed']);
     exit;
 }
 
@@ -985,9 +1003,14 @@ function saveSpecies() {
     header('Content-Type: application/json');
     
     try {
+        // Check if required POST data is present
+        if (!isset($_POST['specie_name'])) {
+            throw new Exception('Missing species name');
+        }
+        
         $id = isset($_POST['id']) ? (int)$_POST['id'] : 0;
         $name = trim($_POST['specie_name']);
-        $content = trim($_POST['specie_content']);
+        $content = isset($_POST['specie_content']) ? trim($_POST['specie_content']) : '';
         
         if (empty($name)) {
             throw new Exception('Species name is required');

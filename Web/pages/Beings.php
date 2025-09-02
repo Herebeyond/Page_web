@@ -13,25 +13,30 @@ $page = isset($_GET['page']) && is_numeric($_GET['page']) ? max(1, (int)$_GET['p
 // Build search conditions
 $searchConditions = [];
 $searchParams = [];
+$paramIndex = 1;
 
 if (!empty($searchTerm)) {
-    $searchConditions[] = "(s.specie_name LIKE ? OR s.content_specie LIKE ? OR r.race_name LIKE ? OR r.content_race LIKE ?)";
-    $searchParams = array_merge($searchParams, ["%$searchTerm%", "%$searchTerm%", "%$searchTerm%", "%$searchTerm%"]);
+    $searchConditions[] = "(s.specie_name LIKE :param{$paramIndex} OR s.content_specie LIKE :param" . ($paramIndex + 1) . ")";
+    $searchParams[":param{$paramIndex}"] = "%$searchTerm%";
+    $searchParams[":param" . ($paramIndex + 1)] = "%$searchTerm%";
+    $paramIndex += 2;
 }
 
 if (!empty($filterSpecie)) {
-    $searchConditions[] = "s.specie_name = ?";
-    $searchParams[] = $filterSpecie;
+    $searchConditions[] = "s.specie_name = :param{$paramIndex}";
+    $searchParams[":param{$paramIndex}"] = $filterSpecie;
+    $paramIndex++;
 }
 
 $whereClause = !empty($searchConditions) ? 'WHERE ' . implode(' AND ', $searchConditions) : '';
 
 // Get total count for pagination
-$countQuery = "SELECT COUNT(DISTINCT s.id_specie) FROM species s 
-               LEFT JOIN races r ON s.id_specie = r.correspondence 
-               $whereClause";
+$countQuery = "SELECT COUNT(*) FROM species s $whereClause";
 $stmt = $pdo->prepare($countQuery);
-$stmt->execute($searchParams);
+foreach ($searchParams as $paramName => $paramValue) {
+    $stmt->bindValue($paramName, $paramValue);
+}
+$stmt->execute();
 $totalSpecies = $stmt->fetchColumn();
 $totalPages = ceil($totalSpecies / $perPage);
 $page = min($page, max(1, $totalPages));
@@ -105,18 +110,14 @@ $offset = ($page - 1) * $perPage;
     <div class="beings-grid">
         <?php
         try {
-            // Main query to get species with their races
-            $query = "SELECT DISTINCT s.* FROM species s 
-                     LEFT JOIN races r ON s.id_specie = r.correspondence 
-                     $whereClause
-                     ORDER BY s.specie_name 
-                     LIMIT :limit OFFSET :offset";
+            // Main query to get species
+            $query = "SELECT s.* FROM species s $whereClause ORDER BY s.specie_name LIMIT :limit OFFSET :offset";
             
             $stmt = $pdo->prepare($query);
             
-            // Bind search parameters
-            foreach ($searchParams as $index => $param) {
-                $stmt->bindValue($index + 1, $param);
+            // Bind search parameters with named parameters
+            foreach ($searchParams as $paramName => $paramValue) {
+                $stmt->bindValue($paramName, $paramValue);
             }
             
             // Bind pagination parameters
@@ -179,6 +180,11 @@ $offset = ($page - 1) * $perPage;
                         <?php else: ?>
                             <div class="races-grid">
                                 <?php foreach ($races as $race): 
+                                    // Get characters for this race
+                                    $charactersQuery = $pdo->prepare("SELECT * FROM characters WHERE correspondence = ? ORDER BY character_name");
+                                    $charactersQuery->execute([$race['id_race']]);
+                                    $characters = $charactersQuery->fetchAll(PDO::FETCH_ASSOC);
+                                    
                                     // Race image handling
                                     $raceImg = $race['icon_race'];
                                     if (empty($raceImg)) {
@@ -191,39 +197,90 @@ $offset = ($page - 1) * $perPage;
                                     }
                                 ?>
                                 <div class="race-card" data-race-id="<?php echo $race['id_race']; ?>">
-                                    <div class="race-content" onclick="viewRaceDetails(<?php echo $species['id_specie']; ?>, <?php echo $race['id_race']; ?>)">
-                                        <div class="race-image">
-                                            <img src="<?php echo htmlspecialchars($raceImgPath); ?>" 
-                                                 alt="<?php echo htmlspecialchars($race['race_name']); ?>"
-                                                 onerror="this.src='../images/icon_default.png'">
-                                        </div>
-                                        <div class="race-info">
-                                            <h3 class="race-name"><?php echo htmlspecialchars($race['race_name']); ?></h3>
-                                            <div class="race-stats">
-                                                <?php if (!empty($race['lifespan'])): ?>
-                                                <span class="race-stat">
-                                                    <strong>Lifespan:</strong> <?php echo htmlspecialchars($race['lifespan']); ?>
-                                                </span>
-                                                <?php endif; ?>
-                                                <?php if (!empty($race['homeworld'])): ?>
-                                                <span class="race-stat">
-                                                    <strong>Homeworld:</strong> <?php echo htmlspecialchars($race['homeworld']); ?>
-                                                </span>
+                                    <!-- Race Header -->
+                                    <div class="race-header">
+                                        <div class="race-content" onclick="viewRaceDetails(<?php echo $species['id_specie']; ?>, <?php echo $race['id_race']; ?>)">
+                                            <div class="race-image">
+                                                <img src="<?php echo htmlspecialchars($raceImgPath); ?>" 
+                                                     alt="<?php echo htmlspecialchars($race['race_name']); ?>"
+                                                     onerror="this.src='../images/icon_default.png'">
+                                            </div>
+                                            <div class="race-info">
+                                                <h3 class="race-name"><?php echo htmlspecialchars($race['race_name']); ?></h3>
+                                                <p class="race-character-count" data-count-type="character"><?php echo count($characters); ?> character(s)</p>
+                                                <div class="race-stats">
+                                                    <?php if (!empty($race['lifespan'])): ?>
+                                                    <span class="race-stat">
+                                                        <strong>Lifespan:</strong> <?php echo htmlspecialchars($race['lifespan']); ?>
+                                                    </span>
+                                                    <?php endif; ?>
+                                                    <?php if (!empty($race['homeworld'])): ?>
+                                                    <span class="race-stat">
+                                                        <strong>Homeworld:</strong> <?php echo htmlspecialchars($race['homeworld']); ?>
+                                                    </span>
+                                                    <?php endif; ?>
+                                                </div>
+                                                <?php if (!empty($race['content_race'])): ?>
+                                                <p class="race-description">
+                                                    <?php echo htmlspecialchars(substr($race['content_race'], 0, 100)); ?>
+                                                    <?php if (strlen($race['content_race']) > 100): ?>...<?php endif; ?>
+                                                </p>
                                                 <?php endif; ?>
                                             </div>
-                                            <?php if (!empty($race['content_race'])): ?>
-                                            <p class="race-description">
-                                                <?php echo htmlspecialchars(substr($race['content_race'], 0, 100)); ?>
-                                                <?php if (strlen($race['content_race']) > 100): ?>...<?php endif; ?>
-                                            </p>
-                                            <?php endif; ?>
                                         </div>
+                                        <?php if (!empty($characters)): ?>
+                                        <div class="race-toggle" onclick="toggleRaceCharacters('<?php echo $race['id_race']; ?>')">
+                                            <span class="toggle-icon">▼</span>
+                                        </div>
+                                        <?php endif; ?>
+                                        <?php if (isset($_SESSION['user']) && in_array('admin', $user_roles)): ?>
+                                        <div class="race-admin-actions">
+                                            <button class="btn-delete-race" onclick="event.stopPropagation(); confirmDeleteRace(<?php echo $race['id_race']; ?>, '<?php echo htmlspecialchars($race['race_name']); ?>')">
+                                                ×
+                                            </button>
+                                        </div>
+                                        <?php endif; ?>
                                     </div>
-                                    <?php if (isset($_SESSION['user']) && in_array('admin', $user_roles)): ?>
-                                    <div class="race-admin-actions">
-                                        <button class="btn-delete-race" onclick="event.stopPropagation(); confirmDeleteRace(<?php echo $race['id_race']; ?>, '<?php echo htmlspecialchars($race['race_name']); ?>')">
-                                            ×
-                                        </button>
+
+                                    <!-- Characters Section -->
+                                    <?php if (!empty($characters)): ?>
+                                    <div class="characters-section" id="characters-<?php echo $race['id_race']; ?>">
+                                        <div class="characters-grid">
+                                            <?php foreach ($characters as $character): 
+                                                // Character image handling
+                                                $characterImg = $character['icon_character'];
+                                                if (empty($characterImg)) {
+                                                    $characterImgPath = '../images/icon_default.png';
+                                                } else {
+                                                    $characterImgPath = '../images/' . str_replace(' ', '_', $characterImg);
+                                                    if (!isImageLinkValid($characterImgPath)) {
+                                                        $characterImgPath = '../images/icon_invalide.png';
+                                                    }
+                                                }
+                                            ?>
+                                            <div class="character-card" data-character-id="<?php echo $character['id_character']; ?>">
+                                                <div class="character-content" onclick="viewSpeciesCharacters(<?php echo $species['id_specie']; ?>)">>
+                                                    <div class="character-image">
+                                                        <img src="<?php echo htmlspecialchars($characterImgPath); ?>" 
+                                                             alt="<?php echo htmlspecialchars($character['character_name']); ?>"
+                                                             onerror="this.src='../images/icon_default.png'">
+                                                    </div>
+                                                    <div class="character-info">
+                                                        <h4 class="character-name"><?php echo htmlspecialchars($character['character_name']); ?></h4>
+                                                        <?php if (!empty($character['age'])): ?>
+                                                        <p class="character-age">Age: <?php echo htmlspecialchars($character['age']); ?></p>
+                                                        <?php endif; ?>
+                                                        <?php if (!empty($character['description'])): ?>
+                                                        <p class="character-description">
+                                                            <?php echo htmlspecialchars(substr($character['description'], 0, 80)); ?>
+                                                            <?php if (strlen($character['description']) > 80): ?>...<?php endif; ?>
+                                                        </p>
+                                                        <?php endif; ?>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <?php endforeach; ?>
+                                        </div>
                                     </div>
                                     <?php endif; ?>
                                 </div>
@@ -299,33 +356,7 @@ $offset = ($page - 1) * $perPage;
 </div>
 
 <script>
-function toggleSpeciesRaces(speciesId) {
-    const racesSection = document.getElementById('races-' + speciesId);
-    const speciesCard = racesSection.closest('.species-card');
-    
-    // Close all other expanded species first
-    document.querySelectorAll('.species-card.expanded').forEach(card => {
-        if (card !== speciesCard) {
-            const otherRacesSection = card.querySelector('.races-section');
-            otherRacesSection.classList.remove('show');
-            card.classList.remove('expanded');
-        }
-    });
-    
-    // Toggle the current species
-    if (racesSection.classList.contains('show')) {
-        racesSection.classList.remove('show');
-        speciesCard.classList.remove('expanded');
-    } else {
-        racesSection.classList.add('show');
-        speciesCard.classList.add('expanded');
-    }
-}
-
-function viewRaceDetails(speciesId, raceId) {
-    // Navigate to race details page with both species and race IDs
-    window.location.href = `./Beings_display.php?specie_id=${speciesId}&race_id=${raceId}`;
-}
+// JavaScript functions are now in functions.php
 </script>
 
 <?php

@@ -377,18 +377,42 @@ function isImageLinkValid($url) {
 function generateSharedJavaScriptUtilities() {
     return "
     // Shared utility functions
-    function showSuccessMessage(message) {
+    function showNotification(message, type = 'info') {
         const notification = document.createElement('div');
-        notification.className = 'notification-banner success-notification';
+        notification.className = 'notification-banner ' + type + '-notification';
+        
+        let backgroundColor, textColor, borderColor;
+        switch(type) {
+            case 'success':
+                backgroundColor = '#d4edda';
+                textColor = '#155724';
+                borderColor = '#c3e6cb';
+                break;
+            case 'error':
+                backgroundColor = '#f8d7da';
+                textColor = '#721c24';
+                borderColor = '#f5c6cb';
+                break;
+            case 'warning':
+                backgroundColor = '#fff3cd';
+                textColor = '#856404';
+                borderColor = '#ffeaa7';
+                break;
+            default: // info
+                backgroundColor = '#d1ecf1';
+                textColor = '#0c5460';
+                borderColor = '#bee5eb';
+        }
+        
         notification.style.cssText = `
             position: fixed;
             top: 20px;
             left: 50%;
             transform: translateX(-50%);
             z-index: 10000;
-            background: #d4edda;
-            color: #155724;
-            border: 1px solid #c3e6cb;
+            background: ` + backgroundColor + `;
+            color: ` + textColor + `;
+            border: 1px solid ` + borderColor + `;
             border-radius: 4px;
             padding: 15px 20px;
             max-width: 500px;
@@ -396,7 +420,7 @@ function generateSharedJavaScriptUtilities() {
             opacity: 1;
             transition: opacity 0.3s ease;
         `;
-        notification.innerHTML = '<span>' + message + '</span><button style=\"margin-left: 15px; background: none; border: none; font-size: 18px; cursor: pointer; color: #155724;\" onclick=\"this.parentElement.remove()\">&times;</button>';
+        notification.innerHTML = '<span>' + message + '</span><button style=\"margin-left: 15px; background: none; border: none; font-size: 18px; cursor: pointer; color: ' + textColor + ';\" onclick=\"this.parentElement.remove()\">&times;</button>';
         document.body.appendChild(notification);
         
         // Auto-hide after 5 seconds
@@ -412,39 +436,12 @@ function generateSharedJavaScriptUtilities() {
         }, 5000);
     }
     
+    function showSuccessMessage(message) {
+        showNotification(message, 'success');
+    }
+    
     function showErrorMessage(message) {
-        const notification = document.createElement('div');
-        notification.className = 'notification-banner error-notification';
-        notification.style.cssText = `
-            position: fixed;
-            top: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            z-index: 10000;
-            background: #f8d7da;
-            color: #721c24;
-            border: 1px solid #f5c6cb;
-            border-radius: 4px;
-            padding: 15px 20px;
-            max-width: 500px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-            opacity: 1;
-            transition: opacity 0.3s ease;
-        `;
-        notification.innerHTML = '<span>' + message + '</span><button style=\"margin-left: 15px; background: none; border: none; font-size: 18px; cursor: pointer; color: #721c24;\" onclick=\"this.parentElement.remove()\">&times;</button>';
-        document.body.appendChild(notification);
-        
-        // Auto-hide after 8 seconds (errors shown longer)
-        setTimeout(() => {
-            if (notification && notification.parentElement) {
-                notification.style.opacity = '0';
-                setTimeout(() => {
-                    if (notification && notification.parentElement) {
-                        notification.remove();
-                    }
-                }, 300);
-            }
-        }, 8000);
+        showNotification(message, 'error');
     }
     
     function showLoadingIndicator() {
@@ -635,6 +632,41 @@ function generateBeingsPageFunctions($apiEndpoint = './scriptes/Beings_admin_int
         window.location.href = `./Beings_display.php?specie_id=\${speciesId}&race_id=\${raceId}`;
     }
 
+    function toggleRaceCharacters(raceId) {
+        const charactersSection = document.getElementById('characters-' + raceId);
+        const raceCard = charactersSection.closest('.race-card');
+        
+        // Close all other expanded races first
+        document.querySelectorAll('.race-card.expanded').forEach(card => {
+            if (card !== raceCard) {
+                const otherCharactersSection = card.querySelector('.characters-section');
+                if (otherCharactersSection) {
+                    otherCharactersSection.classList.remove('show');
+                    card.classList.remove('expanded');
+                }
+            }
+        });
+        
+        // Toggle the current race
+        if (charactersSection.classList.contains('show')) {
+            charactersSection.classList.remove('show');
+            raceCard.classList.remove('expanded');
+        } else {
+            charactersSection.classList.add('show');
+            raceCard.classList.add('expanded');
+        }
+    }
+
+    function viewCharacterDetails(raceName) {
+        // Navigate to character details page showing all characters of this race
+        window.location.href = `./Character_display.php?race=\${encodeURIComponent(raceName)}`;
+    }
+
+    function viewSpeciesCharacters(speciesId) {
+        // Navigate to character display page showing all characters of this species
+        window.location.href = `./Character_display.php?specie_id=\${speciesId}`;
+    }
+
     function openAdminModal() {
         document.getElementById('adminModal').style.display = 'block';
         // Load admin interface via AJAX
@@ -703,32 +735,41 @@ function generateBeingsPageFunctions($apiEndpoint = './scriptes/Beings_admin_int
     function handleDynamicFormSubmit(form, entityType, entityId = null, parentId = null) {
         const formData = new FormData(form);
         
+        // Determine the correct action based on entity type
+        let action = '';
+        if (entityType === 'species') {
+            action = 'save_species';
+        } else if (entityType === 'race') {
+            action = 'save_race';
+        }
+        
         showLoadingIndicator();
         
-        fetch('{$apiEndpoint}', {
+        fetch(`{$apiEndpoint}?action=\${action}`, {
             method: 'POST',
             body: formData
         })
-        .then(response => response.json())
+        .then(response => {
+            // Check if response is JSON or HTML
+            const contentType = response.headers.get('content-type');
+            if (contentType && contentType.includes('application/json')) {
+                return response.json();
+            } else {
+                // If it's not JSON, it's probably an error page
+                return response.text().then(text => {
+                    throw new Error('Server returned HTML instead of JSON: ' + text.substring(0, 100));
+                });
+            }
+        })
         .then(data => {
             hideLoadingIndicator();
             if (data.success) {
                 showSuccessMessage(data.message);
                 closeAdminModal();
-                
-                if (entityType === 'species' && entityId) {
-                    // Update existing species card
-                    updateSpeciesCard(entityId, data.species);
-                } else if (entityType === 'race' && parentId) {
-                    // Add new race to species or update existing
-                    if (data.race) {
-                        if (entityId) {
-                            updateRaceCard(entityId, data.race);
-                        } else {
-                            addRaceToSpeciesCard(parentId, data.race);
-                        }
-                    }
-                }
+                // Reload the page to show updated data
+                setTimeout(() => {
+                    location.reload();
+                }, 1000);
             } else {
                 showErrorMessage('Error: ' + data.message);
             }
@@ -736,7 +777,7 @@ function generateBeingsPageFunctions($apiEndpoint = './scriptes/Beings_admin_int
         .catch(error => {
             hideLoadingIndicator();
             console.error('Error:', error);
-            showErrorMessage('An error occurred while saving');
+            showErrorMessage('An error occurred while saving: ' + error.message);
         });
     }
 
@@ -872,13 +913,185 @@ function generateBeingsPageFunctions($apiEndpoint = './scriptes/Beings_admin_int
         if (activeButton) {
             activeButton.classList.add('active');
         }
+    }";
+}
+
+/**
+ * Generate JavaScript functions for Character management page
+ * @param string $apiEndpoint API endpoint for character admin operations
+ * @return string JavaScript code for character page functionality
+ */
+function generateCharacterPageFunctions($apiEndpoint = './scriptes/Character_admin_interface.php') {
+    return "
+    function openCharacterAdminModal() {
+        document.getElementById('characterAdminModal').style.display = 'block';
+        // Load admin interface via AJAX
+        fetch('{$apiEndpoint}')
+            .then(response => response.text())
+            .then(html => {
+                document.getElementById('characterAdminModalContent').innerHTML = html;
+            })
+            .catch(error => {
+                console.error('Error loading character admin interface:', error);
+                document.getElementById('characterAdminModalContent').innerHTML = 
+                    '<div class=\"error-message\">Failed to load character admin interface</div>';
+            });
     }
 
-    // Close modal when clicking outside
-    window.onclick = function(event) {
-        const modal = document.getElementById('adminModal');
-        if (event.target === modal) {
-            closeAdminModal();
+    function closeCharacterAdminModal() {
+        document.getElementById('characterAdminModal').style.display = 'none';
+    }
+
+    function editCharacter(characterId) {
+        openCharacterAdminModal();
+        // Load edit form after modal is open
+        setTimeout(() => {
+            loadEditCharacterForm(characterId);
+        }, 100);
+    }
+
+    function addCharacterToRace(raceId) {
+        openCharacterAdminModal();
+        // Load add character form after modal is open
+        setTimeout(() => {
+            loadAddCharacterForm(raceId);
+        }, 100);
+    }
+
+    function loadEditCharacterForm(characterId) {
+        const formData = new FormData();
+        formData.append('action', 'getCharacterData');
+        formData.append('character_id', characterId);
+
+        fetch('{$apiEndpoint}', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                populateCharacterForm(data.character, 'edit');
+                showTab('character-form');
+            } else {
+                showNotification(data.message, 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Error loading character data:', error);
+            showNotification('Failed to load character data', 'error');
+        });
+    }
+
+    function loadAddCharacterForm(raceId) {
+        // Clear the form and set it to add mode
+        clearCharacterForm();
+        document.getElementById('characterRaceId').value = raceId;
+        document.getElementById('characterSubmitBtn').textContent = 'Add Character';
+        document.getElementById('characterFormTitle').textContent = 'Add New Character';
+        showTab('character-form');
+    }
+
+    function populateCharacterForm(character, mode = 'edit') {
+        // Populate all form fields
+        document.getElementById('characterId').value = character.id_character || '';
+        document.getElementById('characterName').value = character.character_name || '';
+        document.getElementById('characterAge').value = character.age || '';
+        document.getElementById('characterHabitat').value = character.habitat || '';
+        document.getElementById('characterCountry').value = character.country || '';
+        document.getElementById('characterContent').value = character.content_character || '';
+        document.getElementById('characterRaceId').value = character.correspondence || '';
+        
+        // Update form title and button text
+        if (mode === 'edit') {
+            document.getElementById('characterSubmitBtn').textContent = 'Update Character';
+            document.getElementById('characterFormTitle').textContent = 'Edit Character: ' + character.character_name;
+        } else {
+            document.getElementById('characterSubmitBtn').textContent = 'Add Character';
+            document.getElementById('characterFormTitle').textContent = 'Add New Character';
+        }
+    }
+
+    function clearCharacterForm() {
+        document.getElementById('characterForm').reset();
+        document.getElementById('characterId').value = '';
+        document.getElementById('characterPreview').innerHTML = '';
+    }
+
+    function submitCharacterForm() {
+        const form = document.getElementById('characterForm');
+        const formData = new FormData(form);
+        
+        const characterId = document.getElementById('characterId').value;
+        formData.append('action', characterId ? 'updateCharacter' : 'addCharacter');
+        
+        // Show loading state
+        const submitBtn = document.getElementById('characterSubmitBtn');
+        const originalText = submitBtn.textContent;
+        submitBtn.textContent = 'Processing...';
+        submitBtn.disabled = true;
+
+        fetch('{$apiEndpoint}', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showNotification(data.message, 'success');
+                closeCharacterAdminModal();
+                // Refresh the page to show changes
+                setTimeout(() => {
+                    window.location.reload();
+                }, 1000);
+            } else {
+                showNotification(data.message, 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Error submitting character form:', error);
+            showNotification('An error occurred while saving the character', 'error');
+        })
+        .finally(() => {
+            // Reset button state
+            submitBtn.textContent = originalText;
+            submitBtn.disabled = false;
+        });
+    }
+
+    function addRaceToSpecies(speciesId) {
+        // This function might be called from race sections, redirect to proper interface
+        window.location.href = './Beings.php?add_race=' + speciesId;
+    }
+
+    function showTab(tabName) {
+        // Hide all tab contents
+        const tabContents = document.querySelectorAll('.tab-content');
+        tabContents.forEach(content => {
+            content.style.display = 'none';
+            content.classList.remove('active');
+        });
+        
+        // Remove active class from all tab buttons (support both .tab-button and .tab-btn)
+        const tabButtons = document.querySelectorAll('.tab-button, .tab-btn');
+        tabButtons.forEach(button => {
+            button.classList.remove('active');
+        });
+        
+        // Show the selected tab content (support both direct ID and ID with -tab suffix)
+        let selectedTab = document.getElementById(tabName);
+        if (!selectedTab) {
+            selectedTab = document.getElementById(tabName + '-tab');
+        }
+        
+        if (selectedTab) {
+            selectedTab.style.display = 'block';
+            selectedTab.classList.add('active');
+        }
+        
+        // Add active class to the clicked button
+        const activeButton = document.querySelector(`[onclick*=\"showTab('\${tabName}')\"]`);
+        if (activeButton) {
+            activeButton.classList.add('active');
         }
     }";
 }

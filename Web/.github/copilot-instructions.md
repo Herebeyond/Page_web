@@ -474,6 +474,14 @@ This format ensures consistency and makes it easy to track when changes were mad
 - place created testing or one-use files in `html/test/Web/tests/`
 - when testing ends, delete them to keep the environment clean but keep the tests folder
 
+### Antivirus Considerations
+- **Important**: When creating test files, antivirus software may flag them as suspicious and block execution
+- If a test file is blocked by antivirus, the user will add an exception for that specific file
+- Once an exception is made, the same file won't be blocked on subsequent uses
+- This is normal behavior for dynamically generated test files and API testing scripts
+- Always inform the user if a test file needs to be created for debugging purposes
+- The user will only add an exception once the file has been used once, so the first execution may be blocked but the subsequent ones should work without issues from the antivirus.
+
 ## Troubleshooting Log
 - Troubleshooting files are to be placed in the `Web/.github/troubleshooting/` folder and shouldn't be placed elsewhere.
 - Troubleshooting names should be descriptive and follow the format: `TROUBLESHOOTING_{ISSUE_DESCRIPTION}.md` to ensure no conflicts with other files.
