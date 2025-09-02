@@ -1,0 +1,34 @@
+# Production overrides for Docker Compose
+# Use with: docker-compose -f compose.yaml -f compose.prod.yaml up -d
+
+services:
+  web:
+    environment:
+      # Production DATABASE_URL (use environment variables for security)
+      - DATABASE_URL=${DATABASE_URL}
+      - APP_ENV=prod
+      - APP_DEBUG=false
+    restart: unless-stopped
+    # Remove development volume mounts for security
+    volumes:
+      - ./php.ini:/usr/local/etc/php/php.ini
+
+  postgres:
+    restart: unless-stopped
+    environment:
+      # Use environment variables for production credentials
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    # Remove port exposure for security (only internal access)
+    ports: []
+    volumes:
+      # Use external volume for production data persistence
+      - postgres_prod_data:/var/lib/postgresql/data
+
+  # Remove pgAdmin in production for security
+  # pgadmin service should not be included in production
+
+volumes:
+  postgres_prod_data:
+    external: true

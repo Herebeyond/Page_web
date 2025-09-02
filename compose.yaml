@@ -1,0 +1,28 @@
+services:
+  web:
+    build: .
+    ports:
+      - "80:80"
+    depends_on:
+      - postgres
+    volumes:
+      - ./Web:/var/www/html
+      - ./php.ini:/usr/local/etc/php/php.ini
+    environment:
+      # PostgreSQL connection URL for Symfony
+      - DATABASE_URL=postgresql://symfony_user:symfony_password@postgres:5432/symfony_db?serverVersion=15&charset=utf8
+
+  postgres:
+    image: postgres:15
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: symfony_db
+      POSTGRES_USER: symfony_user
+      POSTGRES_PASSWORD: symfony_password
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+volumes:
+  postgres_data:

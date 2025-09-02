@@ -68,8 +68,26 @@
 
 
 # Sous Docker
-## Docker-compose.yml
-* Voici le Docker-compose.yml que j'utilise :
+
+## PostgreSQL avec Symfony ORM Pack
+* Nouvelle configuration utilisant PostgreSQL et Symfony ORM Pack
+* Voir le fichier `POSTGRESQL_SYMFONY_INSTALLATION.md` pour la documentation complète
+
+### Installation rapide
+```bash
+# Utiliser le script d'installation automatique
+./setup.sh
+
+# Ou suivre les étapes manuelles dans POSTGRESQL_SYMFONY_INSTALLATION.md
+```
+
+### Accès aux services
+* Application web: http://localhost
+* pgAdmin: http://localhost:8080 (admin@example.com / admin)
+* PostgreSQL: localhost:5432 (dev_user / dev_password)
+
+## Docker-compose.yml (Legacy MySQL - pour référence)
+* Ancienne configuration MySQL que j'utilisais :
 
 * services:
   * web:
