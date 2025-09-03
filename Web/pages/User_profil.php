@@ -1,16 +1,6 @@
 <?php
 require_once "./blueprints/page_init.php"; // includes the page initialization file
 
-
-
-// Check if the user is logged in
-if (!isset($_SESSION['user'])) {
-    header('Location: ../login/login.php');
-    exit;
-}
-
-
-
 // Initialize variables for form fields
 $username = '';
 $password = '';
@@ -41,8 +31,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     // Check if the password is the same as the old password
     if (!empty($password)) {
-        $stmt = $pdo->prepare("SELECT password FROM users WHERE id = ?");
-        $stmt->execute([$user['id']]);
+        $stmt = $pdo->prepare("SELECT password FROM users WHERE id_user = ?");
+        $stmt->execute([$user['id_user']]);
         $old_password = $stmt->fetchColumn();
 
         if (password_verify($password, $old_password)) {
@@ -65,8 +55,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // If username isn't empty, check if the username is to the right format
     if (!empty($username)) {
         // Check if the username already exists
-        $stmt = $pdo->prepare("SELECT * FROM users WHERE username = ? AND id != ?");
-        $stmt->execute([$username, $user['id']]);
+        $stmt = $pdo->prepare("SELECT * FROM users WHERE username = ? AND id_user != ?");
+        $stmt->execute([$username, $user['id_user']]);
         if ($stmt->fetch()) {
             array_push($errors, "This username is already taken.");
         }
@@ -146,8 +136,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         if (!empty($fields)) {
-            $params[] = $user['id'];
-            $sql = "UPDATE users SET " . implode(', ', $fields) . " WHERE id = ?";
+            $params[] = $user['id_user'];
+            $sql = "UPDATE users SET " . implode(', ', $fields) . " WHERE id_user = ?";
             $stmt = $pdo->prepare($sql);
             $stmt->execute($params);
 
@@ -276,10 +266,8 @@ require_once "./blueprints/gl_ap_start.php";
             <p style="color: rgba(255, 255, 255, 0.8); margin-bottom: 15px;">Here are the roles assigned to your account:</p>
             <ul class="user-roles-list">
                 <?php
-                // Fetch and display user roles
-                $stmt = $pdo->prepare("SELECT r.name FROM roles r JOIN user_roles ur ON r.id = ur.role_id WHERE ur.user_id = ?");
-                $stmt->execute([$user['id']]);
-                $roles = $stmt->fetchAll(PDO::FETCH_COLUMN);
+                // Display user roles using shared parsing function
+                $roles = parseUserRoles($user['user_roles'] ?? '');
                 
                 if (!empty($roles)) {
                     foreach ($roles as $role) {

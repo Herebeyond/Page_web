@@ -43,7 +43,7 @@ require_once "./blueprints/gl_ap_start.php"; // includes the start of the genera
             </div>
             
             <div id="interactive-map-container">
-                <img id="interactive-map-image" src="../images/maps/map_monde.png" alt="World Map">
+                <img id="interactive-map-image" src="../images/maps/map_world.png" alt="World Map">
                 <div id="interactive-map-overlay"></div>
             </div>
             
@@ -419,7 +419,7 @@ require_once "./blueprints/gl_ap_start.php"; // includes the start of the genera
             if (currentMapData) {
                 // Update map image
                 const mapImage = document.getElementById('interactive-map-image');
-                mapImage.src = currentMapData.image_map;
+                mapImage.src = currentMapData.map_file;
                 mapImage.alt = currentMapData.name_map;
                 
                 // Update map info display

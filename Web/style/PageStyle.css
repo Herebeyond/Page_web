@@ -4442,13 +4442,6 @@ body {
     height: fit-content !important; /* Force body to be exactly content height */
 }
 
-/* Override global CSS height issues */
-#global {
-    min-height: auto !important; /* Remove forced viewport height */
-    height: auto !important; /* Let content determine height */
-    padding-bottom: 20px !important; /* Reduce bottom padding from 50px */
-}
-
 /* Remove pseudo-elements that might create space */
 body::after, 
 #global::after,

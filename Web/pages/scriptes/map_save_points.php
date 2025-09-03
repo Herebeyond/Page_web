@@ -92,7 +92,7 @@ session_start();
 
 // Use the existing database connection
 try {
-    require_once '../../login/db.php';
+    require_once '../../database/db.php';
 } catch (Exception $e) {
     echo json_encode(['success' => false, 'message' => 'Database connection failed: ' . $e->getMessage()]);
     exit;
@@ -121,7 +121,7 @@ function requireAuthentication($action) {
                     try {
                         // Validate PDO connection
                         if (!$pdo) {
-                            require_once '../../login/db.php';
+                            require_once '../../database/db.php';
                         }
                         
                         $stmt = $pdo->prepare("SELECT r.name FROM user_roles ur JOIN roles r ON ur.role_id = r.id WHERE ur.user_id = ?");
@@ -628,4 +628,9 @@ function checkDuplicateName($pdo, $input) {
     } catch (PDOException $e) {
         echo json_encode(['success' => false, 'message' => DATABASE_ERROR_PREFIX . $e->getMessage()]);
     }
+}
+
+// Define constant for database error prefix if not already defined
+if (!defined('DATABASE_ERROR_PREFIX')) {
+    define('DATABASE_ERROR_PREFIX', 'Database Error: ');
 }

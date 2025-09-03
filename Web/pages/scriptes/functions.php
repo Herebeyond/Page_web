@@ -28,6 +28,31 @@ const SQL_SELECT_PLACE_NAME_BY_ID = 'SELECT name_IP FROM interest_points WHERE i
 // ============================================================================
 
 /**
+ * Parse user roles from comma-separated string
+ * @param string $rolesString Comma-separated roles string (e.g., "user, admin")
+ * @return array Array of trimmed role names, defaults to ['user'] if empty
+ */
+function parseUserRoles($rolesString) {
+    if (empty($rolesString)) {
+        return ['user'];
+    }
+    
+    $roles = array_map('trim', explode(',', $rolesString));
+    
+    // Filter out empty roles and ensure we have at least one
+    $roles = array_filter($roles, function($role) {
+        return !empty($role);
+    });
+    
+    // Default to 'user' if no valid roles found
+    if (empty($roles)) {
+        return ['user'];
+    }
+    
+    return $roles;
+}
+
+/**
  * Parse and validate JSON input securely
  * @return mixed Parsed JSON data or false on failure
  */
@@ -273,11 +298,17 @@ function validateAndSanitizeSlug($slug) {
         return false;
     }
     
-    // Remove dangerous characters and normalize
-    $slug = preg_replace('/[^a-zA-Z0-9_-]/', '', trim($slug));
+    // Keep the slug as-is if it's already properly formatted (lowercase, hyphens, numbers)
+    // This matches what place_detail.php creates
+    $slug = trim($slug);
     
     // Check for dangerous patterns
     if (empty($slug) || $slug === '.' || $slug === '..' || strlen($slug) > 100) {
+        return false;
+    }
+    
+    // Allow lowercase letters, numbers, hyphens, and underscores
+    if (!preg_match('/^[a-z0-9_-]+$/', $slug)) {
         return false;
     }
     

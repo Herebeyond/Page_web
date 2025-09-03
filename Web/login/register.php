@@ -1,6 +1,6 @@
 <?php
 session_start();
-require_once 'db.php'; // Database connection
+require_once __DIR__ . '/../database/db.php'; // Database connection
 
 // Safety check for database connection
 if (!$pdo) {
@@ -65,23 +65,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
 
             // Save the user, their password, and email in the database
-            $stmt = $pdo->prepare("INSERT INTO users (username, password, email) VALUES (?, ?, ?)");
+            $stmt = $pdo->prepare("INSERT INTO users (username, password, email, user_roles) VALUES (?, ?, ?, 'user')");
             $stmt->execute([$username, $hashedPassword, $email]);
-            $userId = $pdo->lastInsertId();
-
-            // Get the role_id for "user"
-            $stmt = $pdo->prepare("SELECT id FROM roles WHERE name = 'user'");
-            $stmt->execute();
-            $roleId = $stmt->fetchColumn();
-
-            if (!$roleId) {
-                throw new Exception("Default user role not found in database");
-            }
-
-            // Insert into user_roles
-            $stmt = $pdo->prepare("INSERT INTO user_roles (user_id, role_id) VALUES (?, ?)");
-            $stmt->execute([$userId, $roleId]);
-
+            
             // Redirect to the login page
             header('Location: login.php');
             exit;

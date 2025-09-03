@@ -21,7 +21,7 @@ set_exception_handler(function($exception) {
     exit;
 });
 
-require_once __DIR__ . '/../../login/db.php';
+require_once __DIR__ . '/../../database/db.php';
 
 // Verify database connection was successful  
 if (!isset($pdo) || !$pdo) {

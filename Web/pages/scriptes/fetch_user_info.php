@@ -4,7 +4,7 @@ ini_set('display_errors', 0);
 ini_set('log_errors', 1);
 error_reporting(E_ALL);
 
-require_once '../../login/db.php'; // Database connection
+require_once '../../database/db.php'; // Database connection
 
 // Verify database connection was successful
 if (!isset($pdo) || !$pdo) {
@@ -39,15 +39,13 @@ if (isset($_GET['user'])) { // Check if the 'user' parameter is provided
         $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
         if ($user) {
-            // Fetch all roles for the user
-            $stmt = $pdo->prepare("SELECT r.name FROM roles r JOIN user_roles ur ON r.id = ur.role_id WHERE ur.user_id = ?");
-            $stmt->execute([$user['id']]);
-            $roles = $stmt->fetchAll(PDO::FETCH_COLUMN);
+            // Use the user_roles column directly (simplified structure)
+            $roles = [$user['user_roles'] ?? 'user'];
 
             // Return user information as JSON
             echo json_encode([
                 'success' => true,
-                'id' => $user['id'],
+                'id' => $user['id_user'],
                 'icon' => $user['icon'],
                 'username' => $user['username'],
                 'blocked' => $user['blocked'],

@@ -3,7 +3,8 @@
 // To determine if a user has access to a page and/or is displayed, we will check the following:
 // 1. all : all users can access the page and it is displayed normally
 // 2. admin : only admin users can access the page and it is displayed only for them
-// 3. hidden : all users can access the page but it is not displayed, often because it needs an id in the url to display a specific resource and as such is only accessible by links
+// 3. user : only authenticated users can access the page and it is displayed for them
+// 4. hidden : all users can access the page but it is not displayed, often because it needs an id in the url to display a specific resource and as such is only accessible by links
 
 // So far, there is no need to hide a page for admin users
 $authorisation = array(
@@ -18,7 +19,7 @@ $authorisation = array(
     'Characters' => 'all',
     'Character_add' => 'admin',
     'Admin' => 'admin',
-    'User_profil' => 'hidden',
+    'User_profil' => 'user',
     'Map_modif' => 'admin',
     'place_detail' => 'hidden',
     'places_manager' => 'admin',

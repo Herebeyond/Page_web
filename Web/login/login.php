@@ -1,6 +1,6 @@
 <?php
 session_start();
-require_once 'db.php'; // Database connection
+require_once '../database/db.php'; // Database connection
 
 // Safety check for database connection
 if (!$pdo) {
@@ -59,12 +59,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') { // Check if the form has been submi
         $_SESSION['failed_attempts'] = 0;
         $_SESSION['last_failed_attempt'] = null;
 
-        $_SESSION['user'] = $user['id']; // Log in the user
+        $_SESSION['user'] = $user['id_user']; // Log in the user
+        
+        // DEBUG: Log successful login
+        error_log("DEBUG: User login successful. User ID: " . $user['id_user'] . ", Username: " . $user['username']);
+        error_log("DEBUG: Session user set to: " . $_SESSION['user']);
 
         // Direct to the last page visited or homepage
         header('Location: ' . ($_SESSION['last_page'] ?? '../pages/Homepage.php')); // Redirect to the last page visited or homepage
         exit;
     } else {
+        // DEBUG: Log failed login attempt
+        error_log("DEBUG: Login failed for username: " . $username . ". User found: " . ($user ? 'Yes' : 'No'));
+        if ($user) {
+            error_log("DEBUG: Password verification result: " . (password_verify($password, $user['password']) ? 'Success' : 'Failed'));
+        }
+        
         // Increment failed attempts on unsuccessful login
         $_SESSION['failed_attempts']++;
         $_SESSION['last_failed_attempt'] = $current_time->format('Y-m-d H:i:s');

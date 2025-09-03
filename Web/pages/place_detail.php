@@ -471,15 +471,13 @@ require_once "./blueprints/gl_ap_start.php"; // includes the start of the genera
     // Load gallery images
     async function loadGalleryImages() {
         try {
+            const formData = new FormData();
+            formData.append('action', 'listImages');
+            formData.append('slug', placeData.slug);
+            
             const response = await fetch('./scriptes/place_image_manager.php', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    action: 'list_images',
-                    slug: placeData.slug
-                })
+                body: formData
             });
             
             const data = await response.json();

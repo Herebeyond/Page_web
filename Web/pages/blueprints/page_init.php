@@ -3,7 +3,7 @@
  * Page Initialization Script
  * Handles session management, database connection, user authentication, and authorization
  * 
- * @global PDO $pdo Database connection object (initialized from ../login/db.php)
+ * @global PDO $pdo Database connection object (initialized from ../database/db.php)
  * @global array $user Current user data
  * @global array $user_roles Current user's roles
  */
@@ -41,7 +41,7 @@ if (isset($_SESSION['LAST_ACTIVITY']) && (time() - $_SESSION['LAST_ACTIVITY']) >
 }
 $_SESSION['LAST_ACTIVITY'] = time();
 
-require_once __DIR__ . '/../../login/db.php';
+require_once __DIR__ . '/../../database/db.php';
 require_once __DIR__ . '/../scriptes/authorisation.php'; // includes the authorisation.php file
 
 // store the name of the current page
@@ -49,6 +49,9 @@ $current_page = htmlspecialchars(pathinfo(basename($_SERVER['PHP_SELF']), PATHIN
 
 /// BLOCKED USER VERIFICATION
 if (isset($_SESSION['user'])) {
+    // DEBUG: Log session information
+    error_log("DEBUG: User session found. User ID: " . $_SESSION['user']);
+    
     // Ensure database connection is available for user verification
     if (!isset($pdo) || !$pdo) {
         error_log("Database connection not available in page_init.php for user verification");
@@ -62,26 +65,46 @@ if (isset($_SESSION['user'])) {
     }
     
     // Retrieve the user from the database
-    $stmt = $pdo->prepare("SELECT * FROM users WHERE id = ?");
+    $stmt = $pdo->prepare("SELECT * FROM users WHERE id_user = ?");
     $stmt->execute([$_SESSION['user']]);
     $user = $stmt->fetch();
+
+    // DEBUG: Log user retrieval
+    error_log("DEBUG: User data retrieved: " . ($user ? 'Found user: ' . $user['username'] : 'No user found'));
 
     // Check if user exists
     if (!$user) {
         // User doesn't exist in database, destroy session
+        error_log("DEBUG: User not found in database, destroying session");
         session_unset();
         session_destroy();
         header('Location: ../login/login.php');
         exit();
     }
 
-    // Fetch user roles
-    $stmt = $pdo->prepare("SELECT r.name FROM user_roles ur JOIN roles r ON ur.role_id = r.id WHERE ur.user_id = ?");
-    $stmt->execute([$user['id']]);
-    $user_roles = $stmt->fetchAll(PDO::FETCH_COLUMN);
+    // Parse user roles from comma-separated string
+    $user_roles_string = $user['user_roles'] ?? '';
+    if (empty($user_roles_string)) {
+        $user_roles = ['user'];
+    } else {
+        $user_roles = array_map('trim', explode(',', $user_roles_string));
+        
+        // Filter out empty roles
+        $user_roles = array_filter($user_roles, function($role) {
+            return !empty($role);
+        });
+        
+        // Default to 'user' if no valid roles found
+        if (empty($user_roles)) {
+            $user_roles = ['user'];
+        }
+    }
     
     // Store user roles in session for AJAX calls
     $_SESSION['user_roles'] = $user_roles;
+
+    // DEBUG: Log user verification success
+    error_log("DEBUG: User verification successful for: " . $user['username'] . " with roles: " . implode(',', $user_roles));
 
     // check if the user is blocked or not
     if ($user['blocked'] != "" || $user['blocked'] != null) {
@@ -119,9 +142,9 @@ if (isset($_SESSION['user']) && in_array('admin', $user_roles)) {
     // User is not logged in
     // Loop through the array until the current page is found
     foreach ($pages as $page) {
-        // If the page authorisation is admin, block the page
-        if ($authorisation[$page] == 'admin' && $page == $current_page) {
-            echo "<p>You need to be logged and have a certain role to access this page</p><br>";
+        // If the page authorisation is admin or user, block the page
+        if (($authorisation[$page] == 'admin' || $authorisation[$page] == 'user') && $page == $current_page) {
+            echo "<p>You need to be logged in to access this page</p><br>";
             echo "<a href='../login/login.php'>Log here</a><span> or </span>";
             echo "<a href='./Homepage.php'>Go back safely here</a>";
             exit();

@@ -1,7 +1,7 @@
 <?php
 
 
-require_once '../../login/db.php';
+require_once '../../database/db.php';
 
 header('Content-Type: application/json');
 

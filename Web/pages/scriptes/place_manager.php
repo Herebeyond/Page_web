@@ -5,7 +5,7 @@ ini_set('log_errors', 1);
 error_reporting(E_ALL);
 
 session_start();
-require_once '../../login/db.php';
+require_once '../../database/db.php';
 
 // Check if user is admin
 if (!isset($_SESSION['user']) || !isset($_SESSION['user_roles']) || !in_array('admin', $_SESSION['user_roles'])) {

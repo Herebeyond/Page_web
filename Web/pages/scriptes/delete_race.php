@@ -1,7 +1,7 @@
 <?php
 
 
-require_once '../../login/db.php'; // Connexion à la base
+require_once '../../database/db.php'; // Connexion à la base
 
 header('Content-Type: application/json');
 

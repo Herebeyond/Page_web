@@ -1,3 +1,63 @@
+03-09-2025 16:45
+### Ideas System Database Table Correction
+
+**Features Updated:**
+- Corrected database table name from 'universe_ideas' to 'ideas'
+- Updated all SQL queries in ideas_manager.php to use correct table name
+- Created proper SQL table creation script for the ideas system
+
+**Files Modified:**
+1. **pages/scriptes/ideas_manager.php**
+   - Global replacement of 'universe_ideas' with 'ideas' in all SQL queries
+   - Fixed table references for proper database connectivity
+
+2. **sql/ideas_table.sql** (NEW)
+   - Created proper table creation script for the ideas system
+   - Includes hierarchical structure with parent-child relationships
+   - Full-text search indexes for content searching
+   - Proper foreign key constraints and performance indexes
+
+**Key Features:**
+- Hierarchical idea organization (parent-child relationships)
+- Full CRUD operations for universe lore management
+- Category system for organizing different types of ideas
+- Search functionality with full-text indexing
+- Statistics tracking and export capabilities
+
+**Database Table Structure:**
+- Primary key: id_idea
+- Content fields: title, content, category, tags, comments
+- Status tracking: certainty_level, status, priority
+- Hierarchical: parent_idea_id with foreign key constraint
+- Timestamps: created_at, updated_at with auto-update
+
+03-09-2025 15:30
+### User Authentication System Enhancement
+
+**Features Added:**
+- New 'user' authorization level for authenticated-only pages
+- Enhanced authorization system to properly handle user profile access
+- Fixed "headers already sent" errors on User_profil.php
+
+**Files Modified:**
+1. **pages/scriptes/authorisation.php**
+   - Added new 'user' authorization level for authenticated users
+   - Changed User_profil from 'hidden' to 'user' level
+   
+2. **pages/blueprints/page_init.php**
+   - Updated authorization logic to handle 'user' level pages
+   - Non-logged users now properly blocked from user-only pages with clean error page
+
+**Key Features:**
+- Centralized authentication handling following blueprint pattern
+- No duplicate session checks in individual pages
+- Clean error pages with proper navigation links
+- Eliminates PHP header conflicts
+
+**Data Safety Measures:**
+- Proper session validation before page access
+- Secure redirects through centralized authorization system
+
 ## Recent Modifications - Category Management System
 
 02-09-2025 16:30

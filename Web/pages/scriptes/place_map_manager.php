@@ -43,7 +43,7 @@ if (in_array($action, $admin_actions)) {
 }
 
 try {
-    require_once '../../login/db.php';
+    require_once '../../database/db.php';
     
     if (!isset($pdo)) {
         throw new Exception('Database connection not available');

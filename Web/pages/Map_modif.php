@@ -102,7 +102,7 @@ require_once "./blueprints/gl_ap_start.php"; // includes the start of the genera
             </div>
             
             <div id="interactive-map-container">
-                <img id="interactive-map-image" src="../images/maps/map_monde.png" alt="World Map">
+                <img id="interactive-map-image" src="../images/maps/map_world.png" alt="World Map">
                 <div id="interactive-map-overlay"></div>
             </div>
         </div>
@@ -331,6 +331,7 @@ require_once "./blueprints/gl_ap_start.php"; // includes the start of the genera
                 headers: {
                     'Content-Type': 'application/json',
                 },
+                credentials: 'same-origin',
                 body: JSON.stringify({
                     action: 'load_types'
                 })
@@ -378,6 +379,7 @@ require_once "./blueprints/gl_ap_start.php"; // includes the start of the genera
                 headers: {
                     'Content-Type': 'application/json',
                 },
+                credentials: 'same-origin',
                 body: JSON.stringify({
                     action: 'loadPoints',
                     map_id: currentMapId
@@ -528,6 +530,7 @@ require_once "./blueprints/gl_ap_start.php"; // includes the start of the genera
                 headers: {
                     'Content-Type': 'application/json',
                 },
+                credentials: 'same-origin',
                 body: JSON.stringify({
                     action: 'add_type',
                     type_name: newTypeName,
@@ -562,6 +565,7 @@ require_once "./blueprints/gl_ap_start.php"; // includes the start of the genera
                 headers: {
                     'Content-Type': 'application/json',
                 },
+                credentials: 'same-origin',
                 body: JSON.stringify({
                     action: 'delete_type',
                     type_id: typeId
@@ -591,6 +595,7 @@ require_once "./blueprints/gl_ap_start.php"; // includes the start of the genera
                 headers: {
                     'Content-Type': 'application/json',
                 },
+                credentials: 'same-origin',
                 body: JSON.stringify({
                     action: 'update_type_color',
                     type_id: typeId,
@@ -824,6 +829,7 @@ require_once "./blueprints/gl_ap_start.php"; // includes the start of the genera
                     headers: {
                         'Content-Type': 'application/json',
                     },
+                    credentials: 'same-origin',
                     body: JSON.stringify({
                         action: 'delete_point',
                         database_id: point.database_id
@@ -873,37 +879,70 @@ require_once "./blueprints/gl_ap_start.php"; // includes the start of the genera
         
         // Ask if user wants to delete the associated folder
         function askAboutFolderDeletion(pointName) {
+            console.log("=== askAboutFolderDeletion START ===");
+            console.log("Point name:", pointName);
+            
             const deleteFolder = confirm(`Do you also want to delete the folder for "${pointName}"?\n\nWarning: This will permanently delete all images and files in the folder!\n\nClick OK to delete the folder, or Cancel to keep it.`);
+            
+            console.log("User chose to delete folder:", deleteFolder);
             
             if (deleteFolder) {
                 // Create slug from point name
                 const slug = createSlug(pointName);
+                console.log("Created slug:", slug);
+                
+                const requestBody = {
+                    action: 'delete_place_folder',
+                    slug: slug
+                };
+                console.log("Request body:", requestBody);
+                
+                console.log("Sending request to folder_manager.php...");
                 
                 fetch('./scriptes/folder_manager.php', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                     },
-                    body: JSON.stringify({
-                        action: 'delete_place_folder',
-                        slug: slug
-                    })
+                    credentials: 'same-origin',
+                    body: JSON.stringify(requestBody)
                 })
-                .then(response => response.json())
+                .then(response => {
+                    console.log("Response status:", response.status);
+                    console.log("Response headers:", response.headers);
+                    return response.json();
+                })
                 .then(data => {
+                    console.log("Response data:", data);
+                    
+                    // Log debug information if available
+                    if (data.debug) {
+                        console.log("=== SERVER DEBUG INFO ===");
+                        console.log(data.debug);
+                        console.log("=== END DEBUG INFO ===");
+                    }
+                    
                     if (data.success) {
+                        console.log("Success: Folder deleted");
                         showTemporaryMessage('✅ Folder deleted successfully!', 'success');
                     } else {
+                        console.log("Error: Folder deletion failed");
+                        console.log("Error message:", data.message);
                         showTemporaryMessage('❌ Error deleting folder: ' + data.message, 'error');
                     }
                 })
                 .catch(error => {
-                    console.error('Error deleting folder:', error);
-                    showTemporaryMessage('❌ Error deleting folder', 'error');
+                    console.error('Fetch error:', error);
+                    console.error('Error details:', error.message);
+                    console.error('Error stack:', error.stack);
+                    showTemporaryMessage('❌ Error deleting folder: ' + error.message, 'error');
                 });
             } else {
+                console.log("User chose to keep folder");
                 showTemporaryMessage('ℹ️ Folder preserved. You can manage it in Places Manager.', 'info');
             }
+            
+            console.log("=== askAboutFolderDeletion END ===");
         }
         
         // Clear all points (only local points, not database points)
@@ -962,6 +1001,7 @@ require_once "./blueprints/gl_ap_start.php"; // includes the start of the genera
                     headers: {
                         'Content-Type': 'application/json',
                     },
+                    credentials: 'same-origin',
                     body: JSON.stringify({
                         action: 'create_place_folder',
                         name: point.name
@@ -1002,6 +1042,7 @@ require_once "./blueprints/gl_ap_start.php"; // includes the start of the genera
                 headers: {
                     'Content-Type': 'application/json',
                 },
+                credentials: 'same-origin',
                 body: JSON.stringify({
                     action: 'savePoints',
                     points: points,
@@ -1304,6 +1345,7 @@ require_once "./blueprints/gl_ap_start.php"; // includes the start of the genera
                 headers: {
                     'Content-Type': 'application/json',
                 },
+                credentials: 'same-origin',
                 body: JSON.stringify({
                     action: 'update_point',
                     database_id: point.database_id,
@@ -1439,6 +1481,7 @@ require_once "./blueprints/gl_ap_start.php"; // includes the start of the genera
                 headers: {
                     'Content-Type': 'application/json',
                 },
+                credentials: 'same-origin',
                 body: JSON.stringify({
                     action: 'check_duplicate_name',
                     name: name
@@ -1587,7 +1630,7 @@ require_once "./blueprints/gl_ap_start.php"; // includes the start of the genera
             if (currentMapData) {
                 // Update map image
                 const mapImage = document.getElementById('interactive-map-image');
-                mapImage.src = currentMapData.image_map;
+                mapImage.src = currentMapData.map_file;
                 mapImage.alt = currentMapData.name_map;
                 
                 // Update map info display

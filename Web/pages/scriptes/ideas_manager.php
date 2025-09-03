@@ -8,7 +8,7 @@
 ob_start();
 error_reporting(E_ALL & ~E_NOTICE & ~E_WARNING);
 
-require_once '../../login/db.php';
+require_once '../../database/db.php';
 require_once 'entity_linking.php'; // Include entity linking functionality
 
 // Clean any output that might have been generated
@@ -168,7 +168,7 @@ function getIdeas() {
     $whereClause = !empty($where) ? 'WHERE ' . implode(' AND ', $where) : '';
     
     // Count total matching ideas
-    $countQuery = "SELECT COUNT(*) FROM universe_ideas ui $whereClause";
+    $countQuery = "SELECT COUNT(*) FROM ideas ui $whereClause";
     $countStmt = $pdo->prepare($countQuery);
     $countStmt->execute($params);
     $totalCount = $countStmt->fetchColumn();
@@ -192,11 +192,11 @@ function getIdeas() {
             SELECT ui.id_idea, ui.parent_idea_id, ui.title, ui.content, ui.category, 
                    ui.certainty_level, ui.status, ui.tags, ui.comments, ui.inspiration_source,
                    ui.created_at, ui.updated_at, ui.priority,
-                   (SELECT COUNT(*) FROM universe_ideas sub WHERE sub.parent_idea_id = ui.id_idea) as child_count,
+                   (SELECT COUNT(*) FROM ideas sub WHERE sub.parent_idea_id = ui.id_idea) as child_count,
                    CASE WHEN ui.parent_idea_id IS NULL THEN NULL ELSE 
-                       (SELECT title FROM universe_ideas p WHERE p.id_idea = ui.parent_idea_id) 
+                       (SELECT title FROM ideas p WHERE p.id_idea = ui.parent_idea_id) 
                    END as parent_title
-            FROM universe_ideas ui
+            FROM ideas ui
             $whereClause
             ORDER BY ui.created_at DESC
             LIMIT $limit OFFSET $offset
@@ -210,7 +210,7 @@ function getIdeas() {
         // No search - get parent ideas and their complete hierarchies
         $parentQuery = "
             SELECT ui.id_idea
-            FROM universe_ideas ui
+            FROM ideas ui
             $whereClause
             ORDER BY ui.created_at DESC
             LIMIT $limit OFFSET $offset
@@ -240,11 +240,11 @@ function getIdeas() {
                 SELECT ui.id_idea, ui.parent_idea_id, ui.title, ui.content, ui.category, 
                        ui.certainty_level, ui.status, ui.tags, ui.comments, ui.inspiration_source,
                        ui.created_at, ui.updated_at, ui.priority,
-                       (SELECT COUNT(*) FROM universe_ideas sub WHERE sub.parent_idea_id = ui.id_idea) as child_count,
+                       (SELECT COUNT(*) FROM ideas sub WHERE sub.parent_idea_id = ui.id_idea) as child_count,
                        CASE WHEN ui.parent_idea_id IS NULL THEN NULL ELSE 
-                           (SELECT title FROM universe_ideas p WHERE p.id_idea = ui.parent_idea_id) 
+                           (SELECT title FROM ideas p WHERE p.id_idea = ui.parent_idea_id) 
                        END as parent_title
-                FROM universe_ideas ui
+                FROM ideas ui
                 WHERE ui.id_idea IN ($parentIdPlaceholders)
                 
                 UNION ALL
@@ -253,11 +253,11 @@ function getIdeas() {
                 SELECT ui.id_idea, ui.parent_idea_id, ui.title, ui.content, ui.category, 
                        ui.certainty_level, ui.status, ui.tags, ui.comments, ui.inspiration_source,
                        ui.created_at, ui.updated_at, ui.priority,
-                       (SELECT COUNT(*) FROM universe_ideas sub WHERE sub.parent_idea_id = ui.id_idea) as child_count,
+                       (SELECT COUNT(*) FROM ideas sub WHERE sub.parent_idea_id = ui.id_idea) as child_count,
                        CASE WHEN ui.parent_idea_id IS NULL THEN NULL ELSE 
-                           (SELECT title FROM universe_ideas p WHERE p.id_idea = ui.parent_idea_id) 
+                           (SELECT title FROM ideas p WHERE p.id_idea = ui.parent_idea_id) 
                        END as parent_title
-                FROM universe_ideas ui
+                FROM ideas ui
                 INNER JOIN idea_hierarchy ih ON ui.parent_idea_id = ih.id_idea
             )
             SELECT * FROM idea_hierarchy
@@ -303,9 +303,9 @@ function getIdea() {
                ui.status, ui.tags, ui.parent_idea_id, ui.comments, ui.inspiration_source,
                ui.created_at, ui.updated_at,
                COALESCE(parent.title, 'Root Idea') as parent_title,
-               (SELECT COUNT(*) FROM universe_ideas WHERE parent_idea_id = ui.id_idea) as child_count
-        FROM universe_ideas ui
-        LEFT JOIN universe_ideas parent ON ui.parent_idea_id = parent.id_idea
+               (SELECT COUNT(*) FROM ideas WHERE parent_idea_id = ui.id_idea) as child_count
+        FROM ideas ui
+        LEFT JOIN ideas parent ON ui.parent_idea_id = parent.id_idea
         WHERE ui.id_idea = ?
     ";
     
@@ -334,7 +334,7 @@ function getIdea() {
 function getValidCategories() {
     global $pdo;
     
-    $enumQuery = "SHOW COLUMNS FROM universe_ideas LIKE 'category'";
+    $enumQuery = "SHOW COLUMNS FROM ideas LIKE 'category'";
     $enumStmt = $pdo->prepare($enumQuery);
     $enumStmt->execute();
     $enumResult = $enumStmt->fetch(PDO::FETCH_ASSOC);
@@ -386,7 +386,7 @@ function createIdea() {
     
     // Validate parent idea exists if provided
     if ($data['parent_idea_id']) {
-        $stmt = $pdo->prepare("SELECT id_idea FROM universe_ideas WHERE id_idea = ?");
+        $stmt = $pdo->prepare("SELECT id_idea FROM ideas WHERE id_idea = ?");
         $stmt->execute([$data['parent_idea_id']]);
         if (!$stmt->fetch()) {
             throw new Exception('Parent idea not found');
@@ -402,7 +402,7 @@ function createIdea() {
     }
     
     $query = "
-        INSERT INTO universe_ideas (
+        INSERT INTO ideas (
             title, content, category, certainty_level, status,
             tags, parent_idea_id, 
             comments, inspiration_source
@@ -441,7 +441,7 @@ function updateIdea() {
     }
     
     // Check if idea exists
-    $stmt = $pdo->prepare("SELECT id_idea FROM universe_ideas WHERE id_idea = ?");
+    $stmt = $pdo->prepare("SELECT id_idea FROM ideas WHERE id_idea = ?");
     $stmt->execute([$id]);
     if (!$stmt->fetch()) {
         throw new Exception('Idea not found');
@@ -481,7 +481,7 @@ function updateIdea() {
     }
     
     $query = "
-        UPDATE universe_ideas SET 
+        UPDATE ideas SET 
             title = ?, content = ?, category = ?, certainty_level = ?, 
             status = ?, tags = ?, parent_idea_id = ?, 
             comments = ?, inspiration_source = ?, updated_at = CURRENT_TIMESTAMP
@@ -517,24 +517,24 @@ function deleteIdea() {
     }
     
     // Check if idea exists
-    $stmt = $pdo->prepare("SELECT id_idea FROM universe_ideas WHERE id_idea = ?");
+    $stmt = $pdo->prepare("SELECT id_idea FROM ideas WHERE id_idea = ?");
     $stmt->execute([$id]);
     if (!$stmt->fetch()) {
         throw new Exception('Idea not found');
     }
     
     // Check if idea has children
-    $stmt = $pdo->prepare("SELECT COUNT(*) FROM universe_ideas WHERE parent_idea_id = ?");
+    $stmt = $pdo->prepare("SELECT COUNT(*) FROM ideas WHERE parent_idea_id = ?");
     $stmt->execute([$id]);
     $childCount = $stmt->fetchColumn();
     
     if ($childCount > 0) {
         // Update children to become root ideas instead of hard delete
-        $pdo->prepare("UPDATE universe_ideas SET parent_idea_id = NULL WHERE parent_idea_id = ?")->execute([$id]);
+        $pdo->prepare("UPDATE ideas SET parent_idea_id = NULL WHERE parent_idea_id = ?")->execute([$id]);
     }
     
     // Actually delete the idea from the database
-    $stmt = $pdo->prepare("DELETE FROM universe_ideas WHERE id_idea = ?");
+    $stmt = $pdo->prepare("DELETE FROM ideas WHERE id_idea = ?");
     $success = $stmt->execute([$id]);
     
     if ($success) {
@@ -552,7 +552,7 @@ function getParentOptions() {
     
     $query = "
         SELECT id_idea, title 
-        FROM universe_ideas 
+        FROM ideas 
         ORDER BY title ASC
     ";
     
@@ -571,19 +571,19 @@ function getStatistics() {
     $stats = [];
     
     // Total ideas
-    $stmt = $pdo->query("SELECT COUNT(*) FROM universe_ideas");
+    $stmt = $pdo->query("SELECT COUNT(*) FROM ideas");
     $stats['total'] = $stmt->fetchColumn();
     
     // Canon ideas
-    $stmt = $pdo->query("SELECT COUNT(*) FROM universe_ideas WHERE certainty_level = 'Canon'");
+    $stmt = $pdo->query("SELECT COUNT(*) FROM ideas WHERE certainty_level = 'Canon'");
     $stats['canon'] = $stmt->fetchColumn();
     
     // Developing ideas
-    $stmt = $pdo->query("SELECT COUNT(*) FROM universe_ideas WHERE certainty_level = 'Developing'");
+    $stmt = $pdo->query("SELECT COUNT(*) FROM ideas WHERE certainty_level = 'Developing'");
     $stats['developing'] = $stmt->fetchColumn();
     
     // Categories count
-    $stmt = $pdo->query("SELECT COUNT(DISTINCT category) FROM universe_ideas");
+    $stmt = $pdo->query("SELECT COUNT(DISTINCT category) FROM ideas");
     $stats['categories'] = $stmt->fetchColumn();
     
     return $stats;
@@ -607,9 +607,9 @@ function exportIdeas() {
                ui.status, ui.tags, ui.parent_idea_id, ui.comments, ui.inspiration_source,
                ui.created_at, ui.updated_at,
                COALESCE(parent.title, 'Root Idea') as parent_title,
-               (SELECT COUNT(*) FROM universe_ideas WHERE parent_idea_id = ui.id_idea) as child_count
-        FROM universe_ideas ui
-        LEFT JOIN universe_ideas parent ON ui.parent_idea_id = parent.id_idea
+               (SELECT COUNT(*) FROM ideas WHERE parent_idea_id = ui.id_idea) as child_count
+        FROM ideas ui
+        LEFT JOIN ideas parent ON ui.parent_idea_id = parent.id_idea
         ORDER BY ui.category, ui.title
     ";
     
@@ -618,7 +618,7 @@ function exportIdeas() {
     
     // Set headers for CSV download
     header('Content-Type: text/csv; charset=utf-8');
-    header('Content-Disposition: attachment; filename="universe_ideas_' . date('Y-m-d_H-i-s') . '.csv"');
+    header('Content-Disposition: attachment; filename="ideas_' . date('Y-m-d_H-i-s') . '.csv"');
     
     // Create a file pointer connected to the output stream
     $output = fopen('php://output', 'w');
@@ -675,7 +675,7 @@ function hasCircularReference($ideaId, $parentId) {
         $visited[] = $currentParent;
         
         // Get the parent of current parent
-        $stmt = $pdo->prepare("SELECT parent_idea_id FROM universe_ideas WHERE id_idea = ?");
+        $stmt = $pdo->prepare("SELECT parent_idea_id FROM ideas WHERE id_idea = ?");
         $stmt->execute([$currentParent]);
         $result = $stmt->fetch(PDO::FETCH_ASSOC);
         
@@ -717,7 +717,7 @@ function bulkImport() {
             
             // Insert the idea
             $query = "
-                INSERT INTO universe_ideas (
+                INSERT INTO ideas (
                     title, content, category, certainty_level, tags, 
                     status
                 ) VALUES (?, ?, ?, ?, ?, ?)
@@ -848,7 +848,7 @@ function getAllTags() {
     try {
         $query = "
             SELECT DISTINCT tags 
-            FROM universe_ideas 
+            FROM ideas 
             WHERE tags IS NOT NULL AND tags != ''
         ";
         
@@ -909,7 +909,7 @@ function getCategories() {
     
     try {
         // Get all possible category values from the ENUM definition
-        $enumQuery = "SHOW COLUMNS FROM universe_ideas LIKE 'category'";
+        $enumQuery = "SHOW COLUMNS FROM ideas LIKE 'category'";
         $enumStmt = $pdo->prepare($enumQuery);
         $enumStmt->execute();
         $enumResult = $enumStmt->fetch(PDO::FETCH_ASSOC);
@@ -922,7 +922,7 @@ function getCategories() {
         // Get usage count for each category
         $usageQuery = "
             SELECT category, COUNT(*) as count 
-            FROM universe_ideas 
+            FROM ideas 
             WHERE category IS NOT NULL 
             GROUP BY category
         ";
@@ -975,7 +975,7 @@ function addCategory() {
         }
         
         // Get current ENUM values
-        $enumQuery = "SHOW COLUMNS FROM universe_ideas LIKE 'category'";
+        $enumQuery = "SHOW COLUMNS FROM ideas LIKE 'category'";
         $enumStmt = $pdo->prepare($enumQuery);
         $enumStmt->execute();
         $enumResult = $enumStmt->fetch(PDO::FETCH_ASSOC);
@@ -994,7 +994,7 @@ function addCategory() {
         $currentCategories[] = $categoryName;
         $newEnumValues = "'" . implode("','", $currentCategories) . "'";
         
-        $alterQuery = "ALTER TABLE universe_ideas MODIFY COLUMN category ENUM($newEnumValues) NOT NULL DEFAULT 'Other'";
+        $alterQuery = "ALTER TABLE ideas MODIFY COLUMN category ENUM($newEnumValues) NOT NULL DEFAULT 'Other'";
         $pdo->exec($alterQuery);
         
         echo json_encode([
@@ -1045,7 +1045,7 @@ function updateCategory() {
     
     try {
         // Get current ENUM values
-        $enumQuery = "SHOW COLUMNS FROM universe_ideas LIKE 'category'";
+        $enumQuery = "SHOW COLUMNS FROM ideas LIKE 'category'";
         $enumStmt = $pdo->prepare($enumQuery);
         $enumStmt->execute();
         $enumResult = $enumStmt->fetch(PDO::FETCH_ASSOC);
@@ -1082,7 +1082,7 @@ function updateCategory() {
         $newCategories[] = $newName;
         $newEnumValues = "'" . implode("','", $newCategories) . "'";
         
-        $alterAddQuery = "ALTER TABLE universe_ideas MODIFY COLUMN category ENUM($newEnumValues) NOT NULL DEFAULT 'Other'";
+        $alterAddQuery = "ALTER TABLE ideas MODIFY COLUMN category ENUM($newEnumValues) NOT NULL DEFAULT 'Other'";
         $addResult = $pdo->exec($alterAddQuery);
         
         if ($addResult === false) {
@@ -1090,7 +1090,7 @@ function updateCategory() {
         }
         
         // Step 2: Update all ideas with the old category to use the new category
-        $updateQuery = "UPDATE universe_ideas SET category = ?, updated_at = NOW() WHERE category = ?";
+        $updateQuery = "UPDATE ideas SET category = ?, updated_at = NOW() WHERE category = ?";
         $updateStmt = $pdo->prepare($updateQuery);
         $updateResult = $updateStmt->execute([$newName, $oldName]);
         
@@ -1106,7 +1106,7 @@ function updateCategory() {
         });
         $finalEnumValues = "'" . implode("','", $finalCategories) . "'";
         
-        $alterRemoveQuery = "ALTER TABLE universe_ideas MODIFY COLUMN category ENUM($finalEnumValues) NOT NULL DEFAULT 'Other'";
+        $alterRemoveQuery = "ALTER TABLE ideas MODIFY COLUMN category ENUM($finalEnumValues) NOT NULL DEFAULT 'Other'";
         $removeResult = $pdo->exec($alterRemoveQuery);
         
         if ($removeResult === false) {
@@ -1153,7 +1153,7 @@ function deleteCategory() {
     
     try {
         // Get current ENUM values
-        $enumQuery = "SHOW COLUMNS FROM universe_ideas LIKE 'category'";
+        $enumQuery = "SHOW COLUMNS FROM ideas LIKE 'category'";
         $enumStmt = $pdo->prepare($enumQuery);
         $enumStmt->execute();
         $enumResult = $enumStmt->fetch(PDO::FETCH_ASSOC);
@@ -1177,14 +1177,14 @@ function deleteCategory() {
         }
         
         // Step 1: Count ideas in this category
-        $countQuery = "SELECT COUNT(*) FROM universe_ideas WHERE category = ?";
+        $countQuery = "SELECT COUNT(*) FROM ideas WHERE category = ?";
         $countStmt = $pdo->prepare($countQuery);
         $countStmt->execute([$categoryName]);
         $ideaCount = $countStmt->fetchColumn();
         
         // Step 2: Move all ideas in this category to "Other" (if any)
         if ($ideaCount > 0) {
-            $updateQuery = "UPDATE universe_ideas SET category = 'Other', updated_at = NOW() WHERE category = ?";
+            $updateQuery = "UPDATE ideas SET category = 'Other', updated_at = NOW() WHERE category = ?";
             $updateStmt = $pdo->prepare($updateQuery);
             $updateResult = $updateStmt->execute([$categoryName]);
             
@@ -1199,7 +1199,7 @@ function deleteCategory() {
         });
         $newEnumValues = "'" . implode("','", $newCategories) . "'";
         
-        $alterQuery = "ALTER TABLE universe_ideas MODIFY COLUMN category ENUM($newEnumValues) NOT NULL DEFAULT 'Other'";
+        $alterQuery = "ALTER TABLE ideas MODIFY COLUMN category ENUM($newEnumValues) NOT NULL DEFAULT 'Other'";
         $alterResult = $pdo->exec($alterQuery);
         
         if ($alterResult === false) {

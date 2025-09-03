@@ -5,7 +5,7 @@ ini_set('log_errors', 1);
 error_reporting(E_ALL);
 
 session_start();
-require_once '../../login/db.php';
+require_once '../../database/db.php';
 require_once 'functions.php';
 
 // Check if user is logged in
@@ -111,42 +111,149 @@ function checkFolderExists($basePath, $slug) {
 }
 
 function deletePlaceFolder($basePath, $slug) {
+    $debugSteps = [];
+    $debugSteps[] = "deletePlaceFolder START - basePath: $basePath, slug: $slug";
+    
     $placePath = $basePath . DIRECTORY_SEPARATOR . $slug;
+    $debugSteps[] = "Constructed placePath: $placePath";
     
     // Validate the path for security
     if (!isPathSafe($placePath, $basePath)) {
+        $debugSteps[] = "ERROR: Path not safe";
+        // Store debug info globally for access in the action handler
+        $GLOBALS['delete_debug'] = $debugSteps;
+        return false;
+    }
+    $debugSteps[] = "Path safety check passed";
+    
+    if (!is_dir($placePath)) {
+        $debugSteps[] = "Directory doesn't exist - returning true";
+        $GLOBALS['delete_debug'] = $debugSteps;
+        return true; // Already doesn't exist
+    }
+    $debugSteps[] = "Directory exists, proceeding with deletion";
+    
+    // Check permissions on the directory
+    $debugSteps[] = "Directory permissions: " . decoct(fileperms($placePath) & 0777);
+    $debugSteps[] = "Directory owner: " . fileowner($placePath);
+    $debugSteps[] = "Directory group: " . filegroup($placePath);
+    $debugSteps[] = "Directory is readable: " . (is_readable($placePath) ? 'yes' : 'no');
+    $debugSteps[] = "Directory is writable: " . (is_writable($placePath) ? 'yes' : 'no');
+    
+    // List contents before deletion
+    $contents = @scandir($placePath);
+    if ($contents !== false) {
+        $debugSteps[] = "Directory contents found: " . count($contents) . " items";
+        foreach ($contents as $item) {
+            if ($item !== '.' && $item !== '..') {
+                $itemPath = $placePath . DIRECTORY_SEPARATOR . $item;
+                $itemType = is_dir($itemPath) ? 'DIR' : 'FILE';
+                $itemPerms = decoct(fileperms($itemPath) & 0777);
+                $debugSteps[] = "  $itemType: $item (perms: $itemPerms)";
+            }
+        }
+    } else {
+        $debugSteps[] = "ERROR: Failed to list directory contents";
+        $GLOBALS['delete_debug'] = $debugSteps;
         return false;
     }
     
-    if (!is_dir($placePath)) {
-        return true; // Already doesn't exist
-    }
-    
-    // Recursively delete folder and contents with safe directory traversal
-    function deleteDirectory($dir) {
+    // Simple and reliable recursive deletion (based on working debug script)
+    function deleteDirectory($dir, &$debugSteps) {
+        $debugSteps[] = "deleteDirectory called for: $dir";
+        
         if (!is_dir($dir)) {
+            $debugSteps[] = "ERROR: Not a directory - $dir";
             return false;
         }
         
         try {
-            $iterator = new RecursiveDirectoryIterator($dir, RecursiveDirectoryIterator::SKIP_DOTS);
-            $files = new RecursiveIteratorIterator($iterator, RecursiveIteratorIterator::CHILD_FIRST);
+            // Get directory contents
+            $contents = @scandir($dir);
+            if ($contents === false) {
+                $debugSteps[] = "ERROR: Cannot read directory contents - $dir";
+                return false;
+            }
             
-            foreach ($files as $file) {
-                if ($file->isDir()) {
-                    rmdir($file->getRealPath());
+            $debugSteps[] = "Found " . count($contents) . " items in $dir";
+            
+            // Process each item
+            foreach ($contents as $item) {
+                if ($item === '.' || $item === '..') {
+                    continue;
+                }
+                
+                $itemPath = $dir . DIRECTORY_SEPARATOR . $item;
+                $debugSteps[] = "Processing item: $itemPath";
+                
+                if (is_dir($itemPath)) {
+                    $debugSteps[] = "Item is directory, recursing";
+                    // Recursively delete subdirectory
+                    if (!deleteDirectory($itemPath, $debugSteps)) {
+                        $debugSteps[] = "ERROR: Failed to delete subdirectory - $itemPath";
+                        return false;
+                    }
+                    $debugSteps[] = "Successfully deleted subdirectory: $itemPath";
                 } else {
-                    unlink($file->getRealPath());
+                    $debugSteps[] = "Item is file, deleting";
+                    // Delete file - force ownership and permissions
+                    @chown($itemPath, 0); // Change to root
+                    @chgrp($itemPath, 0); // Change to root group
+                    @chmod($itemPath, 0666);
+                    
+                    if (!@unlink($itemPath)) {
+                        $error = error_get_last();
+                        $debugSteps[] = "ERROR: Failed to delete file - $itemPath. Error: " . ($error ? $error['message'] : 'unknown');
+                        $debugSteps[] = "File still exists after unlink attempt: " . (file_exists($itemPath) ? 'yes' : 'no');
+                        return false;
+                    }
+                    $debugSteps[] = "Successfully deleted file: $itemPath";
                 }
             }
-            return rmdir($dir);
+            
+            // Delete the directory itself
+            $debugSteps[] = "Deleting directory: $dir";
+            
+            // Force ownership and permissions before deletion
+            $debugSteps[] = "Attempting to change ownership and permissions before deletion";
+            @chown($dir, 0); // Change to root
+            @chgrp($dir, 0); // Change to root group
+            @chmod($dir, 0755);
+            
+            // Check final permissions before deletion attempt
+            $debugSteps[] = "Final permissions before rmdir: " . decoct(fileperms($dir) & 0777);
+            $debugSteps[] = "Final owner before rmdir: " . fileowner($dir);
+            $debugSteps[] = "Final group before rmdir: " . filegroup($dir);
+            
+            if (!@rmdir($dir)) {
+                $error = error_get_last();
+                $debugSteps[] = "ERROR: Failed to delete directory - $dir. Error: " . ($error ? $error['message'] : 'unknown');
+                
+                // Try to get more detailed error information
+                $debugSteps[] = "Directory still exists after rmdir attempt: " . (is_dir($dir) ? 'yes' : 'no');
+                if (is_dir($dir)) {
+                    $contents = @scandir($dir);
+                    $debugSteps[] = "Directory contents after failed rmdir: " . ($contents ? json_encode($contents) : 'cannot read');
+                }
+                
+                return false;
+            }
+            
+            $debugSteps[] = "Successfully deleted directory: $dir";
+            return true;
+            
         } catch (Exception $e) {
-            error_log('Error deleting directory: ' . $e->getMessage());
+            $debugSteps[] = "EXCEPTION: " . $e->getMessage() . " - Directory: $dir";
             return false;
         }
     }
     
-    return deleteDirectory($placePath);
+    $result = deleteDirectory($placePath, $debugSteps);
+    $debugSteps[] = "deletePlaceFolder result: " . ($result ? 'SUCCESS' : 'FAILURE');
+    
+    // Store debug info globally for access in the action handler
+    $GLOBALS['delete_debug'] = $debugSteps;
+    return $result;
 }
 
 function getAllPlaceFolders($basePath) {
@@ -261,29 +368,64 @@ switch ($action) {
         break;
         
     case 'delete_place_folder':
+        $debugInfo = [];
+        $debugInfo['step1'] = 'action_handler_start';
+        
         $slug = $input['slug'] ?? '';
+        $debugInfo['step2'] = 'slug_extracted: ' . $slug;
+        
         if (empty($slug)) {
-            echo json_encode(['success' => false, 'message' => 'Slug is required']);
+            $debugInfo['error'] = 'slug_empty';
+            echo json_encode(['success' => false, 'message' => 'Slug is required', 'debug' => $debugInfo]);
             break;
         }
         
         try {
+            $debugInfo['step3'] = 'validation_start';
             $validatedSlug = validateAndSanitizeSlug($slug);
+            $debugInfo['step4'] = 'validation_result: ' . ($validatedSlug === false ? 'FALSE' : $validatedSlug);
+            
             if ($validatedSlug === false) {
-                echo json_encode(['success' => false, 'message' => 'Invalid place identifier provided']);
+                $debugInfo['error'] = 'validation_failed';
+                echo json_encode(['success' => false, 'message' => 'Invalid place identifier provided', 'debug' => $debugInfo]);
                 break;
             }
             
+            $debugInfo['step5'] = 'calling_deletePlaceFolder';
+            $debugInfo['basePath'] = $basePath;
+            $debugInfo['validatedSlug'] = $validatedSlug;
+            
+            // Check if folder exists before deletion
+            $folderPath = $basePath . DIRECTORY_SEPARATOR . $validatedSlug;
+            $debugInfo['folderPath'] = $folderPath;
+            $debugInfo['folderExists'] = file_exists($folderPath) ? 'yes' : 'no';
+            $debugInfo['isDir'] = is_dir($folderPath) ? 'yes' : 'no';
+            
+            if (file_exists($folderPath)) {
+                $debugInfo['folderPerms'] = decoct(fileperms($folderPath) & 0777);
+                $debugInfo['folderOwner'] = fileowner($folderPath);
+                $debugInfo['folderGroup'] = filegroup($folderPath);
+                $debugInfo['currentUID'] = getmyuid();
+                $debugInfo['currentUser'] = get_current_user();
+            }
+            
             $success = deletePlaceFolder($basePath, $validatedSlug);
+            $debugInfo['step6'] = 'deletePlaceFolder_result: ' . ($success ? 'TRUE' : 'FALSE');
+            
+            // Add detailed debug steps from the deletion function
+            if (isset($GLOBALS['delete_debug'])) {
+                $debugInfo['detailed_steps'] = $GLOBALS['delete_debug'];
+            }
             
             if ($success) {
-                echo json_encode(['success' => true, 'message' => 'Folder deleted successfully']);
+                echo json_encode(['success' => true, 'message' => 'Folder deleted successfully', 'debug' => $debugInfo]);
             } else {
-                echo json_encode(['success' => false, 'message' => 'Failed to delete folder']);
+                echo json_encode(['success' => false, 'message' => 'Failed to delete folder', 'debug' => $debugInfo]);
             }
         } catch (Exception $e) {
-            error_log('Error deleting place folder: ' . $e->getMessage());
-            echo json_encode(['success' => false, 'message' => 'Error deleting place folder']);
+            $debugInfo['exception'] = $e->getMessage();
+            $debugInfo['trace'] = $e->getTraceAsString();
+            echo json_encode(['success' => false, 'message' => 'Error deleting place folder', 'debug' => $debugInfo]);
         }
         break;
         

@@ -1,7 +1,7 @@
 <?php
 // filepath: c:\Users\baill\OneDrive\Desktop\Docker\html\test\Web\pages\scriptes\search_user.php
 
-require_once '../../login/db.php'; // Include the database connection
+require_once '../../database/db.php'; // Include the database connection
 
 header('Content-Type: application/json');
 
