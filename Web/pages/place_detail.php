@@ -323,7 +323,7 @@ require_once "./blueprints/gl_ap_start.php"; // includes the start of the genera
 
 <!-- Image Upload Modal -->
 <div id="image-upload-modal" class="point-edit-modal" style="display: none;">
-    <div class="point-edit-modal-content" style="max-width: 600px;">
+    <div class="point-edit-modal-content">
         <div class="point-edit-modal-header">
             <h2 id="upload-modal-title">📁 Manage Images</h2>
             <button type="button" class="point-edit-modal-close" onclick="closeEditModal('image-upload')">&times;</button>
@@ -1698,15 +1698,13 @@ require_once "./blueprints/gl_ap_start.php"; // includes the start of the genera
     
     function loadManageGallery() {
         // Load detailed gallery management interface
+        const formData = new FormData();
+        formData.append('action', 'listImages');
+        formData.append('slug', placeData.slug);
+        
         fetch('./scriptes/place_image_manager.php', {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                action: 'list_images',
-                slug: placeData.slug
-            })
+            body: formData
         })
         .then(response => response.json())
         .then(data => {
@@ -1728,22 +1726,22 @@ require_once "./blueprints/gl_ap_start.php"; // includes the start of the genera
                             background: rgba(0,0,0,0.2);
                         ">
                             <img src="${image.thumb_path}" 
-                                 alt="${image.name}" 
+                                 alt="${image.full_name}" 
                                  style="width: 60px; height: 60px; object-fit: cover; border-radius: 4px;">
                             <div style="flex: 1;">
                                 <div style="margin-bottom: 5px;">
-                                    <strong style="color: #d4af37;">${image.name}</strong>
+                                    <strong style="color: #d4af37;">${image.full_name}</strong>
                                 </div>
                                 <div style="color: #888; font-size: 0.9em;">
                                     Size: ${Math.round(image.size / 1024)}KB
                                 </div>
                             </div>
                             <div style="display: flex; gap: 5px;">
-                                <button onclick="renameImagePrompt('${image.name}')" 
+                                <button onclick="renameImagePrompt('${image.full_name}')" 
                                         style="background: #2196F3; color: white; border: none; padding: 5px 10px; border-radius: 3px; cursor: pointer; font-size: 0.8em;">
                                     ✏️ Rename
                                 </button>
-                                <button onclick="deleteImageConfirm('${image.name}')" 
+                                <button onclick="deleteImageConfirm('${image.full_name}')" 
                                         style="background: #f44336; color: white; border: none; padding: 5px 10px; border-radius: 3px; cursor: pointer; font-size: 0.8em;">
                                     🗑️ Delete
                                 </button>

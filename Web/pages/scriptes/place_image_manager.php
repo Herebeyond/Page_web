@@ -57,11 +57,13 @@ if ($action === 'listImages') {
         if ($file === '.' || $file === '..') continue;
         $ext = strtolower(pathinfo($file, PATHINFO_EXTENSION));
         if (in_array($ext, $allowedExtensions) && strpos($file, 'main.') !== 0) {
+            $filePath = $placePath . DIRECTORY_SEPARATOR . $file;
             $images[] = [
                 'name' => pathinfo($file, PATHINFO_FILENAME),
                 'full_name' => $file,
                 'full_path' => "../images/places/{$slug}/{$file}",
-                'thumb_path' => "../images/places/{$slug}/{$file}"
+                'thumb_path' => "../images/places/{$slug}/{$file}",
+                'size' => file_exists($filePath) ? filesize($filePath) : 0
             ];
         }
     }
