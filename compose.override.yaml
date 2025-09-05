@@ -1,0 +1,49 @@
+services:
+  # Development-specific PostgreSQL service configuration
+  postgres:
+    environment:
+      # Override default settings for development
+      POSTGRES_DB: symfony_db_dev
+      POSTGRES_USER: dev_user
+      POSTGRES_PASSWORD: dev_password
+    ports:
+      # Expose PostgreSQL port for external access during development
+      - "5432:5432"
+    volumes:
+      # Use named volume for development data persistence
+      - postgres_dev_data:/var/lib/postgresql/data
+      # Optional: Mount init scripts for development
+      # - ./docker/postgres/init:/docker-entrypoint-initdb.d
+
+  # Development web service overrides
+  web:
+    environment:
+      # Development DATABASE_URL
+      - DATABASE_URL=postgresql://dev_user:dev_password@postgres:5432/symfony_db_dev?serverVersion=15&charset=utf8
+      # Additional development environment variables
+      - APP_ENV=dev
+      - APP_DEBUG=true
+    volumes:
+      # Additional development volumes for hot reloading
+      - ./Web:/var/www/html:cached
+      # Optional: mount composer cache for faster builds
+      # - composer_cache:/var/www/html/vendor
+
+  # Optional: pgAdmin for database management in development
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    restart: unless-stopped
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@example.com
+      PGADMIN_DEFAULT_PASSWORD: admin
+    ports:
+      - "8080:80"
+    depends_on:
+      - postgres
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+
+volumes:
+  postgres_dev_data:
+  pgadmin_data:
+  # composer_cache:
