@@ -142,8 +142,7 @@ if (isset($_GET['specie_id'])) {
                 if ($imgPath == null || $imgPath == '') { // if the image doesn't exist or is empty, use a default image
                     $imgPath = '../images/icon_default.png'; // path to the default image
                 } else { // if the image exists, use it
-                    $imgPath = str_replace(" ", "_", "$imgPath"); // replace spaces with underscores for file names
-                    $imgPath = "../images/" . sanitize_output($imgPath); // path to the image, sanitize_output escapes special characters in the string (such as ' and ") and prevents them from closing strings
+                    $imgPath = "../images/races/" . sanitize_output($imgPath); // path to the race image in races folder
                 }
 
                 if (!isImageLinkValid($imgPath)) { // if the image is not valid

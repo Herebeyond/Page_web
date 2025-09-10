@@ -2,6 +2,9 @@
 require_once "./blueprints/page_init.php";
 require_once "./blueprints/gl_ap_start.php";
 
+// Check if this is an AJAX request for partial page refresh
+$isAjax = isset($_GET['ajax']) && $_GET['ajax'] == '1';
+
 // Search and filter parameters
 $searchTerm = isset($_GET['search']) ? trim($_GET['search']) : '';
 $filterSpecie = isset($_GET['specie']) ? trim($_GET['specie']) : '';
@@ -42,12 +45,18 @@ $totalPages = ceil($totalSpecies / $perPage);
 $page = min($page, max(1, $totalPages));
 
 $offset = ($page - 1) * $perPage;
+
+// If this is an AJAX request, return only the beings grid content
+if ($isAjax) {
+    header('Content-Type: text/html; charset=UTF-8');
+    ob_start();
+}
 ?>
 
-<div id="mainText">
+<div id="mainText"><?php if (!$isAjax): ?>
     <button id="Return" onclick="window.history.back()">Return</button>
     
-    <!-- Header Section -->
+    <!-- Beings Header and Controls (only for full page load) -->
     <div class="beings-header">
         <h1>Beings & Creatures</h1>
         <p>Explore the diverse species and races that inhabit the Forgotten Worlds</p>
@@ -64,7 +73,7 @@ $offset = ($page - 1) * $perPage;
 
     <!-- Search and Filter Section -->
     <div class="beings-controls">
-        <div class="search-section">
+        <div class="search-section"><?php endif; ?>
             <form method="GET" action="Beings.php" class="search-form">
                 <div class="search-group">
                     <input type="text" name="search" value="<?php echo htmlspecialchars($searchTerm); ?>" 
@@ -136,7 +145,7 @@ $offset = ($page - 1) * $perPage;
                 if (empty($specieImg)) {
                     $specieImgPath = '../images/icon_default.png';
                 } else {
-                    $specieImgPath = '../images/' . str_replace(' ', '_', $specieImg);
+                    $specieImgPath = '../images/species/' . $specieImg;
                     if (!isImageLinkValid($specieImgPath)) {
                         $specieImgPath = '../images/icon_invalide.png';
                     }
@@ -161,7 +170,7 @@ $offset = ($page - 1) * $perPage;
                             </p>
                             <?php endif; ?>
                         </div>
-                        <div class="species-toggle" onclick="toggleSpeciesRaces('<?php echo $species['id_specie']; ?>')">
+                        <div class="species-toggle" onclick="window.beingsManager ? window.beingsManager.toggleSpeciesRaces('<?php echo $species['id_specie']; ?>') : console.error('BeingsManager not found')">
                             <span class="toggle-icon">▼</span>
                         </div>
                     </div>
@@ -190,7 +199,7 @@ $offset = ($page - 1) * $perPage;
                                     if (empty($raceImg)) {
                                         $raceImgPath = '../images/icon_default.png';
                                     } else {
-                                        $raceImgPath = '../images/' . str_replace(' ', '_', $raceImg);
+                                        $raceImgPath = '../images/races/' . $raceImg;
                                         if (!isImageLinkValid($raceImgPath)) {
                                             $raceImgPath = '../images/icon_invalide.png';
                                         }
@@ -229,7 +238,7 @@ $offset = ($page - 1) * $perPage;
                                             </div>
                                         </div>
                                         <?php if (!empty($characters)): ?>
-                                        <div class="race-toggle" onclick="toggleRaceCharacters('<?php echo $race['id_race']; ?>')">
+                                        <div class="race-toggle" onclick="window.beingsManager ? window.beingsManager.toggleRaceCharacters('<?php echo $race['id_race']; ?>') : console.error('BeingsManager not found')">
                                             <span class="toggle-icon">▼</span>
                                         </div>
                                         <?php endif; ?>
@@ -356,25 +365,33 @@ $offset = ($page - 1) * $perPage;
 </div>
 
 <script>
-// JavaScript functions are now in functions.php
+// JavaScript functions are now in separate files
 </script>
 
 <?php
-// Output shared JavaScript functions for Beings page functionality
+// Use the new clean JavaScript inclusion approach
 if (isset($_SESSION['user']) && in_array('admin', $user_roles)) {
-    // For admin users - include all functionality
-    echo "<script>\n";
-    echo generateSharedJavaScriptUtilities() . "\n";
-    echo generateBeingsPageFunctions('./scriptes/Beings_admin_interface.php') . "\n";
-    echo generateEntityDeleteFunctions('species', './scriptes/Beings_admin_interface.php') . "\n";
-    echo generateEntityDeleteFunctions('race', './scriptes/Beings_admin_interface.php') . "\n";
-    echo "</script>\n";
+    // For admin users - include all functionality with clean file includes
+    echo includeBeingsPageAssets('scriptes/Beings_admin_interface.php', true);
 } else {
-    // For non-admin users, only include basic functions
-    echo "<script>\n";
-    echo "// Non-admin users get basic functionality only\n";
-    echo "</script>\n";
+    // For non-admin users, only include basic functionality
+    echo includeJavaScriptAssets(['beings'], [
+        'namespace' => 'BeingsConfig',
+        'data' => [
+            'apiEndpoint' => 'scriptes/Beings_admin_interface.php',
+            'isAdmin' => false
+        ]
+    ]);
 }
+?>
+
+<?php 
+// Handle AJAX requests - return only the content
+if ($isAjax) {
+    $content = ob_get_clean();
+    echo $content;
+    exit;
+} 
 ?>
 
 <?php require_once "./blueprints/gl_ap_end.php"; ?>

@@ -110,7 +110,7 @@ if (isset($_GET['specie_id'])) {
                         if (empty($raceImg)) {
                             $raceImgPath = '../images/icon_default.png';
                         } else {
-                            $raceImgPath = '../images/' . str_replace(' ', '_', $raceImg);
+                            $raceImgPath = '../images/races/' . $raceImg;
                             if (!isImageLinkValid($raceImgPath)) {
                                 $raceImgPath = '../images/icon_invalide.png';
                             }

@@ -162,7 +162,8 @@ if (isset($_SESSION['user']) && in_array('admin', $user_roles)) {
         }
     }
 } else {
-    echo "Error in the roles check<br>";
+    // Log error instead of echoing (prevents headers already sent issues)
+    error_log("Error in the roles check");
 }
 
 ?>

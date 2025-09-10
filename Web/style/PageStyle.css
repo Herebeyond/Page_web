@@ -5,6 +5,11 @@
 html body {
     padding: 0px;
     margin: 0px;
+    background-image: url(../images/wallpaper.jpg);
+    background-position: center;
+    background-size: cover;
+    background-attachment: fixed;
+    background-repeat: no-repeat;
 }
 
 /* Navigation styles */
@@ -208,12 +213,6 @@ html body {
     height: fit-content; /* Total page height */
     min-height: 100vh; /* Ensure minimum full viewport height */
     width: 100%;
-    background-image: url('../images/wallpaper.jpg'); /* Background image */
-    background-size: 100vh; /* Cover entire page */
-    background-position: center; /* Center image */
-    background-size: cover; /* Cover entire surface */
-    background-attachment: fixed; /* Fixed during scroll */
-    background-repeat: no-repeat; /* No repeat */
     padding-bottom: 50px; /* Account for mainText bottom margin */
     box-sizing: border-box; /* Include padding in height calculation */
 }
@@ -4031,7 +4030,7 @@ html body {
 }
 
 .races-section.show {
-    max-height: 400px;
+    max-height: fit-content;
     opacity: 1;
     transform: translateY(0);
     padding: 1.5rem;
