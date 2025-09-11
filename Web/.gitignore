@@ -1,6 +1,5 @@
 inutilisés/
 tests/
-.github/
 
 # Image subfolders to ignore content but keep folders
 images/unused/
