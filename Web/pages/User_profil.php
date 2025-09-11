@@ -103,7 +103,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $iconExt = strtolower(pathinfo($iconOriginalName, PATHINFO_EXTENSION));
                     $uniqueId = uniqid('_', true);
                     $iconFileName = pathinfo($iconOriginalName, PATHINFO_FILENAME) . $uniqueId . '.' . $iconExt;
-                    $destPath = "../images/small_icon/" . $iconFileName;
+                    $destPath = "../images/user_icon/" . $iconFileName;
                     if (!move_uploaded_file($iconTmpPath, $destPath)) {
                         array_push($errors, "Failed to save the icon image.");
                     }
@@ -193,13 +193,13 @@ require_once "./blueprints/gl_ap_start.php";
                     <div class="user-icon-display">
                         <?php
                         if (!empty($user['icon'])) {
-                            echo '<img src="../images/small_icon/' . htmlspecialchars($user['icon']) . '" alt="User Icon" onclick="openIconModal(\'' . htmlspecialchars($user['icon']) . '\')" title="Click to view full size">';
+                            echo '<img src="../images/user_icon/' . htmlspecialchars($user['icon']) . '" alt="User Icon" onclick="openIconModal(\'' . htmlspecialchars($user['icon']) . '\')" title="Click to view full size">';
                             echo '<div class="user-icon-info">';
                             echo '<strong>Current icon:</strong><br>' . htmlspecialchars($user['icon']);
                             echo '<br><small style="color: rgba(255, 255, 255, 0.6);">Click icon to view full size</small>';
                             echo '</div>';
                         } else {
-                            echo '<img src="../images/small_icon/default_user_icon.png" alt="Default Icon" onclick="openIconModal(\'default_user_icon.png\')" title="Click to view full size">';
+                            echo '<img src="../images/user_icon/default_user_icon.png" alt="Default Icon" onclick="openIconModal(\'default_user_icon.png\')" title="Click to view full size">';
                             echo '<div class="user-icon-info">';
                             echo '<strong>No custom icon set</strong><br>Using default icon';
                             echo '<br><small style="color: rgba(255, 255, 255, 0.6);">Click icon to view full size</small>';
@@ -298,7 +298,7 @@ function openIconModal(iconFileName) {
     const modalImage = document.getElementById('modalIconImage');
     
     // Set the image source
-    modalImage.src = '../images/small_icon/' + iconFileName;
+    modalImage.src = '../images/user_icon/' + iconFileName;
     modalImage.alt = 'Full Size: ' + iconFileName;
     
     // Reset modal title

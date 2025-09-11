@@ -202,7 +202,7 @@
             echo '<div id="Login">'; // Div for the user icon and name   
 
             echo '  <div id="LoginCo">'; // Div for the username and logout link
-            echo '  <img id="iconUser" src="../images/small_icon/' . sanitize_output($user['icon']) . '">'; // Display the user icon
+            echo '  <img id="iconUser" src="../images/user_icon/' . sanitize_output($user['icon']) . '">'; // Display the user icon
             echo "      <span>Welcome<br>" . sanitize_output($user['username']) . '!<a href="./User_profil.php"><img id="user_parameters" src="../images/small_img/roue-dentee.png"></a></span>'; // Display the username
             echo '      <a href="../login/logout.php">Disconnect</a>'; // Logout link
             echo '  </div>';

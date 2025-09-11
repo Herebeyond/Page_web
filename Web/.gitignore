@@ -1,4 +1,17 @@
 inutilisés/
 tests/
-images/
 .github/
+
+# Image subfolders to ignore content but keep folders
+images/unused/
+images/maps/online_maps_saves/
+images/species/*
+images/races/*
+images/places/*
+images/user_icon/*
+
+# Keep the folders themselves by adding empty .gitkeep files
+!images/species/.gitkeep
+!images/races/.gitkeep
+!images/places/.gitkeep
+!images/user_icon/.gitkeep
