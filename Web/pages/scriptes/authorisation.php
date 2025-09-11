@@ -23,7 +23,8 @@ $authorisation = array(
     'Map_modif' => 'admin',
     'place_detail' => 'hidden',
     'places_manager' => 'admin',
-    'Ideas' => 'admin'
+    'Ideas' => 'admin',
+    'Role_management' => 'admin'
 );
 
 
@@ -48,7 +49,8 @@ $type = array(
     'Map_modif' => 'common',
     'place_detail' => 'common',
     'places_manager' => 'common',
-    'Ideas' => 'common'
+    'Ideas' => 'common',
+    'Role_management' => 'common'
 );
 
 ?>

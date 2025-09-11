@@ -42,6 +42,7 @@ if (isset($_SESSION['LAST_ACTIVITY']) && (time() - $_SESSION['LAST_ACTIVITY']) >
 $_SESSION['LAST_ACTIVITY'] = time();
 
 require_once __DIR__ . '/../../database/db.php';
+require_once __DIR__ . '/../scriptes/functions.php'; // Include shared functions for role system
 require_once __DIR__ . '/../scriptes/authorisation.php'; // includes the authorisation.php file
 
 // store the name of the current page
@@ -82,23 +83,8 @@ if (isset($_SESSION['user'])) {
         exit();
     }
 
-    // Parse user roles from comma-separated string
-    $user_roles_string = $user['user_roles'] ?? '';
-    if (empty($user_roles_string)) {
-        $user_roles = ['user'];
-    } else {
-        $user_roles = array_map('trim', explode(',', $user_roles_string));
-        
-        // Filter out empty roles
-        $user_roles = array_filter($user_roles, function($role) {
-            return !empty($role);
-        });
-        
-        // Default to 'user' if no valid roles found
-        if (empty($user_roles)) {
-            $user_roles = ['user'];
-        }
-    }
+    // Parse user roles using the new role system (with backward compatibility)
+    $user_roles = getUserRolesCompatibility($user, $pdo);
     
     // Store user roles in session for AJAX calls
     $_SESSION['user_roles'] = $user_roles;

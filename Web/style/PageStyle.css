@@ -4942,3 +4942,542 @@ html::after {
     border-radius: 4px;
     margin: 10px 0;
 }
+
+/* ============================================================================
+   ROLE MANAGEMENT STYLES
+   ============================================================================ */
+
+/* Main sections for role management */
+.admin-section {
+    margin-bottom: 2rem;
+    padding: 1.5rem;
+    background: rgba(34, 32, 136, 0.15);
+    border-radius: 8px;
+    border: 1px solid rgba(161, 171, 255, 0.4);
+    backdrop-filter: blur(5px);
+}
+
+.admin-section h2 {
+    color: #d4af37;
+    margin-top: 0;
+    border-bottom: 2px solid rgba(212, 175, 55, 0.3);
+    padding-bottom: 0.5rem;
+}
+
+.admin-section h3 {
+    color: #a1abff;
+    margin-bottom: 1rem;
+}
+
+/* Form containers */
+.form-container {
+    background: rgba(0, 0, 0, 0.4);
+    padding: 1.5rem;
+    border-radius: 6px;
+    margin-top: 1rem;
+    border: 1px solid rgba(161, 171, 255, 0.2);
+}
+
+.admin-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.form-group label {
+    font-weight: bold;
+    color: #d4af37;
+    font-size: 1rem;
+}
+
+.form-group select,
+.form-group input,
+.form-group textarea {
+    padding: 0.75rem;
+    border-radius: 4px;
+    border: 1px solid rgba(161, 171, 255, 0.4);
+    background: rgba(0, 0, 0, 0.3);
+    color: #ffffff;
+    font-size: 1rem;
+}
+
+.form-group input::placeholder,
+.form-group textarea::placeholder {
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.form-group select:focus,
+.form-group input:focus,
+.form-group textarea:focus {
+    outline: none;
+    border-color: #d4af37;
+    box-shadow: 0 0 0 2px rgba(212, 175, 55, 0.3);
+    background: rgba(0, 0, 0, 0.5);
+}
+
+.form-group option {
+    background: #222088;
+    color: #ffffff;
+}
+
+/* Form actions */
+.form-actions {
+    display: flex;
+    gap: 1rem;
+    margin-top: 1rem;
+    flex-wrap: wrap;
+}
+
+/* Button styles */
+.btn {
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+    text-decoration: none;
+    display: inline-block;
+    text-align: center;
+    transition: all 0.3s ease;
+    font-size: 0.9rem;
+    min-width: 120px;
+}
+
+.btn-primary {
+    background: #222088;
+    color: #ffffff;
+    border: 1px solid rgba(161, 171, 255, 0.5);
+}
+
+.btn-primary:hover {
+    background: #a1abff;
+    color: #000000;
+    transform: translateY(-2px);
+}
+
+.btn-danger {
+    background: #dc3545;
+    color: #ffffff;
+    border: 1px solid rgba(220, 53, 69, 0.5);
+}
+
+.btn-danger:hover {
+    background: #c82333;
+    color: #ffffff;
+    transform: translateY(-2px);
+}
+
+.btn-success {
+    background: #28a745;
+    color: #ffffff;
+    border: 1px solid rgba(40, 167, 69, 0.5);
+}
+
+.btn-success:hover {
+    background: #218838;
+    color: #ffffff;
+    transform: translateY(-2px);
+}
+
+.btn-warning {
+    background: #ffc107;
+    color: #000000;
+    border: 1px solid rgba(255, 193, 7, 0.5);
+}
+
+.btn-warning:hover {
+    background: #e0a800;
+    color: #000000;
+    transform: translateY(-2px);
+}
+
+/* Role cards grid */
+.roles-list {
+    margin-top: 1rem;
+}
+
+.roles-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.role-card {
+    padding: 1.2rem;
+    border-radius: 6px;
+    border: 1px solid rgba(161, 171, 255, 0.3);
+    background: rgba(0, 0, 0, 0.3);
+    transition: transform 0.2s ease;
+}
+
+.role-card:hover {
+    transform: translateY(-2px);
+}
+
+.role-card.active {
+    background: rgba(40, 167, 69, 0.25);
+    border-color: rgba(40, 167, 69, 0.6);
+}
+
+.role-card.inactive {
+    background: rgba(220, 53, 69, 0.25);
+    border-color: rgba(220, 53, 69, 0.6);
+}
+
+.role-card h4 {
+    margin: 0 0 0.5rem 0;
+    color: #d4af37;
+    text-transform: capitalize;
+    font-size: 1.2rem;
+}
+
+.role-card p {
+    margin: 0 0 0.8rem 0;
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 0.9rem;
+    line-height: 1.4;
+}
+
+.role-status {
+    font-size: 0.85rem;
+    font-weight: bold;
+    color: #ffffff;
+}
+
+/* Status banners */
+.warning-banner {
+    background: rgba(255, 193, 7, 0.25);
+    border: 1px solid rgba(255, 193, 7, 0.6);
+    color: #ffffff;
+    padding: 1rem;
+    border-radius: 4px;
+    margin: 1rem 0;
+}
+
+.warning-banner a {
+    color: #ffc107;
+    text-decoration: underline;
+}
+
+.success-banner {
+    background: rgba(40, 167, 69, 0.25);
+    border: 1px solid rgba(40, 167, 69, 0.6);
+    color: #ffffff;
+    padding: 1rem;
+    border-radius: 4px;
+    margin: 1rem 0;
+}
+
+.error-banner {
+    background: rgba(220, 53, 69, 0.25);
+    border: 1px solid rgba(220, 53, 69, 0.6);
+    color: #ffffff;
+    padding: 1rem;
+    border-radius: 4px;
+    margin: 1rem 0;
+}
+
+/* User roles display */
+#userRolesDisplay {
+    background: rgba(0, 0, 0, 0.4);
+    padding: 1rem;
+    border-radius: 4px;
+    margin-top: 1rem;
+    min-height: 50px;
+    border: 1px solid rgba(161, 171, 255, 0.2);
+    color: #ffffff;
+}
+
+#userRolesDisplay .error {
+    color: #ff6b6b;
+}
+
+/* Role badges */
+.role-badge {
+    background: #d4af37;
+    color: #000000;
+    padding: 0.3rem 0.6rem;
+    border-radius: 3px;
+    font-size: 0.8rem;
+    font-weight: bold;
+    margin-right: 0.5rem;
+    display: inline-block;
+    margin-bottom: 0.25rem;
+}
+
+/* Notification styles for JavaScript notifications */
+.notification {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    padding: 15px 20px;
+    border-radius: 4px;
+    color: white;
+    font-weight: bold;
+    z-index: 1000;
+    max-width: 300px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+}
+
+.notification.success {
+    background-color: #28a745;
+}
+
+.notification.error {
+    background-color: #dc3545;
+}
+
+.notification.info {
+    background-color: #17a2b8;
+}
+
+/* Responsive design for role management */
+@media (max-width: 768px) {
+    .admin-section {
+        padding: 1rem;
+        margin-bottom: 1.5rem;
+    }
+    
+    .form-container {
+        padding: 1rem;
+    }
+    
+    .form-actions {
+        flex-direction: column;
+    }
+    
+    .btn {
+        width: 100%;
+        margin-bottom: 0.5rem;
+    }
+    
+    .roles-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .users-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .search-filters {
+        flex-direction: column;
+    }
+}
+
+/* User search and selection styles */
+.search-container {
+    background: rgba(0, 0, 0, 0.3);
+    padding: 1.5rem;
+    border-radius: 6px;
+    margin-bottom: 1rem;
+}
+
+.search-filters {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
+    align-items: end;
+}
+
+.filter-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    min-width: 200px;
+}
+
+.filter-group label {
+    font-weight: bold;
+    color: #d4af37;
+    font-size: 0.9rem;
+}
+
+.search-input,
+.search-select {
+    padding: 0.75rem;
+    border-radius: 4px;
+    border: 1px solid rgba(161, 171, 255, 0.4);
+    background: rgba(0, 0, 0, 0.3);
+    color: #ffffff;
+    font-size: 1rem;
+}
+
+.search-input::placeholder {
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.search-input:focus,
+.search-select:focus {
+    outline: none;
+    border-color: #d4af37;
+    box-shadow: 0 0 0 2px rgba(212, 175, 55, 0.3);
+    background: rgba(0, 0, 0, 0.5);
+}
+
+.selection-controls {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    flex-wrap: wrap;
+    padding-top: 1rem;
+    border-top: 1px solid rgba(161, 171, 255, 0.2);
+}
+
+.selection-info {
+    color: #a1abff;
+    font-weight: bold;
+    margin-left: auto;
+}
+
+.btn-secondary {
+    background: #6c757d;
+    color: #ffffff;
+    border: 1px solid rgba(108, 117, 125, 0.5);
+}
+
+.btn-secondary:hover {
+    background: #545b62;
+    color: #ffffff;
+    transform: translateY(-2px);
+}
+
+/* Users grid and cards */
+.users-list {
+    min-height: 200px;
+}
+
+.users-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.user-card {
+    background: rgba(0, 0, 0, 0.3);
+    border: 2px solid rgba(161, 171, 255, 0.3);
+    border-radius: 6px;
+    padding: 1rem;
+    transition: all 0.2s ease;
+    cursor: pointer;
+    display: flex;
+    gap: 1rem;
+}
+
+.user-card:hover {
+    transform: translateY(-2px);
+    border-color: rgba(161, 171, 255, 0.5);
+}
+
+.user-card.selected {
+    background: rgba(34, 32, 136, 0.3);
+    border-color: #d4af37;
+    box-shadow: 0 0 10px rgba(212, 175, 55, 0.3);
+}
+
+.user-checkbox {
+    display: flex;
+    align-items: flex-start;
+    padding-top: 0.25rem;
+}
+
+.user-checkbox input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+}
+
+.user-info {
+    flex: 1;
+}
+
+.user-info h4 {
+    margin: 0 0 0.5rem 0;
+    color: #d4af37;
+    font-size: 1.1rem;
+}
+
+.user-email {
+    margin: 0 0 0.75rem 0;
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 0.9rem;
+}
+
+.user-roles {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem;
+}
+
+.no-roles {
+    color: rgba(255, 255, 255, 0.85);
+    font-style: italic;
+    font-size: 0.85rem;
+    background: rgba(0, 0, 0, 0.3);
+    padding: 0.25rem 0.5rem;
+    border-radius: 3px;
+    border: 1px solid rgba(161, 171, 255, 0.3);
+}
+
+.no-users {
+    text-align: center;
+    color: rgba(255, 255, 255, 0.9);
+    padding: 2rem;
+    font-style: italic;
+    background: rgba(0, 0, 0, 0.4);
+    border-radius: 6px;
+    border: 1px solid rgba(161, 171, 255, 0.3);
+}
+
+/* Bulk actions container */
+.bulk-actions-container {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.selected-users-display {
+    background: rgba(0, 0, 0, 0.4);
+    padding: 1rem;
+    border-radius: 4px;
+    border: 1px solid rgba(161, 171, 255, 0.2);
+    color: #ffffff;
+}
+
+.selected-users-display h3 {
+    margin: 0 0 1rem 0;
+    color: #d4af37;
+}
+
+.selected-users-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.selected-user-item {
+    background: rgba(255, 255, 255, 0.05);
+    padding: 0.75rem;
+    border-radius: 4px;
+    border-left: 3px solid #d4af37;
+}
+
+.user-current-roles {
+    margin-top: 0.5rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem;
+}
+
+.bulk-role-actions {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 6px;
+}

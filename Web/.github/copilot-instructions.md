@@ -24,9 +24,17 @@ require_once "./blueprints/gl_ap_end.php";     // Footer, scroll-to-top, closing
 
 ### Authorization System
 - All page access controlled by `pages/scriptes/authorisation.php`
-- Two arrays: `$authorisation` (all/admin/hidden) and `$type` (common/parent-page)
+- Four access levels: `all`, `admin`, `user` (authenticated), `hidden` (no navigation)
+- Two arrays: `$authorisation` (access level) and `$type` (common/parent-page)
 - Role checking: `in_array('admin', $user_roles)` from `page_init.php`
+- **New role system**: Many-to-many relationships with role management interface
 - When adding pages, **must update both arrays in authorisation.php**
+
+### Authorization System Updates
+- Added `user` level for authenticated-only pages (in addition to `all`, `admin`, `hidden`)
+- Pages requiring login: `User_profil` (user level), admin tools (admin level)
+- Centralized authentication in `page_init.php` eliminates "headers already sent" errors
+- Role-based access using new many-to-many role system
 
 #### Parent-Child Page Relationships
 Pages can be organized into parent-child hierarchies using the `$type` array:
@@ -74,11 +82,25 @@ foreach ($pages as $page3) {
 
 **Current Hierarchies**:
 - **Dimensions** → Dimension_affichage, Dimension_list
-- **Beings** → Species, Races
+- **Beings** → Species, Races (handled dynamically through Beings_display.php)
+
+### Role-Based Access Control System (NEW)
+- **New many-to-many role system**: Replaces old comma-separated user_roles column
+- **Default roles**: user, admin, moderator, editor, viewer
+- **Role Management**: Admin interface at `Role_management.php` for assigning/removing roles
+- **Migration System**: Automatic migration from old to new role system with backward compatibility
+- **Audit Trail**: Track who assigned roles and when with `assigned_by` and timestamps
+
+**Key Role Functions** (in `functions.php`):
+- `getUserRoles($userId, $pdo)`: Get all roles for a user
+- `userHasRole($userId, $roleName, $pdo)`: Check specific role
+- `addUserRole($userId, $roleName, $pdo, $assignedBy)`: Add role to user  
+- `removeUserRole($userId, $roleName, $pdo)`: Remove role from user
+- `getUserRolesCompatibility($user, $pdo)`: Backward compatibility bridge
 
 ### Database Connection
-- Centralized in `login/db.php` using environment variables from `BDD.env`
-- Always use: `require_once '../../login/db.php';` for DB access
+- Centralized in `database/db.php` using environment variables from `BDD.env`
+- Always use: `require_once '../../database/db.php';` for DB access
 - PDO with prepared statements standard
 - **CRITICAL**: All API files must validate PDO connection:
 ```php
@@ -124,11 +146,20 @@ This ensures consistent confirmation dialogs, error handling, API communication 
 // Path constants
 const IMAGES_PLACES_PATH = 'images/places/';
 const REDIRECT_LOCATION_LOGIN = 'Location: login.php';
+const REDIRECT_LOCATION_CHARACTER_ADD = 'Location: Character_add.php';
+const REDIRECT_LOCATION_RACE_ADD = 'Location: Race_add.php';
+const REDIRECT_LOCATION_SPECIE_ADD = 'Location: Specie_add.php';
+const REDIRECT_LOCATION_MAP_VIEW = 'Location: map_view.php';
+const LOCATION_MAP_VIEW = 'Location: map_view.php';
+
+// Display constants
 const NOT_SPECIFIED = 'Not specified';
 const ACCESS_DENIED_ADMIN_REQUIRED = 'Access denied - Admin required';
 const INVALID_SLUG_FORMAT = 'Invalid slug format';
 const INVALID_DIRECTORY_PATH = 'Invalid directory path';
 const DATABASE_ERROR_PREFIX = 'Database error: ';
+
+// Database query constants
 const SQL_SELECT_PLACE_NAME_BY_ID = 'SELECT name_IP FROM interest_points WHERE id_IP = ?';
 ```
 
@@ -137,21 +168,32 @@ const SQL_SELECT_PLACE_NAME_BY_ID = 'SELECT name_IP FROM interest_points WHERE i
 // Input validation and sanitization
 validateAndSanitizeSlug($slug);           // Returns safe slug or false
 createSecureSlug($name);                  // Creates slug from name
-constructSafePlacePath($slug, $baseDir); // Safe path construction
-validateFileExtension($filename, $allowed); // File type validation
-parseSecureJsonInput($jsonInput);        // Secure JSON parsing
+constructSafePlacePath($slug);            // Safe path construction for places
+validateInput($input, $type, $options);   // Multi-type input validation
+sanitize_output($data);                   // Safe HTML output
+parseSecureJsonInput();                   // Secure JSON parsing
+isPathSafe($path, $allowedBase);          // Path traversal prevention
+sanitizeFilename($filename);              // Safe filename validation
+isValidImage($file);                      // Image file validation
+logSecurityEvent($event, $context);       // Security event logging
 ```
 
 #### Available JavaScript Generation Functions (Use These!):
 ```php
-// Generate consistent JavaScript deletion patterns
+// Modern approach (RECOMMENDED)
+includeJavaScriptAssets($scripts, $config);  // Include JS files with configuration
+
+// Legacy entity deletion patterns (DEPRECATED - use separate .js files)
 outputEntityDeleteFunctions($entityTypes, $apiEndpoint);  // Output JS functions to page
 generateEntityDeleteFunctions($entityType, $apiEndpoint); // Return JS functions as string
 
-// Generate page-specific JavaScript functionality
-outputBeingsPageFunctions($apiEndpoint, $includeAdminFunctions); // Beings page admin functions
-generateBeingsPageFunctions($apiEndpoint);                       // Return Beings JS as string
+// Deprecated functions (kept for compatibility)
+generateBeingsPageFunctions($apiEndpoint);                // Use assets/js/beings.js instead
+generateTabSwitchingFunctions();                          // Use assets/js/tab-manager.js instead
+generateCharacterPageFunctions($apiEndpoint);             // Use assets/js/character-manager.js instead
 ```
+
+**Migration to Separate JS Files**: New implementations should use dedicated JavaScript files in `/assets/js/` directory with `includeJavaScriptAssets()` for better maintainability.
 
 #### Function Documentation Standards:
 - Use PHPDoc comments for all functions in `functions.php`
@@ -171,18 +213,100 @@ generateBeingsPageFunctions($apiEndpoint);                       // Return Being
 ```bash
 cd Docker/
 docker-compose up -d
-# Services: web:80, db:3306, phpmyadmin:8080
+# Services: web:80, db:3306 (chroniques_db), phpmyadmin:8080
 ```
+
+### Project Structure
+- **Main Application**: `html/test/Web/` (PHP/MySQL application)
+- **Database Container**: `chroniques_db` with database `univers`
+- **User Credentials**: `chroniques_user` / `ChroniquesAppUser2025!`
+- **Environment Config**: `BDD.env` for database credentials
+- **Backup System**: PowerShell script `simple-backup.ps1` for automated backups
+
+### Backup System Configuration
+- **Database Backups**: Automated MySQL dumps every 30 minutes
+- **Image Backups**: Compressed archives of images directory  
+- **Retention Policy**: Keeps 20 database backups, 5 image backups
+- **Change Detection**: Only creates new backups when content changes
+- **Backup Location**: `C:\Users\baill\OneDrive\Documents\Docker saves`
+- **Manual Execution**: `.\simple-backup.ps1 -RunOnce` for single backup
+
+## Recent Major Updates
+
+### Role System Migration (September 2025)
+- **Complete overhaul**: Migrated from comma-separated `user_roles` column to proper many-to-many system
+- **New tables**: `roles` and `role_to_user` with foreign key constraints
+- **Admin interface**: `Role_management.php` for role assignment and management
+- **Backward compatibility**: Transition period maintains old system support
+- **Default roles**: user, admin, moderator, editor, viewer with extensibility
+
+### Entity Linking System
+- **Automatic linking**: Entity names in content automatically become clickable links
+- **Cross-references**: Characters, species, races, dimensions, and places
+- **Context preservation**: Links maintain proper page parameters and relationships
+
+### Enhanced Security Framework
+- **Input validation**: Comprehensive validation functions for all input types
+- **Path traversal prevention**: Safe directory and file operations
+- **Image validation**: Secure image upload and validation
+- **Security logging**: Event logging for security-related activities
+- **JSON parsing**: Secure JSON input handling with error management
+
+### Administrative Interface Improvements
+- **Unified interfaces**: Consistent admin patterns across entity management
+- **Modal-based editing**: In-place editing without page refreshes
+- **Real-time updates**: AJAX operations with immediate UI feedback
+- **Tab organization**: Multiple entity types in single interfaces
+- **Error handling**: Comprehensive error reporting and user feedback
 
 ### File Structure
 - `pages/` - Main application pages
 - `pages/blueprints/` - Shared page structure components
 - `pages/scriptes/` - Backend logic, API endpoints
+- `database/` - Database connection and configuration
+- `assets/` - Frontend assets (JavaScript, CSS, images)
 - `style/PageStyle.css` - Centralized styling
-- `login/` - Authentication system
-- `images/` - Static assets
+- `login/` - Authentication system (deprecated path for db.php)
+- `images/` - Static assets organized by category
+  - `places/` - Location images organized by place slugs
+  - `species/` - Species images
+  - `races/` - Race images
+  - `user_icon/` - User profile icons
+  - `small_img/` - UI icons and small graphics
+  - `maps/` - Map-related images
+  - `unused/` - Deprecated images (not tracked in Git)
 
 ## Key Patterns
+
+### Entity Linking System (NEW)
+- **Automatic content linking**: Converts entity names in content to clickable links
+- **Cross-reference support**: Links characters, species, races, dimensions, and places
+- **Context-aware linking**: Uses proper page parameters for entity display
+- **Implementation**: `entity_linking.php` with `getAllEntityNames()` function
+- **Usage**: Include and call linking functions on content before display
+
+### Administrative Interface Pattern
+- **Unified admin interfaces**: `Beings_admin_interface.php`, `Character_admin_interface.php`, `role_management_api.php`
+- **Consistent API structure**: JSON responses with success/error handling
+- **Modal-based editing**: Use modals for CRUD operations without page refresh
+- **Tab-based organization**: Multiple entity types managed in single interface
+- **Real-time updates**: AJAX-based operations with immediate UI feedback
+
+### Place Management System
+- **Hierarchical organization**: Places with images organized by slugs
+- **Folder management**: `folder_manager.php` for creating/managing place directories
+- **Image management**: `place_image_manager.php` for uploading/organizing images
+- **Map integration**: Places linked to interactive map system
+- **Safe slug generation**: Automatic slug creation with security validation
+
+### Universe Ideas Management System
+- **Hierarchical content**: Parent-child idea relationships for organized world-building
+- **Category system**: Organized ideas by type and subject matter
+- **Full-text search**: Advanced search capabilities with content indexing
+- **Entity linking**: Automatic linking of entity names in idea content
+- **Admin interface**: `Ideas.php` page for creating and managing universe lore
+- **API backend**: `ideas_manager.php` with full CRUD operations
+- **Content management**: Rich text content with entity auto-linking
 
 ### Interactive Map System
 - Admin interface: `Map_modif.php` (editing, CRUD operations)
@@ -254,6 +378,32 @@ function handleHelpContainerPosition() {
 3. Update navigation in `header.php` if needed
 4. Use consistent CSS classes from `PageStyle.css`
 
+### Current Pages Structure
+**Core Pages**:
+- `Homepage.php` - Main landing page with world overview
+- `Map_view.php` - Interactive map for users
+- `Map_modif.php` - Admin map editing interface
+
+**Entity Management**:
+- `Beings.php` - Species and races overview page
+- `Beings_display.php` - Detailed species/race display
+- `Characters.php` - Character listing and management
+- `Character_display.php` - Individual character details
+- `Character_add.php` - Character creation form (admin)
+
+**World Building**:
+- `Dimensions.php` - Parent page for dimension management
+- `Dimension_affichage.php` - Dimension details view
+- `Dimension_list.php` - Dimension listing
+- `Ideas.php` - Universe ideas and lore management (admin)
+- `places_manager.php` - Place management interface (admin)
+- `place_detail.php` - Individual place details
+
+**Administration**:
+- `Admin.php` - User management and admin tools
+- `Role_management.php` - Role assignment interface (admin)
+- `User_profil.php` - User profile page (authenticated users)
+
 ### Function Organization
 - **PHP Functions**: Add all shared PHP functions to `pages/scriptes/functions.php`
 - **JavaScript Functions**: Create page-specific generation functions in `functions.php` for reusable JS patterns
@@ -272,6 +422,26 @@ function handleHelpContainerPosition() {
 - Include error handling and transactions for multi-step operations
 - Follow existing patterns in `map_save_points.php` for API structure
 
+### API Endpoints Structure
+**Core Management APIs**:
+- `Beings_admin_interface.php` - Species and races CRUD operations
+- `Character_admin_interface.php` - Character management
+- `role_management_api.php` - User role assignment/management
+- `map_save_points.php` - Interactive map data management
+
+**Specialized APIs**:
+- `place_manager.php` - Place information updates
+- `place_image_manager.php` - Place image uploads and management
+- `folder_manager.php` - Directory creation and management
+- `ideas_manager.php` - Universe ideas and lore management
+- `entity_linking.php` - Automatic entity name linking
+
+**Utility APIs**:
+- `fetch_*.php` - Data fetching endpoints (character_info, race_info, specie_info, user_info)
+- `delete_*.php` - Entity deletion endpoints
+- `search_user.php` - Real-time user search
+- `block_user.php` / `unblock_user.php` - User management
+
 ### CSS Organization
 - Use existing classes: `.content-page`, `.notification-banner`, `.map-*` prefixes
 - Responsive design: percentage-based positioning, `clamp()` for fonts
@@ -279,6 +449,15 @@ function handleHelpContainerPosition() {
 - **Design Philosophy**: Minimize white backgrounds - prefer dark themes with gradients and transparency
 - **Background Preference**: Use dark/semi-transparent backgrounds with `rgba()` values and `backdrop-filter: blur()`
 - **Text on Dark**: Use light colors (`rgba(255, 255, 255, 0.8)`) or gold accents (`#d4af37`) for readability
+
+### Modern Development Practices
+- **JavaScript Modularization**: Move inline JavaScript to separate files in `/assets/js/`
+- **API Security**: Always include CORS headers and security validation
+- **Error Handling**: Comprehensive error reporting with user-friendly messages
+- **Input Validation**: Use provided validation functions for all user inputs
+- **Session Management**: Leverage `page_init.php` for consistent authentication
+- **Database Transactions**: Use transactions for multi-step operations
+- **File Operations**: Always validate paths and filenames for security
 
 ### Security Considerations
 - Session management in `page_init.php` with timeout/regeneration
@@ -401,6 +580,26 @@ if (str_starts_with($origin, 'https://')) {
 - Verify blueprint includes for missing footer/header elements
 - Database connection issues: check `BDD.env` and Docker services
 - CSS not updating: cache busting with `?ver=` parameter working
+- Role system issues: Check `Role_management.php` for migration status
+- User authentication: Verify `page_init.php` role assignment and session management
+- API errors: Check browser console and PHP error logs
+- File upload issues: Verify directory permissions and path validation
+
+### Current Database Schema
+**Core Tables**:
+- `users` - User accounts with authentication
+- `roles` - Available system roles (NEW)
+- `role_to_user` - User-role assignments (NEW many-to-many)
+- `species` - Fantasy species
+- `races` - Sub-categories of species
+- `characters` - Character entities
+- `interest_points` - Map locations and places
+- `ideas` - Universe lore and world-building content
+
+**Legacy Compatibility**:
+- Old `user_roles` column preserved during transition period
+- Backward compatibility functions bridge old/new role systems
+- Migration tools available in `Role_management.php`
 
 ---
 

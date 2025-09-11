@@ -52,6 +52,174 @@ function parseUserRoles($rolesString) {
     return $roles;
 }
 
+// ============================================================================
+// ROLE SYSTEM FUNCTIONS (New Many-to-Many System)
+// ============================================================================
+
+/**
+ * Get user roles from the new role system
+ * @param int $userId User ID
+ * @param PDO $pdo Database connection
+ * @return array Array of role names
+ */
+function getUserRoles($userId, $pdo) {
+    try {
+        $stmt = $pdo->prepare("
+            SELECT r.role_name 
+            FROM roles r 
+            INNER JOIN role_to_user rtu ON r.id_role = rtu.id_role 
+            WHERE rtu.id_user = ? AND r.is_active = 1
+        ");
+        $stmt->execute([$userId]);
+        
+        $roles = [];
+        while ($row = $stmt->fetch()) {
+            $roles[] = $row['role_name'];
+        }
+        
+        // Default to 'user' if no roles found
+        return empty($roles) ? ['user'] : $roles;
+        
+    } catch (PDOException $e) {
+        error_log("Error fetching user roles: " . $e->getMessage());
+        return ['user']; // Default fallback
+    }
+}
+
+/**
+ * Check if user has a specific role
+ * @param int $userId User ID
+ * @param string $roleName Role to check for
+ * @param PDO $pdo Database connection
+ * @return bool True if user has the role
+ */
+function userHasRole($userId, $roleName, $pdo) {
+    try {
+        $stmt = $pdo->prepare("
+            SELECT COUNT(*) 
+            FROM roles r 
+            INNER JOIN role_to_user rtu ON r.id_role = rtu.id_role 
+            WHERE rtu.id_user = ? AND r.role_name = ? AND r.is_active = 1
+        ");
+        $stmt->execute([$userId, $roleName]);
+        
+        return $stmt->fetchColumn() > 0;
+        
+    } catch (PDOException $e) {
+        error_log("Error checking user role: " . $e->getMessage());
+        return false;
+    }
+}
+
+/**
+ * Add a role to a user
+ * @param int $userId User ID
+ * @param string $roleName Role name to add
+ * @param PDO $pdo Database connection
+ * @param int|null $assignedBy ID of user who assigned the role (optional)
+ * @return bool True on success
+ */
+function addUserRole($userId, $roleName, $pdo, $assignedBy = null) {
+    try {
+        // First get the role ID
+        $stmt = $pdo->prepare("SELECT id_role FROM roles WHERE role_name = ? AND is_active = 1");
+        $stmt->execute([$roleName]);
+        $role = $stmt->fetch();
+        
+        if (!$role) {
+            error_log("Role '$roleName' not found");
+            return false;
+        }
+        
+        // Insert role assignment (ignore if already exists)
+        $stmt = $pdo->prepare("
+            INSERT IGNORE INTO role_to_user (id_user, id_role, assigned_by) 
+            VALUES (?, ?, ?)
+        ");
+        $stmt->execute([$userId, $role['id_role'], $assignedBy]);
+        
+        return true;
+        
+    } catch (PDOException $e) {
+        error_log("Error adding user role: " . $e->getMessage());
+        return false;
+    }
+}
+
+/**
+ * Remove a role from a user
+ * @param int $userId User ID
+ * @param string $roleName Role name to remove
+ * @param PDO $pdo Database connection
+ * @return bool True on success
+ */
+function removeUserRole($userId, $roleName, $pdo) {
+    try {
+        $stmt = $pdo->prepare("
+            DELETE rtu FROM role_to_user rtu
+            INNER JOIN roles r ON rtu.id_role = r.id_role
+            WHERE rtu.id_user = ? AND r.role_name = ?
+        ");
+        $stmt->execute([$userId, $roleName]);
+        
+        return true;
+        
+    } catch (PDOException $e) {
+        error_log("Error removing user role: " . $e->getMessage());
+        return false;
+    }
+}
+
+/**
+ * Get all available roles
+ * @param PDO $pdo Database connection
+ * @param bool $activeOnly Whether to return only active roles
+ * @return array Array of role data
+ */
+function getAllRoles($pdo, $activeOnly = true) {
+    try {
+        $sql = "SELECT id_role, role_name, role_description, is_active FROM roles";
+        if ($activeOnly) {
+            $sql .= " WHERE is_active = 1";
+        }
+        $sql .= " ORDER BY role_name";
+        
+        $stmt = $pdo->query($sql);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        
+    } catch (PDOException $e) {
+        error_log("Error fetching roles: " . $e->getMessage());
+        return [];
+    }
+}
+
+/**
+ * Compatibility function - Get user roles for backward compatibility
+ * This function bridges the old and new role systems during transition
+ * @param array $user User data array
+ * @param PDO $pdo Database connection
+ * @return array Array of role names
+ */
+function getUserRolesCompatibility($user, $pdo) {
+    $userId = $user['id_user'];
+    
+    // Try new role system first
+    $newRoles = getUserRoles($userId, $pdo);
+    
+    // If new system has roles, use them
+    if (!empty($newRoles) && !($newRoles === ['user'] && !empty($user['user_roles']))) {
+        return $newRoles;
+    }
+    
+    // Fallback to old system if new system has no roles but old system does
+    if (!empty($user['user_roles'])) {
+        return parseUserRoles($user['user_roles']);
+    }
+    
+    // Default fallback
+    return ['user'];
+}
+
 /**
  * Parse and validate JSON input securely
  * @return mixed Parsed JSON data or false on failure
