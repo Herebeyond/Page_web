@@ -7,7 +7,7 @@ require_once "./blueprints/gl_ap_start.php"; // includes the start of the genera
     <div id=leftHeaderText>
         <?php
             for($i=0; $i<4; $i++) {
-                echo "<div><img src=../images/Icon.png></div>";
+                echo "<div><img src=../images/small_img/Icon.png></div>";
             }?> <!-- creates 4 identical images as decoration for the left text -->
     </div>
     <?php // creates a span and writes the content of the forgotten_worlds.txt file inside

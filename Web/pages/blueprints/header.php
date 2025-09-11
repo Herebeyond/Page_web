@@ -1,5 +1,5 @@
 <div id=header>
-    <img id=icon src='../images/Eye.jpg'> <!-- Display the header icon -->
+    <img id=icon src='../images/small_img/Eye.jpg'> <!-- Display the header icon -->
     <div id=divTitre>
         <span class=Title>The Rift Chronicles</span>
         <span class=Title>The Forgotten Worlds</span>
