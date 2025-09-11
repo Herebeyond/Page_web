@@ -54,7 +54,8 @@ try {
                     'success' => true, 
                     'found' => true, 
                     'extension' => $ext,
-                    'path' => "../images/places/{$slug}/main.{$ext}"
+                    'path' => "../images/places/{$slug}/main.{$ext}",
+                    'absolute_path' => "/test/Web/images/places/{$slug}/main.{$ext}"
                 ]);
                 exit;
             }

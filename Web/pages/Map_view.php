@@ -125,6 +125,12 @@ require_once "./blueprints/gl_ap_start.php"; // includes the start of the genera
         
         // Create point element (read-only version)
         function createPointElement(point) {
+            // Check if element already exists
+            const existingElement = document.querySelector(`[data-point-id="${point.id}"]`);
+            if (existingElement) {
+                existingElement.remove();
+            }
+            
             const pointElement = document.createElement('div');
             pointElement.className = 'map-point-of-interest map-point-readonly';
             pointElement.style.left = point.x + '%';
@@ -148,10 +154,20 @@ require_once "./blueprints/gl_ap_start.php"; // includes the start of the genera
                 <p style="max-width: 200px; margin: 5px 0 0 0; word-wrap: break-word; overflow-wrap: break-word; white-space: normal; line-height: 1.3;">${point.description}</p>
             `;
             
-            // Function to load main image
-            function loadMainImageForTooltip() {
-                const imageContainer = document.getElementById(`tooltip-image-${point.id}`);
-                if (!imageContainer) return; // Safety check
+            // Function to load main image with loading state management
+            function loadMainImageForTooltip(pointData) {
+                const imageContainer = document.getElementById(`tooltip-image-${pointData.id}`);
+                if (!imageContainer) {
+                    return; // Safety check
+                }
+                
+                // Check if already loading or loaded
+                if (imageContainer.dataset.loading === 'true' || imageContainer.dataset.loaded === 'true') {
+                    return;
+                }
+                
+                // Set loading flag
+                imageContainer.dataset.loading = 'true';
                 
                 // Use server-side image checker to avoid console 404 errors
                 fetch('./scriptes/image_checker.php', {
@@ -161,21 +177,55 @@ require_once "./blueprints/gl_ap_start.php"; // includes the start of the genera
                     },
                     body: JSON.stringify({
                         action: 'check_place_image',
-                        name: point.name  // Send original name, let server generate slug
+                        name: pointData.name  // Send original name, let server generate slug
                     })
                 })
-                .then(response => response.json())
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return response.json();
+                })
                 .then(data => {
+                    const currentContainer = document.getElementById(`tooltip-image-${pointData.id}`);
+                    if (!currentContainer) {
+                        return;
+                    }
+                    
+                    // Clear loading flag and set loaded flag
+                    currentContainer.dataset.loading = 'false';
+                    currentContainer.dataset.loaded = 'true';
+                    
                     if (data.success && data.found) {
-                        // Image exists, display it
-                        imageContainer.innerHTML = `
-                            <img src="${data.path}" 
-                                 alt="Image of ${point.name}" 
-                                 style="max-width: 180px; max-height: 120px; border-radius: 4px; box-shadow: 0 2px 4px rgba(0,0,0,0.3); object-fit: cover;">
+                        // Image exists, display it - try absolute path first
+                        const imgPath = data.absolute_path || data.path;
+                        const imgHTML = `
+                            <img src="${imgPath}" 
+                                 alt="Image of ${pointData.name}" 
+                                 style="max-width: 180px; max-height: 120px; border-radius: 4px; box-shadow: 0 2px 4px rgba(0,0,0,0.3); object-fit: cover;"
+                                 onload="const tooltip = this.closest('.map-poi-tooltip'); if (tooltip) { tooltip.style.display = 'none'; tooltip.offsetHeight; tooltip.style.display = ''; }"
+                                 onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                            <div style="padding: 15px; background: rgba(0,0,0,0.1); border-radius: 4px; color: #666; font-size: 11px; border: 1px dashed #999; display: none;">
+                                📷 Image failed to load
+                            </div>
                         `;
+                        currentContainer.innerHTML = imgHTML;
+                        
+                        // Alternative approach: completely regenerate tooltip content
+                        const parentTooltip = currentContainer.closest('.map-poi-tooltip');
+                        if (parentTooltip) {
+                            parentTooltip.innerHTML = `
+                                <strong>${pointData.name}</strong><br>
+                                <div id="tooltip-image-${pointData.id}" style="margin: 8px 0; text-align: center; min-height: 20px;">
+                                    ${imgHTML}
+                                </div>
+                                Type: ${pointData.type}<br>
+                                <p style="max-width: 200px; margin: 5px 0 0 0; word-wrap: break-word; overflow-wrap: break-word; white-space: normal; line-height: 1.3;">${pointData.description}</p>
+                            `;
+                        }
                     } else {
                         // No image found
-                        imageContainer.innerHTML = `
+                        currentContainer.innerHTML = `
                             <div style="padding: 15px; background: rgba(0,0,0,0.1); border-radius: 4px; color: #666; font-size: 11px; border: 1px dashed #999;">
                                 📷 No image available
                             </div>
@@ -183,12 +233,17 @@ require_once "./blueprints/gl_ap_start.php"; // includes the start of the genera
                     }
                 })
                 .catch(error => {
-                    console.error('Error checking image:', error);
-                    imageContainer.innerHTML = `
-                        <div style="padding: 15px; background: rgba(0,0,0,0.1); border-radius: 4px; color: #666; font-size: 11px; border: 1px dashed #999;">
-                            📷 No image available
-                        </div>
-                    `;
+                    const currentContainer = document.getElementById(`tooltip-image-${pointData.id}`);
+                    if (currentContainer) {
+                        // Clear loading flag
+                        currentContainer.dataset.loading = 'false';
+                        currentContainer.dataset.loaded = 'true';
+                        currentContainer.innerHTML = `
+                            <div style="padding: 15px; background: rgba(0,0,0,0.1); border-radius: 4px; color: #666; font-size: 11px; border: 1px dashed #999;">
+                                📷 Error loading image
+                            </div>
+                        `;
+                    }
                 });
             }
             
@@ -237,8 +292,9 @@ require_once "./blueprints/gl_ap_start.php"; // includes the start of the genera
             pointElement.addEventListener('mouseenter', function() {
                 tooltip.classList.add('show');
                 pointElement.classList.add('active');
-                // Load image when tooltip is shown
-                loadMainImageForTooltip();
+                
+                // Load image when tooltip is shown, passing the point data
+                loadMainImageForTooltip(point);
                 // Position tooltip after a short delay to ensure dimensions are calculated
                 setTimeout(positionTooltip, 50);
             });
@@ -273,11 +329,18 @@ require_once "./blueprints/gl_ap_start.php"; // includes the start of the genera
             .then(response => response.json())
             .then(data => {
                 if (data.success && data.points) {
-                    // Clear existing points
+                    // Clear existing points FIRST
+                    clearPointsFromDOM();
                     points = [];
                     
                     // Load points from database
                     data.points.forEach(dbPoint => {
+                        // Check if point already exists to prevent duplicates
+                        const existingPoint = points.find(p => p.id === dbPoint.id_IP);
+                        if (existingPoint) {
+                            return;
+                        }
+                        
                         const point = {
                             id: dbPoint.id_IP,
                             name: dbPoint.name_IP,
@@ -290,12 +353,9 @@ require_once "./blueprints/gl_ap_start.php"; // includes the start of the genera
                         createPointElement(point);
                     });
                     
-                    console.log(`${points.length} points loaded from database`);
-                    
                     // Update welcome banner with point count
                     updateWelcomeBanner(points.length);
                 } else {
-                    console.log('No points in database: ' + data.message);
                     updateWelcomeBanner(0);
                 }
             })
