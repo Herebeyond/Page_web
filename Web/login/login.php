@@ -53,13 +53,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') { // Check if the form has been submi
     $stmt->execute([$username]);
     $user = $stmt->fetch();
 
+    // DEBUG: Log login attempt
+    error_log("LOGIN DEBUG: Login attempt for username: " . $username);
+    error_log("LOGIN DEBUG: User found in database: " . ($user ? "Yes (ID: " . $user['id'] . ")" : "No"));
+
     // Verify if the password matches the hashed password in the database
     if ($user && password_verify($password, $user['password'])) {
         // Reset failed attempts on successful login
         $_SESSION['failed_attempts'] = 0;
         $_SESSION['last_failed_attempt'] = null;
 
-        $_SESSION['user'] = $user['id']; // Log in the user
+        $_SESSION['user'] = $user['id_user']; // Log in the user
+
+        // DEBUG: Log successful login
+        $user_id = $user['id_user'];
+        error_log("LOGIN DEBUG: Successful login for user ID: " . $user_id . " username: " . $user['username']);
+        error_log("LOGIN DEBUG: Session user set to: " . $_SESSION['user']);
+        error_log("LOGIN DEBUG: Redirecting to: " . ($_SESSION['last_page'] ?? '../pages/Homepage.php'));
 
         // Direct to the last page visited or homepage
         header('Location: ' . ($_SESSION['last_page'] ?? '../pages/Homepage.php')); // Redirect to the last page visited or homepage
@@ -68,6 +78,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') { // Check if the form has been submi
         // Increment failed attempts on unsuccessful login
         $_SESSION['failed_attempts']++;
         $_SESSION['last_failed_attempt'] = $current_time->format('Y-m-d H:i:s');
+
+        // DEBUG: Log failed login
+        if (!$user) {
+            error_log("LOGIN DEBUG: Failed login - username not found: " . $username);
+        } else {
+            error_log("LOGIN DEBUG: Failed login - incorrect password for user: " . $username);
+        }
 
         $_SESSION['error'] = "Username or password incorrect";
     }

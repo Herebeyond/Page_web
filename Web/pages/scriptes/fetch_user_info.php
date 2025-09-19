@@ -39,22 +39,30 @@ if (isset($_GET['user'])) { // Check if the 'user' parameter is provided
         $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
         if ($user) {
-            // Fetch all roles for the user
-            $stmt = $pdo->prepare("SELECT r.name FROM roles r JOIN user_roles ur ON r.id = ur.role_id WHERE ur.user_id = ?");
-            $stmt->execute([$user['id']]);
-            $roles = $stmt->fetchAll(PDO::FETCH_COLUMN);
+            // Try to fetch roles, but don't fail if roles table doesn't exist
+            $roles = [];
+            try {
+                $stmt = $pdo->prepare("SELECT r.name FROM roles r JOIN user_roles ur ON r.id = ur.role_id WHERE ur.user_id = ?");
+                $stmt->execute([$user['id_user']]);
+                $roles = $stmt->fetchAll(PDO::FETCH_COLUMN);
+            } catch (PDOException $e) {
+                // Roles table might not exist, continue without roles
+                $roles = [];
+            }
 
             // Return user information as JSON
             echo json_encode([
                 'success' => true,
-                'id' => $user['id'],
-                'icon' => $user['icon'],
-                'username' => $user['username'],
-                'blocked' => $user['blocked'],
-                'roles' => $roles,
-                'email' => $user['email'],
-                'created_at' => $user['created_at'],
-                'last_updated_at' => $user['last_updated_at'],
+                'user' => [
+                    'id_user' => $user['id_user'],
+                    'icon' => $user['icon'],
+                    'username' => $user['username'],
+                    'blocked' => $user['blocked'],
+                    'is_active' => $user['is_active'],
+                    'roles' => $roles,
+                    'email' => $user['email'],
+                    'created_at' => $user['created_at'],
+                ]
             ]);
         } else {
             // User not found

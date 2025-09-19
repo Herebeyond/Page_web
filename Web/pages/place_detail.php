@@ -425,39 +425,31 @@ require_once "./blueprints/gl_ap_start.php"; // includes the start of the genera
     });
     
     // Load main image
-    function loadMainImage() {
-        // Check for main image in the place folder
+    async function loadMainImage() {
+        // Use API to check for main image instead of trying multiple extensions
         const mainImageContainer = document.getElementById('main-image-container');
-        const possibleExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
-        let imageFound = false;
         
-        async function checkImage(extension) {
-            try {
-                const response = await fetch(`${placeData.folderPath}main.${extension}`);
-                if (response.ok) {
-                    mainImageContainer.innerHTML = `
-                        <img src="${placeData.folderPath}main.${extension}" 
-                             alt="Main image of ${placeData.name}" 
-                             style="max-width: 100%; height: auto; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.3);">
-                    `;
-                    return true;
-                }
-            } catch (error) {
-                return false;
-            }
-            return false;
-        }
-        
-        // Try each extension
-        (async () => {
-            for (const ext of possibleExtensions) {
-                if (await checkImage(ext)) {
-                    imageFound = true;
-                    break;
-                }
-            }
+        try {
+            const response = await fetch('./scriptes/simple_gallery_api.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    action: 'get_main_image',
+                    slug: placeData.slug
+                })
+            });
             
-            if (!imageFound) {
+            const data = await response.json();
+            
+            if (data.success && data.image && data.image.exists) {
+                mainImageContainer.innerHTML = `
+                    <img src="${data.image.path}" 
+                         alt="Main image of ${placeData.name}" 
+                         style="max-width: 100%; height: auto; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.3);">
+                `;
+            } else {
                 mainImageContainer.innerHTML = `
                     <div style="padding: 30px; background: rgba(0,0,0,0.2); border-radius: 8px; text-align: center; color: #888;">
                         <p>📷</p>
@@ -465,13 +457,21 @@ require_once "./blueprints/gl_ap_start.php"; // includes the start of the genera
                     </div>
                 `;
             }
-        })();
+        } catch (error) {
+            console.error('Error loading main image:', error);
+            mainImageContainer.innerHTML = `
+                <div style="padding: 30px; background: rgba(0,0,0,0.2); border-radius: 8px; text-align: center; color: #888;">
+                    <p>📷</p>
+                    <p style="font-size: 12px;">Error loading main image</p>
+                </div>
+            `;
+        }
     }
     
     // Load gallery images
     async function loadGalleryImages() {
         try {
-            const response = await fetch('./scriptes/place_image_manager.php', {
+            const response = await fetch('./scriptes/simple_gallery_api.php', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

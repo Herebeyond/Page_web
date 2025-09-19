@@ -136,7 +136,7 @@ $offset = ($page - 1) * $perPage;
                 if (empty($specieImg)) {
                     $specieImgPath = '../images/icon_default.png';
                 } else {
-                    $specieImgPath = '../images/' . str_replace(' ', '_', $specieImg);
+                    $specieImgPath = '../images/species/' . str_replace(' ', '_', $specieImg);
                     if (!isImageLinkValid($specieImgPath)) {
                         $specieImgPath = '../images/icon_invalide.png';
                     }
@@ -190,7 +190,7 @@ $offset = ($page - 1) * $perPage;
                                     if (empty($raceImg)) {
                                         $raceImgPath = '../images/icon_default.png';
                                     } else {
-                                        $raceImgPath = '../images/' . str_replace(' ', '_', $raceImg);
+                                        $raceImgPath = '../images/races/' . str_replace(' ', '_', $raceImg);
                                         if (!isImageLinkValid($raceImgPath)) {
                                             $raceImgPath = '../images/icon_invalide.png';
                                         }
@@ -252,7 +252,7 @@ $offset = ($page - 1) * $perPage;
                                                 if (empty($characterImg)) {
                                                     $characterImgPath = '../images/icon_default.png';
                                                 } else {
-                                                    $characterImgPath = '../images/' . str_replace(' ', '_', $characterImg);
+                                                    $characterImgPath = '../images/user_icon/' . str_replace(' ', '_', $characterImg);
                                                     if (!isImageLinkValid($characterImgPath)) {
                                                         $characterImgPath = '../images/icon_invalide.png';
                                                     }

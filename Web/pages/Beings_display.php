@@ -2,16 +2,11 @@
 require_once "./blueprints/page_init.php"; // includes the page initialization file
 require_once "./blueprints/gl_ap_start.php"; // includes the start of the general page file
 
-if (isset($_SESSION['user'])) {
-    // Retrieve the user role from the database to check if the user is an admin
-    $stmt = $pdo->prepare("SELECT r.id as role_id, r.name as role_name FROM users u 
-                          LEFT JOIN user_roles ur ON u.id = ur.user_id 
-                          LEFT JOIN roles r ON ur.role_id = r.id 
-                          WHERE u.id = ?");
-    $stmt->execute([$_SESSION['user']]);
-    $user = $stmt->fetch();
-} else {
-    $user = null; // if the user is not logged in, set user to null
+// User authentication is already handled in page_init.php
+// Check if user is admin using session data
+$is_admin = false;
+if (isset($_SESSION['user']) && isset($_SESSION['user_roles'])) {
+    $is_admin = in_array('admin', $_SESSION['user_roles']);
 }
 
 
@@ -127,7 +122,7 @@ if (isset($_GET['specie_id'])) {
             }
 
             // If the user is logged and is an admin, display the edit button
-            if (isset($_SESSION['user']) && $user && $user['role_id'] == 1 && $rowR) { // if the user is logged and is an admin (role_id = 1) and specie found
+            if (isset($_SESSION['user']) && $is_admin && $rowR) { // if the user is logged and is an admin and specie found
                 echo "<div class='editButton'>
                         <a href='Specie_add.php?specie_id=" . sanitize_output($rowR['id_specie']) . "'>Edit</a>
                     </div>";
@@ -143,7 +138,7 @@ if (isset($_GET['specie_id'])) {
                     $imgPath = '../images/icon_default.png'; // path to the default image
                 } else { // if the image exists, use it
                     $imgPath = str_replace(" ", "_", "$imgPath"); // replace spaces with underscores for file names
-                    $imgPath = "../images/" . sanitize_output($imgPath); // path to the image, sanitize_output escapes special characters in the string (such as ' and ") and prevents them from closing strings
+                    $imgPath = "../images/races/" . sanitize_output($imgPath); // path to the image in races subdirectory, sanitize_output escapes special characters in the string (such as ' and ") and prevents them from closing strings
                 }
 
                 if (!isImageLinkValid($imgPath)) { // if the image is not valid
@@ -207,7 +202,7 @@ if (isset($_GET['specie_id'])) {
                                 <p>" . nl2br(sanitize_output($rowF['content_race'] ?? '')) . "</p>
                             </div>";
                             // If the user is logged and is an admin, display the edit button
-                            if (isset($_SESSION['user']) && $user && $user['role_id'] == 1) {
+                            if (isset($_SESSION['user']) && $is_admin) {
                                 $divsSelec .= "
                                     <div class='editButton'>
                                         <a href='Race_add.php?race_id=" . $rowF['id_race'] . "'>Edit</a>

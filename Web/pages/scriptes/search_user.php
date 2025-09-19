@@ -9,7 +9,7 @@ if (isset($_GET['query']) && strlen($_GET['query']) > 1) {
     $query = '%' . trim($_GET['query']) . '%';
 
     try {
-        $stmt = $pdo->prepare("SELECT id, username FROM users WHERE username LIKE ? ORDER BY username LIMIT 10");
+        $stmt = $pdo->prepare("SELECT id_user, username FROM users WHERE username LIKE ? ORDER BY username LIMIT 10");
         $stmt->execute([$query]);
         $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
 

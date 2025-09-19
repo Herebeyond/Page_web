@@ -103,7 +103,7 @@ function renderMainInterface() {
                     $stmt->execute();
                     
                     while ($species = $stmt->fetch(PDO::FETCH_ASSOC)) {
-                        $iconPath = !empty($species['icon_specie']) ? '../images/' . $species['icon_specie'] : '../images/icon_default.png';
+                        $iconPath = !empty($species['icon_specie']) ? '../images/species/' . $species['icon_specie'] : '../images/icon_default.png';
                         ?>
                         <div class="entity-item">
                             <div class="entity-info">
@@ -147,7 +147,7 @@ function renderMainInterface() {
                     $stmt->execute();
                     
                     while ($race = $stmt->fetch(PDO::FETCH_ASSOC)) {
-                        $iconPath = !empty($race['icon_race']) ? '../images/' . $race['icon_race'] : '../images/icon_default.png';
+                        $iconPath = !empty($race['icon_race']) ? '../images/races/' . $race['icon_race'] : '../images/icon_default.png';
                         ?>
                         <div class="entity-item">
                             <div class="entity-info">
@@ -607,6 +607,26 @@ function renderAddSpeciesForm() {
             </div>
             
             <div class="form-group">
+                <label for="lifespan">Lifespan</label>
+                <input type="text" id="lifespan" name="lifespan" placeholder="e.g., 100-150 years">
+            </div>
+            
+            <div class="form-group">
+                <label for="homeworld">Homeworld</label>
+                <input type="text" id="homeworld" name="homeworld" placeholder="e.g., Earth, Pandora">
+            </div>
+            
+            <div class="form-group">
+                <label for="country">Country/Region</label>
+                <input type="text" id="country" name="country" placeholder="e.g., Northern Kingdoms">
+            </div>
+            
+            <div class="form-group">
+                <label for="habitat">Habitat</label>
+                <input type="text" id="habitat" name="habitat" placeholder="e.g., Forests, Mountains">
+            </div>
+            
+            <div class="form-group">
                 <label for="specie_content">Description</label>
                 <textarea id="specie_content" name="specie_content" rows="5" placeholder="Enter species description..."></textarea>
             </div>
@@ -681,33 +701,6 @@ function renderAddSpeciesForm() {
         background: #5a6268;
     }
     </style>
-    
-    <script>
-    document.getElementById('speciesForm').addEventListener('submit', function(e) {
-        e.preventDefault();
-        
-        const formData = new FormData(this);
-        
-        fetch('./scriptes/Beings_admin_interface.php?action=save_species', {
-            method: 'POST',
-            body: formData
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                alert(data.message);
-                closeAdminModal();
-                location.reload(); // Refresh the page to show the new species
-            } else {
-                alert('Error: ' + data.message);
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            alert('An error occurred while saving the species');
-        });
-    });
-    </script>
     <?php
 }
 
@@ -738,7 +731,7 @@ function renderEditSpeciesForm($id) {
                 <label for="specie_icon">Species Icon</label>
                 <?php if (!empty($species['icon_specie'])): ?>
                 <div style="margin-bottom: 0.5rem;">
-                    <img src="../images/<?php echo htmlspecialchars($species['icon_specie']); ?>" alt="Current Icon" style="width: 50px; height: 50px; border-radius: 4px;">
+                    <img src="../images/species/<?php echo htmlspecialchars($species['icon_specie']); ?>" alt="Current Icon" style="width: 50px; height: 50px; border-radius: 4px;">
                     <small>Current icon</small>
                 </div>
                 <?php endif; ?>
@@ -823,26 +816,6 @@ function renderAddRaceForm($speciesId = 0) {
             </div>
             
             <div class="form-group">
-                <label for="lifespan">Lifespan</label>
-                <input type="text" id="lifespan" name="lifespan" placeholder="e.g., 100-150 years">
-            </div>
-            
-            <div class="form-group">
-                <label for="homeworld">Homeworld</label>
-                <input type="text" id="homeworld" name="homeworld" placeholder="e.g., Earth, Pandora">
-            </div>
-            
-            <div class="form-group">
-                <label for="country">Country/Region</label>
-                <input type="text" id="country" name="country" placeholder="e.g., Northern Kingdoms">
-            </div>
-            
-            <div class="form-group">
-                <label for="habitat">Habitat</label>
-                <input type="text" id="habitat" name="habitat" placeholder="e.g., Forests, Mountains">
-            </div>
-            
-            <div class="form-group">
                 <label for="race_content">Description</label>
                 <textarea id="race_content" name="race_content" rows="5" placeholder="Enter race description..."></textarea>
             </div>
@@ -853,33 +826,6 @@ function renderAddRaceForm($speciesId = 0) {
             </div>
         </form>
     </div>
-    
-    <script>
-    document.getElementById('raceForm').addEventListener('submit', function(e) {
-        e.preventDefault();
-        
-        const formData = new FormData(this);
-        
-        fetch('./scriptes/Beings_admin_interface.php?action=save_race', {
-            method: 'POST',
-            body: formData
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                alert(data.message);
-                closeAdminModal();
-                location.reload(); // Refresh the page to show the new race
-            } else {
-                alert('Error: ' + data.message);
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            alert('An error occurred while saving the race');
-        });
-    });
-    </script>
     <?php
 }
 
@@ -928,7 +874,7 @@ function renderEditRaceForm($id) {
                 <label for="race_icon">Race Icon</label>
                 <?php if (!empty($race['icon_race'])): ?>
                 <div style="margin-bottom: 0.5rem;">
-                    <img src="../images/<?php echo htmlspecialchars($race['icon_race']); ?>" alt="Current Icon" style="width: 50px; height: 50px; border-radius: 4px;">
+                    <img src="../images/races/<?php echo htmlspecialchars($race['icon_race']); ?>" alt="Current Icon" style="width: 50px; height: 50px; border-radius: 4px;">
                     <small>Current icon</small>
                 </div>
                 <?php endif; ?>
@@ -1011,6 +957,10 @@ function saveSpecies() {
         $id = isset($_POST['id']) ? (int)$_POST['id'] : 0;
         $name = trim($_POST['specie_name']);
         $content = isset($_POST['specie_content']) ? trim($_POST['specie_content']) : '';
+        $lifespan = isset($_POST['lifespan']) ? trim($_POST['lifespan']) : '';
+        $homeworld = isset($_POST['homeworld']) ? trim($_POST['homeworld']) : '';
+        $country = isset($_POST['country']) ? trim($_POST['country']) : '';
+        $habitat = isset($_POST['habitat']) ? trim($_POST['habitat']) : '';
         
         if (empty($name)) {
             throw new Exception('Species name is required');
@@ -1024,8 +974,8 @@ function saveSpecies() {
         
         if ($id > 0) {
             // Update existing species
-            $sql = "UPDATE species SET specie_name = ?, content_specie = ?";
-            $params = [$name, $content];
+            $sql = "UPDATE species SET specie_name = ?, content_specie = ?, lifespan = ?, homeworld = ?, country = ?, habitat = ?";
+            $params = [$name, $content, $lifespan, $homeworld, $country, $habitat];
             
             if ($iconPath) {
                 $sql .= ", icon_specie = ?";
@@ -1041,8 +991,8 @@ function saveSpecies() {
             echo json_encode(['success' => true, 'message' => 'Species updated successfully']);
         } else {
             // Create new species
-            $stmt = $pdo->prepare("INSERT INTO species (specie_name, content_specie, icon_specie) VALUES (?, ?, ?)");
-            $stmt->execute([$name, $content, $iconPath]);
+            $stmt = $pdo->prepare("INSERT INTO species (specie_name, content_specie, lifespan, homeworld, country, habitat, icon_specie) VALUES (?, ?, ?, ?, ?, ?, ?)");
+            $stmt->execute([$name, $content, $lifespan, $homeworld, $country, $habitat, $iconPath]);
             
             echo json_encode(['success' => true, 'message' => 'Species created successfully']);
         }
@@ -1062,10 +1012,6 @@ function saveRace() {
         $name = trim($_POST['race_name']);
         $correspondence = (int)$_POST['correspondence'];
         $content = trim($_POST['race_content']);
-        $lifespan = trim($_POST['lifespan']);
-        $homeworld = trim($_POST['homeworld']);
-        $country = trim($_POST['country']);
-        $habitat = trim($_POST['habitat']);
         
         if (empty($name)) {
             throw new Exception('Race name is required');
@@ -1083,8 +1029,8 @@ function saveRace() {
         
         if ($id > 0) {
             // Update existing race
-            $sql = "UPDATE races SET race_name = ?, correspondence = ?, content_race = ?, lifespan = ?, homeworld = ?, country = ?, habitat = ?";
-            $params = [$name, $correspondence, $content, $lifespan, $homeworld, $country, $habitat];
+            $sql = "UPDATE races SET race_name = ?, correspondence = ?, content_race = ?";
+            $params = [$name, $correspondence, $content];
             
             if ($iconPath) {
                 $sql .= ", icon_race = ?";
@@ -1100,8 +1046,8 @@ function saveRace() {
             echo json_encode(['success' => true, 'message' => 'Race updated successfully']);
         } else {
             // Create new race
-            $stmt = $pdo->prepare("INSERT INTO races (race_name, correspondence, content_race, lifespan, homeworld, country, habitat, icon_race) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
-            $stmt->execute([$name, $correspondence, $content, $lifespan, $homeworld, $country, $habitat, $iconPath]);
+            $stmt = $pdo->prepare("INSERT INTO races (race_name, correspondence, content_race, icon_race) VALUES (?, ?, ?, ?)");
+            $stmt->execute([$name, $correspondence, $content, $iconPath]);
             
             echo json_encode(['success' => true, 'message' => 'Race created successfully']);
         }

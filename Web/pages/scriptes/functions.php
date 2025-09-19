@@ -543,11 +543,11 @@ function generateEntityDeleteFunctions($entityType, $apiEndpoint = null, $dynami
     return "
     function confirmDelete{$entityCapitalized}(id, name) {
         if (confirm('Are you sure you want to delete the {$entityType} \"' + name + '\"? This action cannot be undone.')) {
-            deleteEntity('{$entityType}', id, '{$apiEndpoint}');
+            deleteEntity('$entityType', id, '$apiEndpoint');
         }
     }
     
-    function deleteEntity(type, id, endpoint = '{$apiEndpoint}') {
+    function deleteEntity(type, id, endpoint = '$apiEndpoint') {
         // Show loading indicator
         showLoadingIndicator();
         
@@ -670,16 +670,162 @@ function generateBeingsPageFunctions($apiEndpoint = './scriptes/Beings_admin_int
     function openAdminModal() {
         document.getElementById('adminModal').style.display = 'block';
         // Load admin interface via AJAX
-        fetch('{$apiEndpoint}')
+        fetch('$apiEndpoint')
             .then(response => response.text())
             .then(html => {
                 document.getElementById('adminModalContent').innerHTML = html;
+                // Set up event listeners for dynamically loaded forms
+                setupModalFormHandlers();
             })
             .catch(error => {
                 console.error('Error loading admin interface:', error);
                 document.getElementById('adminModalContent').innerHTML = 
                     '<div class=\"error-message\">Failed to load admin interface</div>';
             });
+    }
+
+    function setupModalFormHandlers() {
+        console.log('Setting up modal form handlers...');
+        
+        // Remove any existing listeners first
+        const modalContent = document.getElementById('adminModalContent');
+        if (!modalContent) {
+            console.error('adminModalContent not found!');
+            return;
+        }
+        
+        console.log('Modal content found:', modalContent);
+        
+        // Use event delegation to handle form submissions
+        modalContent.removeEventListener('submit', handleModalFormSubmit);
+        modalContent.addEventListener('submit', handleModalFormSubmit);
+        
+        // Also add direct listeners to forms that might exist now
+        const speciesForm = modalContent.querySelector('#speciesForm');
+        const raceForm = modalContent.querySelector('#raceForm');
+        
+        if (speciesForm) {
+            console.log('Species form found, adding direct listener');
+            speciesForm.removeEventListener('submit', handleModalFormSubmit);
+            speciesForm.addEventListener('submit', handleModalFormSubmit);
+        }
+        
+        if (raceForm) {
+            console.log('Race form found, adding direct listener');
+            raceForm.removeEventListener('submit', handleModalFormSubmit);
+            raceForm.addEventListener('submit', handleModalFormSubmit);
+        }
+        
+        console.log('Modal form handlers set up successfully');
+    }
+
+    function handleModalFormSubmit(e) {
+        console.log('Form submit event caught!', e.target);
+        
+        // Always prevent default form submission first
+        e.preventDefault();
+        e.stopPropagation();
+        
+        const form = e.target;
+        
+        // Check if it's a species or race form
+        if (form.id === 'speciesForm') {
+            console.log('Handling species form');
+            handleSpeciesFormSubmit(form);
+        } else if (form.id === 'raceForm') {
+            console.log('Handling race form');
+            handleRaceFormSubmit(form);
+        } else {
+            console.log('Unhandled form:', form.id || 'no id', form);
+        }
+    }
+
+    function handleSpeciesFormSubmit(form) {
+        console.log('Species form submitted via event delegation');
+        const formData = new FormData(form);
+        
+        // Log form data
+        for (let [key, value] of formData.entries()) {
+            console.log('Form field:', key, '=', value);
+        }
+        
+        fetch('$apiEndpoint?action=save_species', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => {
+            console.log('Response status:', response.status);
+            return response.text();
+        })
+        .then(responseText => {
+            console.log('Raw response:', responseText);
+            try {
+                const data = JSON.parse(responseText);
+                console.log('Parsed response:', data);
+                
+                if (data.success) {
+                    alert('✅ ' + data.message);
+                    closeAdminModal();
+                    location.reload();
+                } else {
+                    alert('❌ Error: ' + data.message);
+                }
+            } catch (parseError) {
+                console.error('JSON parse error:', parseError);
+                alert('❌ Invalid response from server');
+            }
+        })
+        .catch(error => {
+            console.error('Fetch error:', error);
+            alert('❌ Network error: ' + error.message);
+        });
+    }
+
+    function handleRaceFormSubmit(form) {
+        console.log('Race form submitted via event delegation');
+        const formData = new FormData(form);
+        
+        fetch('$apiEndpoint?action=save_race', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.text())
+        .then(responseText => {
+            try {
+                const data = JSON.parse(responseText);
+                if (data.success) {
+                    alert('✅ ' + data.message);
+                    closeAdminModal();
+                    location.reload();
+                } else {
+                    alert('❌ Error: ' + data.message);
+                }
+            } catch (parseError) {
+                console.error('JSON parse error:', parseError);
+                alert('❌ Invalid response from server');
+            }
+        })
+        .catch(error => {
+            console.error('Fetch error:', error);
+            alert('❌ Network error: ' + error.message);
+        });
+    }
+
+    function executeScriptsInElement(element) {
+        const scripts = element.getElementsByTagName('script');
+        for (let i = 0; i < scripts.length; i++) {
+            const script = scripts[i];
+            const newScript = document.createElement('script');
+            
+            if (script.src) {
+                newScript.src = script.src;
+            } else {
+                newScript.textContent = script.textContent;
+            }
+            
+            // Replace the old script with the new one to execute it
+            script.parentNode.replaceChild(newScript, script);
+        }
     }
 
     function closeAdminModal() {
@@ -694,6 +840,14 @@ function generateBeingsPageFunctions($apiEndpoint = './scriptes/Beings_admin_int
         }, 100);
     }
 
+    function editRace(raceId) {
+        openAdminModal();
+        // Load edit form after modal is open
+        setTimeout(() => {
+            loadEditRaceForm(raceId);
+        }, 100);
+    }
+
     function addRaceToSpecies(speciesId) {
         openAdminModal();
         // Load add race form after modal is open
@@ -703,7 +857,7 @@ function generateBeingsPageFunctions($apiEndpoint = './scriptes/Beings_admin_int
     }
 
     function loadEditSpeciesForm(speciesId) {
-        fetch(`{$apiEndpoint}?action=edit_species&id=\${speciesId}`)
+        fetch(`$apiEndpoint?action=edit_species&id=\${speciesId}`)
             .then(response => response.text())
             .then(html => {
                 document.getElementById('adminModalContent').innerHTML = html;
@@ -712,8 +866,18 @@ function generateBeingsPageFunctions($apiEndpoint = './scriptes/Beings_admin_int
             });
     }
 
+    function loadEditRaceForm(raceId) {
+        fetch(`$apiEndpoint?action=edit_race&id=\${raceId}`)
+            .then(response => response.text())
+            .then(html => {
+                document.getElementById('adminModalContent').innerHTML = html;
+                // Add dynamic save handler
+                setupDynamicFormHandler('race', raceId);
+            });
+    }
+
     function loadAddRaceForm(speciesId) {
-        fetch(`{$apiEndpoint}?action=add_race&species_id=\${speciesId}`)
+        fetch(`$apiEndpoint?action=add_race&species_id=\${speciesId}`)
             .then(response => response.text())
             .then(html => {
                 document.getElementById('adminModalContent').innerHTML = html;
@@ -745,7 +909,7 @@ function generateBeingsPageFunctions($apiEndpoint = './scriptes/Beings_admin_int
         
         showLoadingIndicator();
         
-        fetch(`{$apiEndpoint}?action=\${action}`, {
+        fetch(`$apiEndpoint?action=\${action}`, {
             method: 'POST',
             body: formData
         })
@@ -802,7 +966,7 @@ function generateBeingsPageFunctions($apiEndpoint = './scriptes/Beings_admin_int
             // Update species image if changed
             const imgElement = speciesCard.querySelector('.species-image img');
             if (imgElement && speciesData.icon_specie) {
-                const imgPath = '../images/' + speciesData.icon_specie.replace(' ', '_');
+                const imgPath = '../images/species/' + speciesData.icon_specie.replace(' ', '_');
                 imgElement.src = imgPath;
             }
             
@@ -863,7 +1027,7 @@ function generateBeingsPageFunctions($apiEndpoint = './scriptes/Beings_admin_int
         raceCard.onclick = () => viewRaceDetails(speciesId, raceData.id_race);
         
         const imgPath = raceData.icon_race ? 
-            '../images/' + raceData.icon_race.replace(' ', '_') : 
+            '../images/races/' + raceData.icon_race.replace(' ', '_') : 
             '../images/icon_default.png';
         
         raceCard.innerHTML = `
@@ -913,6 +1077,46 @@ function generateBeingsPageFunctions($apiEndpoint = './scriptes/Beings_admin_int
         if (activeButton) {
             activeButton.classList.add('active');
         }
+    }
+
+    function addNewSpecies() {
+        fetch('$apiEndpoint?action=add_species')
+            .then(response => response.text())
+            .then(data => {
+                document.getElementById('adminModalContent').innerHTML = data;
+                // Set up event listeners for the new form
+                setupModalFormHandlers();
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Error loading add species form');
+            });
+    }
+
+    function addNewRace() {
+        fetch('$apiEndpoint?action=add_race')
+            .then(response => response.text())
+            .then(data => {
+                document.getElementById('adminModalContent').innerHTML = data;
+                // Set up event listeners for the new form
+                setupModalFormHandlers();
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Error loading add race form');
+            });
+    }
+
+    function confirmDeleteSpecies(id, name) {
+        if (confirm('Are you sure you want to delete the species \"' + name + '\"? This will also delete all associated races and characters.')) {
+            deleteEntity('species', id, '$apiEndpoint');
+        }
+    }
+
+    function confirmDeleteRace(id, name) {
+        if (confirm('Are you sure you want to delete the race \"' + name + '\"? This will also delete all associated characters.')) {
+            deleteEntity('race', id, '$apiEndpoint');
+        }
     }";
 }
 
@@ -926,7 +1130,7 @@ function generateCharacterPageFunctions($apiEndpoint = './scriptes/Character_adm
     function openCharacterAdminModal() {
         document.getElementById('characterAdminModal').style.display = 'block';
         // Load admin interface via AJAX
-        fetch('{$apiEndpoint}')
+        fetch('$apiEndpoint')
             .then(response => response.text())
             .then(html => {
                 document.getElementById('characterAdminModalContent').innerHTML = html;
@@ -963,7 +1167,7 @@ function generateCharacterPageFunctions($apiEndpoint = './scriptes/Character_adm
         formData.append('action', 'getCharacterData');
         formData.append('character_id', characterId);
 
-        fetch('{$apiEndpoint}', {
+        fetch('$apiEndpoint', {
             method: 'POST',
             body: formData
         })
@@ -1030,7 +1234,7 @@ function generateCharacterPageFunctions($apiEndpoint = './scriptes/Character_adm
         submitBtn.textContent = 'Processing...';
         submitBtn.disabled = true;
 
-        fetch('{$apiEndpoint}', {
+        fetch('$apiEndpoint', {
             method: 'POST',
             body: formData
         })

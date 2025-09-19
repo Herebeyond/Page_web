@@ -35,9 +35,21 @@ if (!isset($_SESSION['initiated'])) {
 // Implement session timeout
 $timeout_duration = 14400; // 4 hours
 if (isset($_SESSION['LAST_ACTIVITY']) && (time() - $_SESSION['LAST_ACTIVITY']) > $timeout_duration) {
+    error_log("PAGE_INIT DEBUG: Session timeout triggered - clearing session");
+    error_log("PAGE_INIT DEBUG: Last activity: " . $_SESSION['LAST_ACTIVITY'] . ", Current time: " . time() . ", Difference: " . (time() - $_SESSION['LAST_ACTIVITY']));
+    
+    // Session has expired - redirect to login
     session_unset();
     session_destroy();
-    session_start(); // Simplified for debugging
+    // Start a new clean session
+    session_start();
+    // Redirect to login page
+    header('Location: ../login/login.php');
+    exit();
+} else {
+    if (isset($_SESSION['LAST_ACTIVITY'])) {
+        error_log("PAGE_INIT DEBUG: Session timeout check OK - time remaining: " . ($timeout_duration - (time() - $_SESSION['LAST_ACTIVITY'])) . " seconds");
+    }
 }
 $_SESSION['LAST_ACTIVITY'] = time();
 
@@ -49,8 +61,14 @@ $current_page = htmlspecialchars(pathinfo(basename($_SERVER['PHP_SELF']), PATHIN
 
 /// BLOCKED USER VERIFICATION
 if (isset($_SESSION['user'])) {
+    // DEBUG: Log session info
+    error_log("PAGE_INIT DEBUG: Session user found: " . $_SESSION['user']);
+    error_log("PAGE_INIT DEBUG: Current page: " . $current_page);
+    error_log("PAGE_INIT DEBUG: SESSION data: " . print_r($_SESSION, true));
+    
     // Ensure database connection is available for user verification
     if (!isset($pdo) || !$pdo) {
+        error_log("PAGE_INIT DEBUG: Database connection not available");
         error_log("Database connection not available in page_init.php for user verification");
         // For regular pages (not API), show user-friendly error and allow logout
         echo "<div style='padding: 20px; background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; border-radius: 4px; margin: 10px;'>";
@@ -61,13 +79,18 @@ if (isset($_SESSION['user'])) {
         exit();
     }
     
+    error_log("PAGE_INIT DEBUG: Database connection OK");
+    
     // Retrieve the user from the database
-    $stmt = $pdo->prepare("SELECT * FROM users WHERE id = ?");
+    $stmt = $pdo->prepare("SELECT * FROM users WHERE id_user = ?");
     $stmt->execute([$_SESSION['user']]);
     $user = $stmt->fetch();
 
+    error_log("PAGE_INIT DEBUG: User lookup result: " . ($user ? "Found user: " . $user['username'] : "No user found"));
+
     // Check if user exists
     if (!$user) {
+        error_log("PAGE_INIT DEBUG: User not found in database, destroying session");
         // User doesn't exist in database, destroy session
         session_unset();
         session_destroy();
@@ -75,10 +98,17 @@ if (isset($_SESSION['user'])) {
         exit();
     }
 
-    // Fetch user roles
-    $stmt = $pdo->prepare("SELECT r.name FROM user_roles ur JOIN roles r ON ur.role_id = r.id WHERE ur.user_id = ?");
-    $stmt->execute([$user['id']]);
-    $user_roles = $stmt->fetchAll(PDO::FETCH_COLUMN);
+    // Fetch user roles - handle case where role tables don't exist
+    try {
+        $stmt = $pdo->prepare("SELECT r.role_name FROM role_to_user rtu JOIN roles r ON rtu.id_role = r.id_role WHERE rtu.id_user = ?");
+        $stmt->execute([$user['id_user']]);
+        $user_roles = $stmt->fetchAll(PDO::FETCH_COLUMN);
+    } catch (Exception $e) {
+        error_log("PAGE_INIT DEBUG: Error fetching user roles: " . $e->getMessage());
+        // If role tables don't exist, use default role assignment
+        // For now, we'll assign no roles by default (can be customized later)
+        $user_roles = []; // Default to no roles
+    }
     
     // Store user roles in session for AJAX calls
     $_SESSION['user_roles'] = $user_roles;

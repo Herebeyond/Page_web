@@ -8,6 +8,7 @@
 // So far, there is no need to hide a page for admin users
 $authorisation = array(
     'Homepage' => 'all',
+    'Homepage_debug' => 'all',
     'Map_view' => 'all',
     'Beings' => 'all',
     'Beings_display' => 'hidden',
@@ -33,6 +34,7 @@ $authorisation = array(
 // Other uses can be added later
 $type = array(
     'Homepage' => 'common',
+    'Homepage_debug' => 'common',
     'Map_view' => 'common',
     'Beings' => 'common',
     'Beings_display' => 'common',

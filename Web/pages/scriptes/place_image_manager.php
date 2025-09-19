@@ -6,7 +6,20 @@ ini_set('log_errors', 1);
 error_reporting(E_ALL);
 
 session_start();
-require_once '../../login/db.php';
+// Only include database for actions that need it
+$needsDatabase = false;
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['image'])) {
+    $needsDatabase = true;
+} else {
+    $input = json_decode(file_get_contents('php://input'), true);
+    if (isset($input['action'])) {
+        $needsDatabase = !in_array($input['action'], ['list_images']);
+    }
+}
+
+if ($needsDatabase) {
+    require_once '../../login/db.php';
+}
 require_once 'functions.php'; // Include shared functions
 
 header('Content-Type: application/json');
@@ -206,18 +219,27 @@ function handleImageUpload() {
         }
         
     } elseif ($action === 'upload_gallery_image') {
+        // Create gallery subdirectory if it doesn't exist
+        $galleryDir = $placeDir . DIRECTORY_SEPARATOR . 'gallery';
+        if (!is_dir($galleryDir)) {
+            if (!mkdir($galleryDir, 0755, true)) {
+                echo json_encode(['success' => false, 'message' => 'Failed to create gallery directory']);
+                return;
+            }
+        }
+        
         // For gallery images, sanitize filename
         $fileName = preg_replace('/[^a-zA-Z0-9_-]/', '_', $pathInfo['filename']);
         if (empty($fileName)) {
             $fileName = 'image_' . time();
         }
         
-        $targetFile = $placeDir . DIRECTORY_SEPARATOR . $fileName . '.' . $extension;
+        $targetFile = $galleryDir . DIRECTORY_SEPARATOR . $fileName . '.' . $extension;
         
         // If file exists, add a number suffix
         $counter = 1;
         while (file_exists($targetFile)) {
-            $targetFile = $placeDir . DIRECTORY_SEPARATOR . $fileName . '_' . $counter . '.' . $extension;
+            $targetFile = $galleryDir . DIRECTORY_SEPARATOR . $fileName . '_' . $counter . '.' . $extension;
             $counter++;
         }
         
@@ -247,7 +269,10 @@ function listImages($slug) {
         return;
     }
     
-    if (!is_dir($placeDir)) {
+    // Look for images in the gallery subdirectory
+    $galleryDir = $placeDir . DIRECTORY_SEPARATOR . 'gallery';
+    
+    if (!is_dir($galleryDir)) {
         echo json_encode(['success' => true, 'images' => []]);
         return;
     }
@@ -257,7 +282,7 @@ function listImages($slug) {
     
     // Use DirectoryIterator for safer directory traversal
     try {
-        $iterator = new DirectoryIterator($placeDir);
+        $iterator = new DirectoryIterator($galleryDir);
         foreach ($iterator as $fileInfo) {
             if ($fileInfo->isDot() || !$fileInfo->isFile()) {
                 continue;
@@ -276,8 +301,8 @@ function listImages($slug) {
                 continue;
             }
             
-            // Construct safe relative path for web access
-            $relativePath = '../images/places/' . $sanitizedSlug . '/' . $fileName;
+            // Construct safe relative path for web access (include gallery subdirectory)
+            $relativePath = '../images/places/' . $sanitizedSlug . '/gallery/' . $fileName;
             
             $images[] = [
                 'name' => $pathInfo['filename'],
@@ -326,21 +351,24 @@ function renameImage($data) {
         return;
     }
     
-    if (!is_dir($placeDir)) {
-        echo json_encode(['success' => false, 'message' => 'Place directory not found']);
+    // Look for gallery images in the gallery subdirectory
+    $galleryDir = $placeDir . DIRECTORY_SEPARATOR . 'gallery';
+    
+    if (!is_dir($galleryDir)) {
+        echo json_encode(['success' => false, 'message' => 'Gallery directory not found']);
         return;
     }
     
-    // Find the old file safely
+    // Find the old file safely in the gallery directory
     $oldFile = null;
     $extension = null;
     $allowedExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
     
     foreach ($allowedExtensions as $ext) {
-        $testFile = $placeDir . DIRECTORY_SEPARATOR . $oldName . '.' . $ext;
+        $testFile = $galleryDir . DIRECTORY_SEPARATOR . $oldName . '.' . $ext;
         if (file_exists($testFile) && is_file($testFile)) {
             // Verify the file is within our expected directory
-            if (dirname(realpath($testFile)) === realpath($placeDir)) {
+            if (dirname(realpath($testFile)) === realpath($galleryDir)) {
                 $oldFile = $testFile;
                 $extension = $ext;
                 break;
@@ -359,7 +387,7 @@ function renameImage($data) {
         return;
     }
     
-    $newFile = $placeDir . DIRECTORY_SEPARATOR . $newName . '.' . $extension;
+    $newFile = $galleryDir . DIRECTORY_SEPARATOR . $newName . '.' . $extension;
     
     // Check if new name already exists
     if (file_exists($newFile)) {
@@ -404,20 +432,23 @@ function deleteImage($data) {
         return;
     }
     
-    if (!is_dir($placeDir)) {
-        echo json_encode(['success' => false, 'message' => 'Place directory not found']);
+    // Look for gallery images in the gallery subdirectory
+    $galleryDir = $placeDir . DIRECTORY_SEPARATOR . 'gallery';
+    
+    if (!is_dir($galleryDir)) {
+        echo json_encode(['success' => false, 'message' => 'Gallery directory not found']);
         return;
     }
     
-    // Find the file safely
+    // Find the file safely in the gallery directory
     $fileToDelete = null;
     $allowedExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
     
     foreach ($allowedExtensions as $ext) {
-        $testFile = $placeDir . DIRECTORY_SEPARATOR . $imageName . '.' . $ext;
+        $testFile = $galleryDir . DIRECTORY_SEPARATOR . $imageName . '.' . $ext;
         if (file_exists($testFile) && is_file($testFile)) {
             // Verify the file is within our expected directory
-            if (dirname(realpath($testFile)) === realpath($placeDir)) {
+            if (dirname(realpath($testFile)) === realpath($galleryDir)) {
                 $fileToDelete = $testFile;
                 break;
             }

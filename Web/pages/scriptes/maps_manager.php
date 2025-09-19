@@ -9,35 +9,15 @@ header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Methods: POST, GET');
 header('Access-Control-Allow-Headers: Content-Type');
 
-// Try multiple database connection configurations
-$pdo = null;
-$connections_to_try = [
-    ['host' => 'localhost', 'user' => 'root', 'pass' => ''],
-    ['host' => 'localhost', 'user' => 'root', 'pass' => 'root'],
-    ['host' => 'localhost', 'user' => 'root', 'pass' => 'root_password'],
-    ['host' => '127.0.0.1', 'user' => 'root', 'pass' => ''],
-    ['host' => 'db', 'user' => 'root', 'pass' => 'root_password']
-];
-
-foreach ($connections_to_try as $config) {
-    try {
-        $pdo = new PDO(
-            "mysql:host={$config['host']};dbname=univers;charset=utf8", 
-            $config['user'], 
-            $config['pass'], 
-            [
-                PDO::ATTR_TIMEOUT => 3,
-                PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION
-            ]
-        );
-        break; // Stop trying once we have a successful connection
-    } catch (PDOException $e) {
-        // Continue to next configuration
-        continue;
+// Use the shared database connection file
+try {
+    require_once '../../login/db.php';
+    
+    if (!isset($pdo)) {
+        throw new Exception('Database connection not available');
     }
-}
-
-if (!$pdo) {
+} catch (Exception $e) {
+    error_log('Database connection error in maps_manager.php: ' . $e->getMessage());
     http_response_code(500);
     echo json_encode(['success' => false, 'message' => 'Database connection failed']);
     exit;
@@ -55,7 +35,10 @@ try {
 
     switch ($action) {
         case 'get_all_maps':
-            $stmt = $pdo->prepare("SELECT * FROM maps WHERE is_active = 1 ORDER BY display_order");
+            $stmt = $pdo->prepare("
+                SELECT id_map, map_name as name_map, map_file as image_map, dimension_id, description, created_at 
+                FROM maps ORDER BY id_map
+            ");
             $stmt->execute();
             $maps = $stmt->fetchAll(PDO::FETCH_ASSOC);
             
@@ -67,7 +50,10 @@ try {
             
         case 'get_map_by_id':
             $mapId = $input['map_id'] ?? 1;
-            $stmt = $pdo->prepare("SELECT * FROM maps WHERE id_map = ? AND is_active = 1");
+            $stmt = $pdo->prepare("
+                SELECT id_map, map_name as name_map, map_file as image_map, dimension_id, description, created_at 
+                FROM maps WHERE id_map = ?
+            ");
             $stmt->execute([$mapId]);
             $map = $stmt->fetch(PDO::FETCH_ASSOC);
             
@@ -86,12 +72,11 @@ try {
             
         case 'get_maps_with_point_counts':
             $stmt = $pdo->prepare("
-                SELECT m.*, COUNT(ip.id_IP) as point_count 
+                SELECT m.id_map, m.map_name as name_map, m.map_file as image_map, m.dimension_id, m.description, m.created_at, COUNT(ip.id_IP) as point_count 
                 FROM maps m 
                 LEFT JOIN interest_points ip ON m.id_map = ip.map_IP 
-                WHERE m.is_active = 1 
                 GROUP BY m.id_map 
-                ORDER BY m.display_order
+                ORDER BY m.id_map
             ");
             $stmt->execute();
             $maps = $stmt->fetchAll(PDO::FETCH_ASSOC);
