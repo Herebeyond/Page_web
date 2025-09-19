@@ -150,9 +150,17 @@ require_once "./blueprints/gl_ap_start.php"; // includes the start of the genera
             
             // Function to load main image
             function loadMainImageForTooltip() {
+                console.log('loadMainImageForTooltip called for point:', point.name);
                 const imageContainer = document.getElementById(`tooltip-image-${point.id}`);
-                if (!imageContainer) return; // Safety check
+                if (!imageContainer) {
+                    console.error('Image container not found for point:', point.id);
+                    return; // Safety check
+                }
                 
+                console.log('Image container before update:', imageContainer.innerHTML);
+                console.log('Image container element:', imageContainer);
+                
+                console.log('Making fetch request for image check:', point.name);
                 // Use server-side image checker to avoid console 404 errors
                 fetch('./scriptes/image_checker.php', {
                     method: 'POST',
@@ -164,17 +172,38 @@ require_once "./blueprints/gl_ap_start.php"; // includes the start of the genera
                         name: point.name  // Send original name, let server generate slug
                     })
                 })
-                .then(response => response.json())
+                .then(response => {
+                    console.log('Response received:', response.status);
+                    return response.json();
+                })
                 .then(data => {
+                    console.log('Image check result:', data);
                     if (data.success && data.found) {
                         // Image exists, display it
-                        imageContainer.innerHTML = `
-                            <img src="${data.path}" 
-                                 alt="Image of ${point.name}" 
-                                 style="max-width: 180px; max-height: 120px; border-radius: 4px; box-shadow: 0 2px 4px rgba(0,0,0,0.3); object-fit: cover;">
-                        `;
+                        console.log('Displaying image:', data.path);
+                        
+                        // Clear the container completely first
+                        imageContainer.innerHTML = '';
+                        console.log('Container cleared, innerHTML is now:', imageContainer.innerHTML);
+                        
+                        // Create the image element
+                        const img = document.createElement('img');
+                        img.src = data.path;
+                        img.alt = `Image of ${point.name}`;
+                        img.style.cssText = 'max-width: 180px; max-height: 120px; border-radius: 4px; box-shadow: 0 2px 4px rgba(0,0,0,0.3); object-fit: cover; display: block !important; visibility: visible !important;';
+                        img.onload = function() {
+                            console.log('Image loaded successfully:', this.src);
+                        };
+                        img.onerror = function() {
+                            console.error('Image failed to load:', this.src);
+                        };
+                        
+                        // Append the image to the container
+                        imageContainer.appendChild(img);
+                        console.log('Image appended. Container innerHTML is now:', imageContainer.innerHTML);
                     } else {
                         // No image found
+                        console.log('No image found for:', point.name);
                         imageContainer.innerHTML = `
                             <div style="padding: 15px; background: rgba(0,0,0,0.1); border-radius: 4px; color: #666; font-size: 11px; border: 1px dashed #999;">
                                 📷 No image available
@@ -183,7 +212,7 @@ require_once "./blueprints/gl_ap_start.php"; // includes the start of the genera
                     }
                 })
                 .catch(error => {
-                    console.error('Error checking image:', error);
+                    console.error('Error checking image for point', point.name, ':', error);
                     imageContainer.innerHTML = `
                         <div style="padding: 15px; background: rgba(0,0,0,0.1); border-radius: 4px; color: #666; font-size: 11px; border: 1px dashed #999;">
                             📷 No image available
@@ -260,6 +289,7 @@ require_once "./blueprints/gl_ap_start.php"; // includes the start of the genera
         
         // Load points from database
         function loadPointsFromDB() {
+            console.log('loadPointsFromDB called for map_id:', currentMapId);
             fetch('./scriptes/map_save_points.php', {
                 method: 'POST',
                 headers: {
@@ -273,8 +303,9 @@ require_once "./blueprints/gl_ap_start.php"; // includes the start of the genera
             .then(response => response.json())
             .then(data => {
                 if (data.success && data.points) {
-                    // Clear existing points
+                    // Clear existing points from both array and DOM
                     points = [];
+                    clearPointsFromDOM();
                     
                     // Load points from database
                     data.points.forEach(dbPoint => {
@@ -447,8 +478,10 @@ require_once "./blueprints/gl_ap_start.php"; // includes the start of the genera
         }
         
         // Clear all points from DOM
+        // Clear points from DOM
         function clearPointsFromDOM() {
             const existingPoints = document.querySelectorAll('.map-point-of-interest');
+            console.log('Clearing', existingPoints.length, 'existing points from DOM');
             existingPoints.forEach(point => point.remove());
         }
         
